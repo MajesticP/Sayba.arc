@@ -1,0 +1,459 @@
+"use client"
+
+import { useState } from "react"
+import Header from "@/components/header"
+import { navItems, footerLinks, socialLinks } from "@/lib/data"
+import Footer from "@/components/footer"
+import Link from "next/link"
+import Image from "next/image"
+import { DynamicIcon } from "@/lib/dynamic-icon"
+import { ChevronDown, ArrowRight } from "lucide-react"
+import PageTransition from "@/components/page-transition"
+import FAQSection from "@/components/faq-section"
+import { getFAQForSlug } from "@/lib/page-content"
+import type { FAQSection as FAQSectionType } from "@/lib/faq-types"
+
+interface CustomTab {
+  id: string
+  label: string
+  items: Array<{ title: string; points: string[]; icon?: string }>
+}
+
+interface CustomButton {
+  text: string
+  link: string
+  color: string
+  textColor: string
+}
+
+interface FAQ {
+  question: string
+  answer: string
+}
+
+export default function ProductDetailClient({ slug }: { slug: string }) {
+  const [homeData, setHomeData] = useState<any>({})
+  const [productData, setProductData] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState<string>("")
+  const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({})
+  const [expandedFAQs, setExpandedFAQs] = useState<{ [key: number]: boolean }>({})
+  
+  // FAQ state - bisa di-override dengan custom FAQ di halaman ini
+  const [customFAQ, setCustomFAQ] = useState<Partial<FAQSectionType> | undefined>(undefined)
+
+  const getValue = (key: string) => homeData[key] || "-"
+
+  const parseCustomTabs = (): CustomTab[] => {
+    if (!productData) return []
+    const tabs: CustomTab[] = []
+    let tabIndex = 1
+
+    while (tabIndex <= 20) {
+      const tabName = productData[`Tab ${tabIndex} Name`]
+      if (!tabName || tabName === "-") break
+
+      const items: Array<{ title: string; points: string[]; icon?: string }> = []
+      let itemIndex = 1
+
+      while (itemIndex <= 50) {
+        const itemText = productData[`Tab ${tabIndex} Item ${itemIndex}`]
+        if (!itemText || itemText === "-") break
+
+        const itemIcon = productData[`Tab ${tabIndex} Item ${itemIndex} Icon`]
+        const parts = itemText.split("|").map((part: string) => part.trim())
+        const title = parts[0] || ""
+        const points = parts.slice(1).filter((p: string) => p.length > 0)
+
+        items.push({ title, points, icon: itemIcon !== "-" ? itemIcon : undefined })
+        itemIndex++
+      }
+
+      if (items.length > 0) {
+        tabs.push({ id: `tab-${tabIndex}`, label: tabName, items })
+      }
+      tabIndex++
+    }
+
+    return tabs
+  }
+
+  const parseCustomButtons = (): CustomButton[] => {
+    if (!productData) return []
+    const buttons: CustomButton[] = []
+    let btnIndex = 1
+
+    while (btnIndex <= 10) {
+      const btnText = productData[`Button ${btnIndex} Text`]
+      if (!btnText || btnText === "-") break
+
+      buttons.push({
+        text: btnText,
+        link: productData[`Button ${btnIndex} Link`] || "/contact",
+        color: productData[`Button ${btnIndex} Color`] || productData["Button Color"] || "#ff914d",
+        textColor: productData[`Button ${btnIndex} Text Color`] || "#ffffff",
+      })
+      btnIndex++
+    }
+
+    return buttons
+  }
+
+  const parseFAQItems = (): FAQ[] => {
+    if (!productData) return []
+    const faqs: FAQ[] = []
+    let index = 1
+
+    while (index <= 50) {
+      const question = productData[`FAQ ${index} Question`]
+      const answer = productData[`FAQ ${index} Answer`]
+
+      if (!question || question === "-" || !answer || answer === "-") {
+        break
+      }
+
+      faqs.push({ question, answer })
+      index++
+    }
+
+    return faqs
+  }
+
+  const parseSocialItems = () => {
+    const items: Array<{ name: string; icon: string; link: string }> = []
+    let index = 1
+
+    while (index <= 20) {
+      const name = homeData[`Social ${index} Name`]
+      if (!name || name === "-") break
+
+      items.push({
+        name,
+        icon: homeData[`Social ${index} Icon`] || name.toLowerCase(),
+        link: homeData[`Social ${index} Link`] || "#",
+      })
+      index++
+    }
+
+    return items
+  }
+
+  const toggleExpand = (tabId: string, itemIndex: number) => {
+    const key = `${tabId}-${itemIndex}`
+    setExpandedItems((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const toggleFAQExpand = (index: number) => {
+    setExpandedFAQs((prev) => ({ ...prev, [index]: !prev[index] }))
+  }
+
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full"></div>
+      </main>
+    )
+  }
+
+  if (!productData) {
+    return (
+      <main className="min-h-screen flex flex-col">
+        <Header
+          navItems={navItems}
+          ctaText="Hubungi Kami"
+          ctaHref="/contact"
+        />
+        <div className="flex-1 flex items-center justify-center bg-gray-50">
+          <PageTransition>
+            <div className="text-center p-8">
+              <h1 className="text-4xl font-bold text-gray-800 mb-4">Halaman Tidak Tersedia</h1>
+              <p className="text-gray-600 mb-6">Produk "{slug}" tidak ditemukan dalam sistem.</p>
+              <Link href="/products" className="text-orange-500 hover:underline">
+                Kembali ke Produk
+              </Link>
+            </div>
+          </PageTransition>
+        </div>
+        <Footer
+          footerLinks={footerLinks}
+          socialLinks={socialLinks}
+        />
+      </main>
+    )
+  }
+
+  const title = productData["Title"] || slug.replace(/-/g, " ")
+  const subtitle = productData["Subtitle"] || ""
+  const description = productData["Description"] || ""
+  const icon = productData["Icon"] || "star"
+  const imageUrl = productData["Image URL"] || ""
+
+  const bgColor = productData["Background Color"] || "#ffffff"
+  const titleColor = productData["Title Color"] || "#313030"
+  const textColor = productData["Text Color"] || "#666666"
+  const buttonColor = productData["Button Color"] || getValue("Header Button Color") || "#ff914d"
+  const cardColor = productData["Card Color"] || "#f8f8f8"
+
+  const customTabs = parseCustomTabs()
+  const customButtons = parseCustomButtons()
+  const faqItems = parseFAQItems()
+
+  if (activeTab === "" && customTabs.length > 0) {
+    setActiveTab(customTabs[0].id)
+  }
+
+  return (
+    <main className="min-h-screen flex flex-col">
+      <Header
+          navItems={navItems}
+          ctaText="Hubungi Kami"
+          ctaHref="/contact"
+        />
+
+      <section style={{ backgroundColor: bgColor }} className="pt-28 pb-4">
+        <PageTransition>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="flex items-center gap-2 text-sm" style={{ color: `${titleColor}80` }}>
+              <Link href="/" className="hover:opacity-70">
+                Home
+              </Link>
+              <span>/</span>
+              <Link href="/products" className="hover:opacity-70">
+                Products
+              </Link>
+              <span>/</span>
+              <span style={{ color: titleColor }} className="font-medium capitalize">
+                {title}
+              </span>
+            </nav>
+          </div>
+        </PageTransition>
+      </section>
+
+      <section style={{ backgroundColor: bgColor }} className="py-8 md:py-16 flex-1 relative overflow-hidden">
+        <div className="hidden md:block absolute top-20 right-20 w-32 h-32 opacity-5 animate-float-up" style={{
+          backgroundColor: buttonColor,
+          clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)'
+        }}></div>
+        <div className="hidden md:block absolute bottom-20 left-10 w-24 h-24 opacity-3 animate-float-up" style={{
+          backgroundColor: buttonColor,
+          clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+          animationDelay: '0.5s'
+        }}></div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <PageTransition delay={100}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12 items-start">
+              {imageUrl && (
+                <div
+                  className="relative aspect-video rounded-xl md:rounded-2xl overflow-hidden p-1 group order-first lg:order-last animate-in fade-in slide-in-from-top-8 lg:slide-in-from-right-8 duration-700 hover:shadow-2xl transition-all"
+                  style={{ backgroundColor: buttonColor }}
+                >
+                  <div className="relative w-full h-full rounded-lg md:rounded-xl overflow-hidden">
+                    <Image
+                      src={imageUrl || "/placeholder.svg"}
+                      alt={title}
+                      fill
+                      priority
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 45vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity duration-300 bg-gradient-to-r from-transparent via-white to-transparent" />
+                </div>
+              )}
+
+              <div className="order-last lg:order-first animate-in fade-in slide-in-from-bottom-8 lg:slide-in-from-left-8 duration-700">
+                <div className="flex items-center gap-4 mb-4 md:mb-6">
+                  <div
+                    className="w-14 h-14 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center transition-transform duration-300 hover:scale-110 hover:rotate-3"
+                    style={{ backgroundColor: `${buttonColor}15` }}
+                  >
+                    <DynamicIcon name={icon} color={buttonColor} size={28} className="md:hidden" />
+                    <DynamicIcon name={icon} color={buttonColor} size={32} className="hidden md:block" />
+                  </div>
+                </div>
+
+                <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-2 md:mb-4 capitalize" style={{ color: titleColor }}>
+                  {title}
+                </h1>
+
+                {subtitle && subtitle !== "-" && (
+                  <p className="text-base md:text-xl mb-4 md:mb-6" style={{ color: buttonColor }}>
+                    {subtitle}
+                  </p>
+                )}
+
+                <p className="text-sm md:text-lg leading-relaxed mb-6 md:mb-8" style={{ color: textColor }}>
+                  {description}
+                </p>
+
+                {customButtons.length > 0 && (
+                  <div className="flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4">
+                    {customButtons.map((btn, index) => (
+                      <Link
+                        key={index}
+                        href={btn.link !== "-" ? btn.link : "/contact"}
+                        className="inline-flex items-center justify-center gap-2 px-6 md:px-8 py-3 md:py-4 rounded-full font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg group text-sm md:text-base"
+                        style={{
+                          backgroundColor: btn.color !== "-" ? btn.color : buttonColor,
+                          color: btn.textColor !== "-" ? btn.textColor : "#ffffff",
+                        }}
+                      >
+                        <span>{btn.text}</span>
+                        <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </PageTransition>
+
+          {customTabs.length > 0 && (
+            <PageTransition delay={200}>
+              <div className="mt-10 md:mt-16">
+                <div className="flex overflow-x-auto gap-1 md:gap-2 border-b mb-6 md:mb-8 pb-0 scrollbar-hide" style={{ borderColor: `${titleColor}20` }}>
+                  {customTabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className="px-4 md:px-6 py-2.5 md:py-3 font-medium transition-all duration-300 relative whitespace-nowrap text-sm md:text-base hover:bg-gray-50 rounded-t-lg"
+                      style={{
+                        color: activeTab === tab.id ? buttonColor : `${titleColor}80`,
+                        backgroundColor: activeTab === tab.id ? `${buttonColor}08` : 'transparent',
+                      }}
+                    >
+                      {tab.label}
+                      <div
+                        className="absolute bottom-0 left-0 right-0 h-0.5 transition-all duration-300"
+                        style={{
+                          backgroundColor: buttonColor,
+                          transform: activeTab === tab.id ? 'scaleX(1)' : 'scaleX(0)',
+                          transformOrigin: 'center'
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                {customTabs.map((tab) => (
+                  <div
+                    key={tab.id}
+                    className={`${activeTab === tab.id ? "block animate-in fade-in slide-in-from-bottom-4 duration-500" : "hidden"}`}
+                  >
+                    <div className="flex flex-col gap-2 md:gap-3">
+                      {tab.items.map((item, index) => {
+                        const isExpanded = expandedItems[`${tab.id}-${index}`]
+                        const hasPoints = item.points.length > 0
+
+                        return (
+                          <div
+                            key={index}
+                            className="rounded-xl md:rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg group"
+                            style={{
+                              backgroundColor: cardColor,
+                              borderLeft: isExpanded ? `3px solid ${buttonColor}` : '3px solid transparent'
+                            }}
+                          >
+                            <button
+                              onClick={() => hasPoints && toggleExpand(tab.id, index)}
+                              className={`w-full flex items-center justify-between gap-3 md:gap-4 p-3 md:p-4 text-left ${hasPoints ? "cursor-pointer" : "cursor-default"} transition-all duration-300`}
+                              style={{
+                                backgroundColor: isExpanded ? `${buttonColor}05` : 'transparent'
+                              }}
+                            >
+                              <div className="flex items-center gap-3 md:gap-4">
+                                <div
+                                  className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110"
+                                  style={{ backgroundColor: `${buttonColor}20` }}
+                                >
+                                  <DynamicIcon name={item.icon || "layers"} color={buttonColor} size={16} className="md:hidden" />
+                                  <DynamicIcon name={item.icon || "layers"} color={buttonColor} size={18} className="hidden md:block" />
+                                </div>
+                                <span className="font-medium text-sm md:text-lg transition-all duration-300 group-hover:translate-x-1" style={{ color: titleColor }}>
+                                  {item.title}
+                                </span>
+                              </div>
+                              {hasPoints && (
+                                <div
+                                  className="transition-transform duration-300"
+                                  style={{
+                                    color: buttonColor,
+                                    transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
+                                  }}
+                                >
+                                  <ChevronDown size={20} className="md:hidden" />
+                                  <ChevronDown size={24} className="hidden md:block" />
+                                </div>
+                              )}
+                            </button>
+
+                            {hasPoints && isExpanded && (
+                              <div className="px-3 md:px-4 pb-3 md:pb-4" style={{ color: textColor }}>
+                                <ul className="space-y-2">
+                                  {item.points.map((point, idx) => (
+                                    <li key={idx} className="flex gap-2">
+                                      <span style={{ color: buttonColor, flexShrink: 0 }}>•</span>
+                                      <span>{point}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </PageTransition>
+          )}
+
+  {/* FAQ Section - Using Reusable Component */}
+  {(() => {
+    // Try to get FAQ dari spreadsheet terlebih dahulu
+    const spreadsheetFAQItems = parseFAQItems()
+    
+    // Tentukan FAQ: prioritas custom override > spreadsheet > default
+    let finalFAQ: FAQSectionType
+    
+    if (customFAQ && customFAQ.items && customFAQ.items.length > 0) {
+      // Jika ada custom FAQ di component ini, gunakan itu
+      finalFAQ = {
+        title: customFAQ.title || "Pertanyaan Umum",
+        description: customFAQ.description || "Temukan jawaban untuk pertanyaan yang sering diajukan",
+        items: customFAQ.items,
+      }
+    } else if (spreadsheetFAQItems.length > 0) {
+      // Jika ada FAQ dari spreadsheet, gunakan itu
+      finalFAQ = {
+        title: "Pertanyaan Umum",
+        description: "Temukan jawaban untuk pertanyaan yang sering diajukan tentang produk kami",
+        items: spreadsheetFAQItems,
+      }
+    } else {
+      // Gunakan default FAQ dari page-content
+      finalFAQ = getFAQForSlug("products", slug)
+    }
+
+    return (
+      <PageTransition delay={300}>
+        <div className="mt-10 md:mt-16">
+          <FAQSection faq={finalFAQ} />
+        </div>
+      </PageTransition>
+    )
+  })()}
+        </div>
+      </section>
+
+      <Footer
+          footerLinks={footerLinks}
+          socialLinks={socialLinks}
+        />
+    </main>
+  )
+}

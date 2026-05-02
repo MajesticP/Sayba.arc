@@ -1,0 +1,882 @@
+"use client"
+
+import { useEffect, useState, useCallback, useRef } from "react"
+import type { Portfolio, PortfolioInsert, Layanan, LayananInsert, PriceTier } from "@/lib/database.types"
+import {
+  LayoutGrid, Layers, Settings, Plus, Pencil, Trash2,
+  RefreshCw, Search, X, Save, ChevronDown, ExternalLink,
+  Map, Globe, Database, Smartphone, MapPin, Code,
+  Monitor, Server, Layout, Cloud, Headphones, Shield,
+  Zap, PlugZap, Users, CheckCircle, AlertCircle,
+  Image as ImageIcon, Loader2,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
+
+// ── Types ──────────────────────────────────────────────────────────────────
+type Tab = "portfolio" | "layanan"
+type Dept = "semua" | "arcgis" | "it" | "kelautan"
+type Status = "active" | "draft" | "archived"
+
+type Toast = { id: number; msg: string; type: "success" | "error" }
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").trim()
+}
+
+const STATUS_LABEL: Record<Status, string> = { active: "Active", draft: "Draft", archived: "Archived" }
+const STATUS_CLASS: Record<Status, string> = {
+  active: "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20",
+  draft: "bg-yellow-500/10 text-yellow-400 ring-yellow-500/20",
+  archived: "bg-white/5 text-white/30 ring-white/10",
+}
+
+function StatusBadge({ status }: { status: Status }) {
+  return (
+    <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ring-1", STATUS_CLASS[status])}>
+      {STATUS_LABEL[status]}
+    </span>
+  )
+}
+
+function DeptBadge({ dept }: { dept: "arcgis" | "it" | "kelautan" }) {
+  if (dept === "arcgis") return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#ff914d]/10 text-[#ff914d] ring-1 ring-[#ff914d]/20">
+      ArcGIS
+    </span>
+  )
+  if (dept === "kelautan") return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#0a6e8a]/10 text-[#0a6e8a] ring-1 ring-[#0a6e8a]/20">
+      Kelautan
+    </span>
+  )
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-400/10 text-blue-400 ring-1 ring-blue-400/20">
+      IT
+    </span>
+  )
+}
+
+// ── Main Component ─────────────────────────────────────────────────────────
+export default function AdminDashboard() {
+  const [tab, setTab] = useState<Tab>("portfolio")
+  const [deptFilter, setDeptFilter] = useState<Dept>("semua")
+  const [search, setSearch] = useState("")
+
+  const [portfolioData, setPortfolioData] = useState<Portfolio[]>([])
+  const [layananData, setLayananData] = useState<Layanan[]>([])
+  const [loadingP, setLoadingP] = useState(true)
+  const [loadingL, setLoadingL] = useState(true)
+
+  const [toasts, setToasts] = useState<Toast[]>([])
+  const toastCounter = useRef(0)
+
+  // Modals
+  const [pfModal, setPfModal] = useState(false)
+  const [pfEdit, setPfEdit] = useState<Portfolio | null>(null)
+  const [lvModal, setLvModal] = useState(false)
+  const [lvEdit, setLvEdit] = useState<Layanan | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{ table: Tab; id: string; name: string } | null>(null)
+
+  // ── Toast ────────────────────────────────────────────────────────────────
+  const showToast = useCallback((msg: string, type: "success" | "error" = "success") => {
+    const id = ++toastCounter.current
+    setToasts(t => [...t, { id, msg, type }])
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3500)
+  }, [])
+
+  // ── Fetch ────────────────────────────────────────────────────────────────
+  const fetchPortfolio = useCallback(async () => {
+    setLoadingP(true)
+    const res = await fetch("/api/admin/portfolio")
+    if (!res.ok) { showToast("Gagal memuat portfolio", "error") }
+    else setPortfolioData(await res.json())
+    setLoadingP(false)
+  }, [showToast])
+
+  const fetchLayanan = useCallback(async () => {
+    setLoadingL(true)
+    const res = await fetch("/api/admin/layanan")
+    if (!res.ok) { showToast("Gagal memuat layanan", "error") }
+    else setLayananData(await res.json())
+    setLoadingL(false)
+  }, [showToast])
+
+  useEffect(() => { fetchPortfolio(); fetchLayanan() }, [fetchPortfolio, fetchLayanan])
+
+  // ── Filtered data ────────────────────────────────────────────────────────
+  const filteredPortfolio = portfolioData.filter(p => {
+    const matchDept = deptFilter === "semua" || p.dept === deptFilter
+    const matchSearch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.description?.toLowerCase().includes(search.toLowerCase())
+    return matchDept && matchSearch
+  })
+
+  const filteredLayanan = layananData.filter(l => {
+    const matchDept = deptFilter === "semua" || l.dept === deptFilter
+    const matchSearch = !search || l.title.toLowerCase().includes(search.toLowerCase()) || l.description?.toLowerCase().includes(search.toLowerCase())
+    return matchDept && matchSearch
+  })
+
+  // ── Delete ───────────────────────────────────────────────────────────────
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    const res = await fetch(`/api/admin/${deleteTarget.table}?id=${deleteTarget.id}`, { method: "DELETE" })
+    const error = res.ok ? null : { message: (await res.json()).error ?? "Delete failed" }
+    if (error) { showToast(error.message, "error"); return }
+    showToast("Data berhasil dihapus")
+    setDeleteTarget(null)
+    if (deleteTarget.table === "portfolio") fetchPortfolio()
+    else fetchLayanan()
+  }
+
+  // ── Stats ────────────────────────────────────────────────────────────────
+  const stats = [
+    { label: "Total Portofolio", value: portfolioData.length, color: "text-[#ff914d]", bar: "bg-[#ff914d]" },
+    { label: "Dept. ArcGIS", value: portfolioData.filter(p => p.dept === "arcgis").length, color: "text-blue-400", bar: "bg-blue-400" },
+    { label: "Total Layanan", value: layananData.length, color: "text-emerald-400", bar: "bg-emerald-400" },
+    { label: "Dept. IT", value: layananData.filter(l => l.dept === "it").length, color: "text-purple-400", bar: "bg-purple-400" },
+    { label: "Dept. Kelautan", value: layananData.filter(l => l.dept === "kelautan").length, color: "text-[#0a6e8a]", bar: "bg-[#0a6e8a]" },
+  ]
+
+  // ── Switch tab resets filter ─────────────────────────────────────────────
+  const switchTab = (t: Tab) => { setTab(t); setDeptFilter("semua"); setSearch("") }
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans flex">
+
+      {/* ── SIDEBAR ── */}
+      <aside className="w-[220px] min-h-screen bg-[#111] border-r border-white/[0.07] flex flex-col fixed top-0 left-0 bottom-0 z-40">
+        {/* Logo */}
+        <div className="px-5 py-5 border-b border-white/[0.07] flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[#ff914d] flex items-center justify-center flex-shrink-0">
+            <Map size={15} className="text-white" />
+          </div>
+          <div>
+            <p className="font-extrabold text-[13.5px] tracking-tight leading-none">SAYBA ARC</p>
+            <p className="text-[10px] text-white/30 mt-0.5">Admin Panel</p>
+          </div>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 py-4 px-3 space-y-0.5">
+          <p className="text-[9.5px] font-bold uppercase tracking-widest text-white/20 px-2 mb-2">Menu</p>
+          {(["portfolio", "layanan"] as Tab[]).map(t => (
+            <button
+              key={t}
+              onClick={() => switchTab(t)}
+              className={cn(
+                "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all",
+                tab === t
+                  ? "bg-[#ff914d]/10 text-[#ff914d]"
+                  : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
+              )}
+            >
+              {t === "portfolio" ? <LayoutGrid size={14} /> : <Layers size={14} />}
+              {t === "portfolio" ? "Portofolio" : "Layanan"}
+              <span className={cn(
+                "ml-auto text-[11px] font-bold px-1.5 py-0.5 rounded-md",
+                tab === t ? "bg-[#ff914d]/20 text-[#ff914d]" : "bg-white/[0.06] text-white/30"
+              )}>
+                {t === "portfolio" ? portfolioData.length : layananData.length}
+              </span>
+            </button>
+          ))}
+
+          <div className="pt-3">
+            <p className="text-[9.5px] font-bold uppercase tracking-widest text-white/20 px-2 mb-2">Info</p>
+            <a
+              href="https://supabase.com/dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition-all"
+            >
+              <Settings size={14} />
+              Supabase
+              <ExternalLink size={11} className="ml-auto opacity-50" />
+            </a>
+          </div>
+        </nav>
+
+        {/* Footer */}
+        <div className="px-3 pb-4">
+          <div className="bg-[#181818] border border-white/[0.06] rounded-lg px-3 py-2.5 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+            <div>
+              <p className="text-[11.5px] font-medium text-white/60">Supabase</p>
+              <p className="text-[10px] text-white/25">Connected</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* ── MAIN ── */}
+      <div className="ml-[220px] flex-1 flex flex-col min-h-screen">
+
+        {/* Topbar */}
+        <header className="h-14 bg-[#111] border-b border-white/[0.07] flex items-center px-7 gap-4 sticky top-0 z-30">
+          <h1 className="font-bold text-[15px] flex-1 capitalize">{tab}</h1>
+          <button
+            onClick={() => tab === "portfolio" ? fetchPortfolio() : fetchLayanan()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold text-white/40 border border-white/[0.07] hover:text-white/70 hover:border-white/15 transition-all"
+          >
+            <RefreshCw size={13} className={cn(loadingP || loadingL ? "animate-spin" : "")} />
+            Refresh
+          </button>
+          <button
+            onClick={() => { if (tab === "portfolio") { setPfEdit(null); setPfModal(true) } else { setLvEdit(null); setLvModal(true) } }}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12.5px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all"
+          >
+            <Plus size={14} />
+            Tambah
+          </button>
+        </header>
+
+        {/* Content */}
+        <main className="p-7 flex-1">
+
+          {/* Stats */}
+          <div className="grid grid-cols-4 gap-3.5 mb-7">
+            {stats.map((s, i) => (
+              <div key={i} className="bg-[#111] border border-white/[0.07] rounded-xl p-5 relative overflow-hidden hover:border-white/10 transition-colors">
+                <div className={cn("absolute top-0 left-0 right-0 h-[2px]", s.bar)} />
+                <p className="text-[10.5px] font-bold uppercase tracking-wider text-white/25 mb-2.5">{s.label}</p>
+                <p className={cn("text-[34px] font-extrabold leading-none tracking-tight", s.color)}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Panel */}
+          <div className="bg-[#111] border border-white/[0.07] rounded-xl overflow-hidden">
+
+            {/* Panel header */}
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.07]">
+              <p className="font-bold text-[14px] flex-1">
+                Daftar {tab === "portfolio" ? "Portofolio" : "Layanan"}
+              </p>
+
+              {/* Search */}
+              <div className="relative">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25 pointer-events-none" />
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder={`Cari ${tab}…`}
+                  className="bg-[#181818] border border-white/[0.07] rounded-lg pl-8 pr-3 py-1.5 text-[12.5px] w-44 outline-none focus:border-[#ff914d]/40 placeholder:text-white/20 text-white transition-colors"
+                />
+                {search && (
+                  <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60">
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+
+              {/* Dept filter */}
+              <div className="flex gap-1">
+                {(["semua", "arcgis", "it", "kelautan"] as Dept[]).map(d => (
+                  <button
+                    key={d}
+                    onClick={() => setDeptFilter(d)}
+                    className={cn(
+                      "px-3 py-1 rounded-lg text-[11.5px] font-semibold transition-all",
+                      deptFilter === d
+                        ? "bg-[#ff914d]/10 text-[#ff914d] ring-1 ring-[#ff914d]/20"
+                        : "text-white/30 hover:text-white/50 hover:bg-white/[0.04]"
+                    )}
+                  >
+                    {d === "kelautan" ? "Kelautan" : d.charAt(0).toUpperCase() + d.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Table */}
+            {tab === "portfolio" ? (
+              <PortfolioTable
+                data={filteredPortfolio}
+                loading={loadingP}
+                onEdit={p => { setPfEdit(p); setPfModal(true) }}
+                onDelete={p => setDeleteTarget({ table: "portfolio", id: p.id, name: p.title })}
+              />
+            ) : (
+              <LayananTable
+                data={filteredLayanan}
+                loading={loadingL}
+                onEdit={l => { setLvEdit(l); setLvModal(true) }}
+                onDelete={l => setDeleteTarget({ table: "layanan", id: l.id, name: l.title })}
+              />
+            )}
+          </div>
+        </main>
+      </div>
+
+      {/* ── MODALS ── */}
+      <PortfolioModal
+        open={pfModal}
+        initial={pfEdit}
+        onClose={() => setPfModal(false)}
+        onSaved={() => { setPfModal(false); fetchPortfolio(); showToast(pfEdit ? "Portofolio diperbarui" : "Portofolio ditambahkan") }}
+        onError={showToast}
+      />
+
+      <LayananModal
+        open={lvModal}
+        initial={lvEdit}
+        onClose={() => setLvModal(false)}
+        onSaved={() => { setLvModal(false); fetchLayanan(); showToast(lvEdit ? "Layanan diperbarui" : "Layanan ditambahkan") }}
+        onError={showToast}
+      />
+
+      {/* Delete confirm */}
+      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxW="max-w-sm">
+        <ModalHeader icon={<Trash2 size={16} className="text-red-400" />} iconBg="bg-red-500/10" title="Konfirmasi Hapus" onClose={() => setDeleteTarget(null)} />
+        <div className="px-6 py-5">
+          <p className="text-[13.5px] text-white/60 leading-relaxed">
+            Yakin hapus <span className="text-white font-semibold">"{deleteTarget?.name}"</span>? Tindakan ini tidak dapat dibatalkan.
+          </p>
+        </div>
+        <ModalFooter>
+          <button onClick={() => setDeleteTarget(null)} className="btn-ghost">Batal</button>
+          <button onClick={handleDelete} className="btn-danger">
+            <Trash2 size={13} /> Ya, Hapus
+          </button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Toasts */}
+      <div className="fixed bottom-6 right-6 flex flex-col gap-2 z-[999]">
+        {toasts.map(t => (
+          <div key={t.id} className={cn(
+            "flex items-center gap-2.5 px-4 py-3 rounded-xl border text-[13px] font-medium shadow-xl animate-fade-in-up",
+            "bg-[#181818]",
+            t.type === "success" ? "border-emerald-500/25 text-white" : "border-red-500/25 text-white"
+          )}>
+            {t.type === "success"
+              ? <CheckCircle size={15} className="text-emerald-400 flex-shrink-0" />
+              : <AlertCircle size={15} className="text-red-400 flex-shrink-0" />
+            }
+            {t.msg}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Portfolio Table ────────────────────────────────────────────────────────
+function PortfolioTable({ data, loading, onEdit, onDelete }: {
+  data: Portfolio[]; loading: boolean
+  onEdit: (p: Portfolio) => void; onDelete: (p: Portfolio) => void
+}) {
+  if (loading) return <TableLoading cols={5} />
+  if (!data.length) return <TableEmpty label="portofolio" />
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-white/[0.05]">
+            {["Judul & Deskripsi", "Dept / Kategori", "Slug", "Status", "Aksi"].map(h => (
+              <th key={h} className="text-left text-[10.5px] font-bold uppercase tracking-widest text-white/20 px-5 py-3">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map(p => (
+            <tr key={p.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+              <td className="px-5 py-3.5">
+                <p className="text-[13.5px] font-medium text-white leading-snug">{p.title}</p>
+                {p.description && <p className="text-[11.5px] text-white/30 mt-0.5 max-w-[280px] truncate">{p.description}</p>}
+              </td>
+              <td className="px-5 py-3.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <DeptBadge dept={p.dept} />
+                  {p.category && <span className="text-[11px] text-white/25">{p.category}</span>}
+                </div>
+              </td>
+              <td className="px-5 py-3.5">
+                <code className="text-[11px] bg-[#181818] text-white/40 px-2 py-0.5 rounded-md">{p.slug}</code>
+              </td>
+              <td className="px-5 py-3.5"><StatusBadge status={p.status} /></td>
+              <td className="px-5 py-3.5">
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => onEdit(p)} className="btn-icon"><Pencil size={13} /></button>
+                  <button onClick={() => onDelete(p)} className="btn-icon-danger"><Trash2 size={13} /></button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// ── Layanan Table ──────────────────────────────────────────────────────────
+function LayananTable({ data, loading, onEdit, onDelete }: {
+  data: Layanan[]; loading: boolean
+  onEdit: (l: Layanan) => void; onDelete: (l: Layanan) => void
+}) {
+  if (loading) return <TableLoading cols={6} />
+  if (!data.length) return <TableEmpty label="layanan" />
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-white/[0.05]">
+            {["Judul & Deskripsi", "Dept", "Slug / URL", "Icon", "Harga", "Status", "Aksi"].map(h => (
+              <th key={h} className="text-left text-[10.5px] font-bold uppercase tracking-widest text-white/20 px-5 py-3">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map(l => (
+            <tr key={l.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+              <td className="px-5 py-3.5">
+                <p className="text-[13.5px] font-medium text-white leading-snug">{l.title}</p>
+                {l.description && <p className="text-[11.5px] text-white/30 mt-0.5 max-w-[280px] truncate">{l.description}</p>}
+              </td>
+              <td className="px-5 py-3.5"><DeptBadge dept={l.dept} /></td>
+              <td className="px-5 py-3.5">
+                <code className="text-[11px] bg-[#181818] text-white/40 px-2 py-0.5 rounded-md">/services/{l.slug}</code>
+              </td>
+              <td className="px-5 py-3.5">
+                <code className="text-[11px] bg-[#ff914d]/10 text-[#ff914d] px-2 py-0.5 rounded-md">{l.icon || "—"}</code>
+              </td>
+              <td className="px-5 py-3.5">
+                {l.prices && l.prices.length > 0 ? (
+                  <div className="flex flex-col gap-0.5">
+                    {(l.prices as PriceTier[]).map((t: PriceTier, i: number) => (
+                      <span key={i} className="text-[10.5px] text-white/40">
+                        <span className="text-white/60 font-medium">{t.name}</span> — {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(t.price)}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-[11px] text-white/20 italic">Belum ada</span>
+                )}
+              </td>
+              <td className="px-5 py-3.5"><StatusBadge status={l.status} /></td>
+              <td className="px-5 py-3.5">
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => onEdit(l)} className="btn-icon"><Pencil size={13} /></button>
+                  <button onClick={() => onDelete(l)} className="btn-icon-danger"><Trash2 size={13} /></button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// ── Portfolio Modal ────────────────────────────────────────────────────────
+function PortfolioModal({ open, initial, onClose, onSaved, onError }: {
+  open: boolean; initial: Portfolio | null
+  onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
+}) {
+  type PortfolioForm = Omit<PortfolioInsert, "id" | "created_at" | "features" | "tech_stack"> & {
+    features: string
+    tech_stack: string
+  }
+  const [form, setForm] = useState<PortfolioForm>({
+    title: "", slug: "", dept: "arcgis", category: "", description: "", image_url: "", result_url: "", features: "", tech_stack: "", status: "active"
+  })
+  const [saving, setSaving] = useState(false)
+  const [slugManual, setSlugManual] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      if (initial) {
+        setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", image_url: initial.image_url ?? "", result_url: initial.result_url ?? "", features: (Array.isArray(initial.features) ? initial.features.join("\n") : ""), tech_stack: (Array.isArray(initial.tech_stack) ? initial.tech_stack.join("\n") : ""), status: initial.status })
+        setSlugManual(true)
+      } else {
+        setForm({ title: "", slug: "", dept: "arcgis", category: "", description: "", image_url: "", result_url: "", features: "", tech_stack: "", status: "active" })
+        setSlugManual(false)
+      }
+    }
+  }, [open, initial])
+
+  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
+
+  const handleTitle = (v: string) => {
+    set("title", v)
+    if (!slugManual) set("slug", slugify(v))
+  }
+
+  const handleSubmit = async () => {
+    if (!form.title || !form.slug) { onError("Judul dan slug wajib diisi", "error"); return }
+    setSaving(true)
+    const featuresArr = form.features ? form.features.split("\n").map((s: string) => s.trim()).filter(Boolean) : null
+    const techArr = form.tech_stack ? form.tech_stack.split("\n").map((s: string) => s.trim()).filter(Boolean) : null
+    const payload: Omit<Portfolio, "id" | "created_at"> = {
+      title: form.title,
+      slug: form.slug,
+      dept: form.dept,
+      category: form.category || null,
+      description: form.description || null,
+      image_url: form.image_url || null,
+      result_url: form.result_url || null,
+      features: featuresArr,
+      tech_stack: techArr,
+      status: form.status,
+    }
+    const res = initial
+      ? await fetch(`/api/admin/portfolio?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      : await fetch("/api/admin/portfolio", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+    setSaving(false)
+    if (!res.ok) { const j = await res.json(); onError(j.error ?? "Save failed", "error"); return }
+    onSaved()
+  }
+
+  return (
+    <Modal open={open} onClose={onClose}>
+      <ModalHeader icon={<LayoutGrid size={16} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Portofolio" : "Tambah Portofolio"} onClose={onClose} />
+      <div className="px-6 py-5 space-y-4">
+        <Field label="Judul Proyek" required>
+          <Input value={form.title} onChange={v => handleTitle(v)} placeholder="Sistem Pemetaan Tata Ruang Kota" />
+        </Field>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Slug" required>
+            <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="sistem-pemetaan-tata-ruang" />
+          </Field>
+          <Field label="Departemen" required>
+            <Select value={form.dept} onChange={v => set("dept", v)} options={[{ value: "arcgis", label: "ArcGIS" }, { value: "it", label: "IT" }]} />
+          </Field>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Kategori">
+            <Input value={form.category ?? ""} onChange={v => set("category", v)} placeholder="Web GIS, Mobile…" />
+          </Field>
+          <Field label="Status">
+            <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} />
+          </Field>
+        </div>
+        <Field label="Deskripsi">
+          <Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi singkat proyek…" />
+        </Field>
+        <Field label="URL Gambar (Google Drive atau langsung)">
+          <Input value={form.image_url ?? ""} onChange={v => set("image_url", v)} placeholder="https://drive.google.com/file/d/… atau https://…" />
+          {form.image_url && (
+            <div className="mt-2 h-28 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={form.image_url} alt="preview" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
+            </div>
+          )}
+        </Field>
+        <Field label="URL Hasil Proyek">
+          <Input value={form.result_url ?? ""} onChange={v => set("result_url", v)} placeholder="https://link-hasil-proyek.com" />
+        </Field>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Fitur (1 per baris)">
+            <Textarea value={form.features ?? ""} onChange={v => set("features", v)} placeholder={"Login & Register\nDashboard\nExport PDF"} />
+          </Field>
+          <Field label="Tech Stack (1 per baris)">
+            <Textarea value={form.tech_stack ?? ""} onChange={v => set("tech_stack", v)} placeholder={"Next.js\nPrisma\nPostgreSQL"} />
+          </Field>
+        </div>
+      </div>
+      <ModalFooter>
+        <button onClick={onClose} className="btn-ghost">Batal</button>
+        <button onClick={handleSubmit} disabled={saving} className="btn-primary">
+          {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+          {saving ? "Menyimpan…" : "Simpan"}
+        </button>
+      </ModalFooter>
+    </Modal>
+  )
+}
+
+// ── Layanan Modal ──────────────────────────────────────────────────────────
+const DEFAULT_TIERS: PriceTier[] = [
+  { name: "Starter", price: 3000000, bio: "Cocok untuk kebutuhan dasar dan organisasi kecil.", features: [""] },
+  { name: "Standard", price: 7500000, bio: "Solusi lengkap untuk kebutuhan profesional.", features: [""] },
+  { name: "Premium", price: 15000000, bio: "Paket terlengkap dengan dukungan penuh.", features: [""] },
+]
+
+function PriceTierEditor({ tier, index, onChange }: {
+  tier: PriceTier; index: number; onChange: (t: PriceTier) => void
+}) {
+  const TIER_COLORS = ["bg-white/5 border-white/[0.08]", "bg-[#ff914d]/5 border-[#ff914d]/20", "bg-white/5 border-white/[0.08]"]
+  const TIER_LABELS = ["Paket 1 — Terendah", "Paket 2 — Tengah (Populer)", "Paket 3 — Tertinggi"]
+
+  const setFeat = (fi: number, val: string) => {
+    const feats = [...tier.features]
+    feats[fi] = val
+    onChange({ ...tier, features: feats })
+  }
+  const addFeat = () => onChange({ ...tier, features: [...tier.features, ""] })
+  const removeFeat = (fi: number) => onChange({ ...tier, features: tier.features.filter((_, i) => i !== fi) })
+
+  return (
+    <div className={cn("rounded-xl border p-4 space-y-3", TIER_COLORS[index])}>
+      <p className="text-[10.5px] font-bold uppercase tracking-widest text-white/30">{TIER_LABELS[index]}</p>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Nama Paket">
+          <Input value={tier.name} onChange={v => onChange({ ...tier, name: v })} placeholder="Starter" />
+        </Field>
+        <Field label="Harga (IDR)">
+          <input
+            type="number"
+            value={tier.price}
+            onChange={e => onChange({ ...tier, price: Number(e.target.value) })}
+            placeholder="3000000"
+            className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors"
+          />
+        </Field>
+      </div>
+      <Field label="Bio / Tagline Paket">
+        <Input value={tier.bio} onChange={v => onChange({ ...tier, bio: v })} placeholder="Cocok untuk kebutuhan dasar…" />
+      </Field>
+      <Field label="Fitur yang Didapat">
+        <div className="space-y-2">
+          {tier.features.map((f, fi) => (
+            <div key={fi} className="flex gap-2">
+              <input
+                value={f}
+                onChange={e => setFeat(fi, e.target.value)}
+                placeholder={`Fitur ${fi + 1}…`}
+                className="flex-1 bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-1.5 text-[12px] text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors"
+              />
+              {tier.features.length > 1 && (
+                <button onClick={() => removeFeat(fi)} className="text-white/20 hover:text-red-400 transition-colors px-1">
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+          ))}
+          <button onClick={addFeat} className="text-[11px] text-white/30 hover:text-[#ff914d] flex items-center gap-1 transition-colors mt-1">
+            <Plus size={11} /> Tambah fitur
+          </button>
+        </div>
+      </Field>
+    </div>
+  )
+}
+
+function LayananModal({ open, initial, onClose, onSaved, onError }: {
+  open: boolean; initial: Layanan | null
+  onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
+}) {
+  const [form, setForm] = useState<Omit<LayananInsert, "id" | "created_at">>({
+    title: "", slug: "", dept: "arcgis", description: "", icon: "map", status: "active", prices: DEFAULT_TIERS
+  })
+  const [saving, setSaving] = useState(false)
+  const [slugManual, setSlugManual] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      if (initial) {
+        setForm({
+          title: initial.title, slug: initial.slug, dept: initial.dept,
+          description: initial.description ?? "", icon: initial.icon ?? "map",
+          status: initial.status, prices: initial.prices ?? DEFAULT_TIERS
+        })
+        setSlugManual(true)
+      } else {
+        setForm({ title: "", slug: "", dept: "arcgis", description: "", icon: "map", status: "active", prices: DEFAULT_TIERS })
+        setSlugManual(false)
+      }
+    }
+  }, [open, initial])
+
+  const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }))
+
+  const handleTitle = (v: string) => {
+    set("title", v)
+    if (!slugManual) set("slug", slugify(v))
+  }
+
+  const updateTier = (i: number, t: PriceTier) => {
+    const tiers = [...(form.prices as PriceTier[])]
+    tiers[i] = t
+    set("prices", tiers)
+  }
+
+  const handleSubmit = async () => {
+    if (!form.title || !form.slug) { onError("Nama dan slug wajib diisi", "error"); return }
+    setSaving(true)
+    const payload: Omit<Layanan, "id" | "created_at"> = {
+      title: form.title,
+      slug: form.slug,
+      dept: form.dept,
+      description: form.description || null,
+      icon: form.icon || "map",
+      prices: form.prices ?? null,
+      status: form.status,
+    }
+    const res = initial
+      ? await fetch(`/api/admin/layanan?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      : await fetch("/api/admin/layanan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+    setSaving(false)
+    if (!res.ok) { const j = await res.json(); onError(j.error ?? "Save failed", "error"); return }
+    onSaved()
+  }
+
+  const iconOptions = ["map", "globe", "database", "layers", "smartphone", "map-pin", "code", "monitor", "server", "layout", "cloud", "headphones", "shield-check", "zap", "plug", "users"]
+  const tiers = (form.prices as PriceTier[]) ?? DEFAULT_TIERS
+
+  return (
+    <Modal open={open} onClose={onClose} maxW="max-w-2xl">
+      <ModalHeader icon={<Layers size={16} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Layanan" : "Tambah Layanan"} onClose={onClose} />
+      <div className="px-6 py-5 space-y-4 overflow-y-auto max-h-[70vh]">
+        <Field label="Nama Layanan" required>
+          <Input value={form.title} onChange={v => handleTitle(v)} placeholder="Pengembangan ArcGIS" />
+        </Field>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Slug / Href" required hint={`URL: /services/${form.slug || "slug"}`}>
+            <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="arcgis-development" />
+          </Field>
+          <Field label="Departemen" required>
+            <Select value={form.dept} onChange={v => set("dept", v)} options={[{ value: "arcgis", label: "ArcGIS" }, { value: "it", label: "IT" }, { value: "kelautan", label: "Kelautan" }]} />
+          </Field>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Icon (Lucide)" hint="Nama dari lucide.dev">
+            <Input value={form.icon ?? ""} onChange={v => set("icon", v)} placeholder="map, globe, code…" />
+          </Field>
+          <Field label="Status">
+            <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} />
+          </Field>
+        </div>
+        <Field label="Pilih Cepat Icon">
+          <div className="flex flex-wrap gap-2 mt-1">
+            {iconOptions.map(ic => (
+              <button
+                key={ic}
+                onClick={() => set("icon", ic)}
+                className={cn(
+                  "px-2.5 py-1 rounded-lg text-[11px] font-mono border transition-all",
+                  form.icon === ic
+                    ? "bg-[#ff914d]/10 text-[#ff914d] border-[#ff914d]/30"
+                    : "bg-[#181818] text-white/30 border-white/[0.06] hover:text-white/60"
+                )}
+              >
+                {ic}
+              </button>
+            ))}
+          </div>
+        </Field>
+        <Field label="Deskripsi">
+          <Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi layanan…" />
+        </Field>
+
+        {/* Pricing tiers */}
+        <div className="pt-2">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1 h-px bg-white/[0.06]" />
+            <span className="text-[10.5px] font-bold uppercase tracking-widest text-white/30">Paket Harga (3 Tier)</span>
+            <div className="flex-1 h-px bg-white/[0.06]" />
+          </div>
+          <div className="space-y-4">
+            {tiers.map((tier, i) => (
+              <PriceTierEditor key={i} tier={tier} index={i} onChange={t => updateTier(i, t)} />
+            ))}
+          </div>
+        </div>
+      </div>
+      <ModalFooter>
+        <button onClick={onClose} className="btn-ghost">Batal</button>
+        <button onClick={handleSubmit} disabled={saving} className="btn-primary">
+          {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+          {saving ? "Menyimpan…" : "Simpan"}
+        </button>
+      </ModalFooter>
+    </Modal>
+  )
+}
+
+// ── Reusable UI primitives ─────────────────────────────────────────────────
+function Modal({ open, onClose, maxW = "max-w-lg", children }: {
+  open: boolean; onClose: () => void; maxW?: string; children: React.ReactNode
+}) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div className={cn("bg-[#111] border border-white/[0.07] rounded-2xl w-full overflow-hidden animate-scale-in shadow-2xl", maxW)}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function ModalHeader({ icon, iconBg, title, onClose }: { icon: React.ReactNode; iconBg: string; title: string; onClose: () => void }) {
+  return (
+    <div className="flex items-center gap-3 px-6 py-5 border-b border-white/[0.07]">
+      <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0", iconBg)}>{icon}</div>
+      <h2 className="font-bold text-[15px] flex-1">{title}</h2>
+      <button onClick={onClose} className="text-white/30 hover:text-white/70 transition-colors p-1 rounded-lg hover:bg-white/[0.06]"><X size={17} /></button>
+    </div>
+  )
+}
+
+function ModalFooter({ children }: { children: React.ReactNode }) {
+  return <div className="flex items-center justify-end gap-2.5 px-6 py-4 border-t border-white/[0.07]">{children}</div>
+}
+
+function Field({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-[11.5px] font-semibold text-white/50 mb-1.5">
+        {label}{required && <span className="text-[#ff914d] ml-0.5">*</span>}
+      </label>
+      {children}
+      {hint && <p className="text-[10.5px] text-white/25 mt-1">{hint}</p>}
+    </div>
+  )
+}
+
+function Input({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <input
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors"
+    />
+  )
+}
+
+function Textarea({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <textarea
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      rows={3}
+      className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors resize-y"
+    />
+  )
+}
+
+function Select({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full appearance-none bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors pr-8"
+      >
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+    </div>
+  )
+}
+
+function TableLoading({ cols }: { cols: number }) {
+  return (
+    <div className="flex items-center justify-center gap-2 py-14 text-white/30 text-[13px]">
+      <Loader2 size={16} className="animate-spin" />
+      Memuat data…
+    </div>
+  )
+}
+
+function TableEmpty({ label }: { label: string }) {
+  return (
+    <div className="py-14 text-center text-white/25 text-[13px]">
+      <LayoutGrid size={28} className="mx-auto mb-3 opacity-20" />
+      Belum ada data {label}
+    </div>
+  )
+}
