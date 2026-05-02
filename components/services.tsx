@@ -82,10 +82,14 @@ interface ServicesProps {
   allLayanan: Layanan[]
 }
 
+const BERANDA_DEPTS = ["arcgis", "it", "kelautan"]
+
 export default function Services({ allLayanan }: ServicesProps) {
+  // Only show the 3 main depts on beranda
+  const filtered = allLayanan.filter(l => BERANDA_DEPTS.includes(l.dept))
   // Group by dept, preserving insertion order
   const grouped = new Map<string, Layanan[]>()
-  for (const l of allLayanan) {
+  for (const l of filtered) {
     if (!grouped.has(l.dept)) grouped.set(l.dept, [])
     grouped.get(l.dept)!.push(l)
   }

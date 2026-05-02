@@ -5,6 +5,7 @@ import Link from "next/link"
 import PageTransition from "@/components/page-transition"
 import { DynamicIcon } from "@/lib/dynamic-icon"
 import type { Layanan } from "@/lib/database.types"
+import { getDeptLabel } from "@/lib/layanan-config"
 
 // Dept config — color + label per dept value
 const DEPT_CONFIG: Record<string, { label: string; color: string; iconBg: string; accent: string; border: string; shadow: string }> = {
@@ -36,7 +37,7 @@ const DEPT_CONFIG: Record<string, { label: string; color: string; iconBg: string
 
 function getDeptCfg(dept: string) {
   return DEPT_CONFIG[dept] ?? {
-    label: dept,
+    label: getDeptLabel(dept),
     color: "#888",
     iconBg: "bg-gray-100",
     accent: "",

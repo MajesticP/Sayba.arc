@@ -103,7 +103,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
             <div className="text-center mb-12">
               <span
                 className="inline-block text-xs font-bold uppercase tracking-widest mb-3"
-                style={{ color: isArcgis ? "#ff914d" : "#111" }}
+                style={{ color: service.dept === "arcgis" ? "#ff914d" : "#111" }}
               >
                 Pilih Paket
               </span>
@@ -175,7 +175,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
-                            style={{ color: isMiddle ? (isArcgis ? "#ff914d" : "#60a5fa") : accent }}
+                            style={{ color: isMiddle ? (service.dept === "arcgis" ? "#ff914d" : "#60a5fa") : accent }}
                           >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                           </svg>
