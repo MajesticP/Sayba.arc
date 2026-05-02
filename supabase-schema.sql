@@ -9,7 +9,7 @@ create table if not exists portfolio (
   title       text        not null,
   slug        text        unique not null,
   category    text,
-  dept        text        not null default 'arcgis' check (dept in ('arcgis', 'it')),
+  dept        text        not null default 'arcgiss' check (dept in ('arcgis', 'it')),
   description text,
   image_url   text,
   status      text        not null default 'active' check (status in ('active', 'draft', 'archived')),
