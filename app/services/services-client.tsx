@@ -109,11 +109,11 @@ export default function ServicesClient({ allLayanan }: Props) {
   }
 
   return (
-    <section className="py-16 bg-white flex-1">
+    <section className="py-8 md:py-16 bg-white flex-1">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── Filter bar ── */}
-        <div className="mb-10 space-y-3">
+        <div className="mb-6 md:mb-10 space-y-2 md:space-y-3">
 
           {/* Dept filter */}
           <div className="flex flex-wrap gap-2 items-center">
@@ -170,14 +170,14 @@ export default function ServicesClient({ allLayanan }: Props) {
         </div>
 
         {/* ── Grouped service cards ── */}
-        <div className="space-y-16">
+        <div className="space-y-8 md:space-y-16">
           {[...grouped.entries()].map(([dept, services], gi) => {
             const cfg = getDeptCfg(dept)
             return (
               <PageTransition key={dept} delay={gi * 80}>
                 <div>
                   {/* Dept header */}
-                  <div className="flex items-center gap-4 mb-8">
+                  <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-8">
                     <div className="flex items-center gap-3">
                       <div
                         className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -200,7 +200,7 @@ export default function ServicesClient({ allLayanan }: Props) {
                   </div>
 
                   {/* Cards grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 md:gap-5">
                     {services.map(service => (
                       <ServiceCard key={service.id} service={service} cfg={cfg} />
                     ))}
@@ -224,7 +224,7 @@ export default function ServicesClient({ allLayanan }: Props) {
         )}
 
         {/* CTA */}
-        <div className="text-center bg-black rounded-3xl p-10 relative overflow-hidden mt-16">
+        <div className="text-center bg-black rounded-3xl p-7 md:p-10 relative overflow-hidden mt-10 md:mt-16">
           <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#ff914d] opacity-[0.08] blur-3xl" />
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#ff914d] rounded-full" />
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 relative z-10">Butuh solusi kustom?</h2>
@@ -265,7 +265,7 @@ function ServiceCard({ service, cfg }: { service: Layanan; cfg: ReturnType<typeo
   return (
     <Link
       href={service.slug ? `/services/${service.slug}` : "#"}
-      className={`group bg-white rounded-2xl p-6 border border-black/8 ${cfg.border} ${cfg.shadow} transition-all duration-300 hover:-translate-y-1 relative overflow-hidden flex flex-col`}
+      className={`group bg-white rounded-xl md:rounded-2xl p-3 md:p-6 border border-black/8 ${cfg.border} ${cfg.shadow} transition-all duration-300 hover:-translate-y-1 relative overflow-hidden flex flex-col`}
     >
       {/* Bottom accent bar */}
       <div
@@ -274,14 +274,14 @@ function ServiceCard({ service, cfg }: { service: Layanan; cfg: ReturnType<typeo
       />
 
       {/* Icon */}
-      <div className={`w-12 h-12 rounded-xl ${cfg.iconBg} flex items-center justify-center mb-5 flex-shrink-0 transition-colors duration-300`}>
-        <DynamicIcon name={service.icon ?? "map"} color={cfg.color} size={22} />
+      <div className={`w-9 h-9 md:w-12 md:h-12 rounded-lg md:rounded-xl ${cfg.iconBg} flex items-center justify-center mb-2 md:mb-5 flex-shrink-0 transition-colors duration-300`}>
+        <DynamicIcon name={service.icon ?? "map"} color={cfg.color} size={18} />
       </div>
 
-      {/* Category badge */}
+      {/* Category badge — hidden on mobile */}
       {service.category && (
         <span
-          className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-3 w-fit"
+          className="hidden md:inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-3 w-fit"
           style={{
             backgroundColor: `${cfg.color}14`,
             color: cfg.color === "#111111" ? "#555" : cfg.color,
@@ -292,18 +292,18 @@ function ServiceCard({ service, cfg }: { service: Layanan; cfg: ReturnType<typeo
       )}
 
       {/* Title + description */}
-      <h4 className={`text-base font-bold text-black mb-2 ${cfg.accent} transition-colors duration-200`}>
+      <h4 className={`text-xs md:text-base font-bold text-black mb-1 md:mb-2 ${cfg.accent} transition-colors duration-200 leading-snug`}>
         {service.title}
       </h4>
-      <p className="text-black/50 text-sm leading-relaxed flex-1">{service.description}</p>
+      <p className="text-black/50 text-xs md:text-sm leading-relaxed flex-1 line-clamp-2 md:line-clamp-none">{service.description}</p>
 
       {/* Arrow CTA */}
       <div
-        className="mt-4 flex items-center gap-1 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        className="mt-2 md:mt-4 flex items-center gap-1 text-xs md:text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         style={{ color: cfg.color === "#111111" ? "#111" : cfg.color }}
       >
         Selengkapnya
-        <svg className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-3 h-3 md:w-3.5 md:h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </div>

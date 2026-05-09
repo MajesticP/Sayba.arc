@@ -166,6 +166,7 @@
 @layer base {
   * { @apply border-border outline-ring/50; }
   body { @apply bg-background text-foreground; }
+  html, body { overflow-x: hidden; }
 }
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -181,3 +182,9 @@
 @media (hover: none) {
   button, a { -webkit-tap-highlight-color: rgba(255, 145, 77, 0.1); }
 }
+
+/* Prevent long words / URLs from breaking mobile layouts */
+p, h1, h2, h3, h4, h5 { overflow-wrap: break-word; word-break: break-word; }
+
+/* Ensure images never overflow their containers on mobile */
+img { max-width: 100%; height: auto; }

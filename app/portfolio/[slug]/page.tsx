@@ -73,10 +73,10 @@ export default async function PortfolioSlugPage({ params }: Props) {
         </div>
 
         {/* Hero Section - two column */}
-        <section className="py-14 md:py-20">
+        <section className="py-10 md:py-20">
           <PageTransition>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
                 {/* Left: Content */}
                 <div>
@@ -90,7 +90,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
                     }
                   </div>
 
-                  <h1 className="text-3xl md:text-4xl font-bold text-black mb-2 leading-tight">
+                  <h1 className="text-xl md:text-4xl font-bold text-black mb-2 leading-tight">
                     {item.title}
                   </h1>
 
@@ -104,7 +104,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
                     {item.description ?? "Detail proyek tidak tersedia."}
                   </p>
 
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-col sm:flex-row flex-wrap gap-3">
                     {item.result_url && item.result_url !== "-" && (
                       <a
                         href={item.result_url}
@@ -177,7 +177,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
 
         {/* Feature + Tech Tabs */}
         {(features.length > 0 || techStack.length > 0) && (
-          <section className="pb-20">
+          <section className="pb-12 md:pb-20">
             <PageTransition delay={150}>
               <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <FeatureTabs features={features} techStack={techStack} accent={accent} />

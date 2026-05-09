@@ -110,8 +110,8 @@ export default function AdminLoginPage() {
         .card {
           position: relative;
           z-index: 10;
-          width: 420px;
-          padding: 48px 44px;
+          width: min(420px, calc(100vw - 32px));
+          padding: 36px 28px;
           background: rgba(8, 18, 36, 0.85);
           border: 1px solid rgba(0, 200, 160, 0.15);
           border-radius: 4px;

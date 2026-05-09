@@ -17,21 +17,21 @@ interface AboutProps {
 
 export default function About({ data }: AboutProps) {
   return (
-    <section className="py-24 bg-white" id="about">
+    <section className="py-10 md:py-24 bg-white" id="about">
       <PageTransition delay={300}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-16 items-center">
             {/* Stats panel */}
             <div className="relative">
-              <div className="bg-black rounded-3xl p-8 md:p-10">
-                <div className="grid grid-cols-2 gap-5">
+              <div className="bg-black rounded-3xl p-6 md:p-10">
+                <div className="grid grid-cols-2 gap-3 md:gap-5">
                   {data.stats.map((stat, index) => (
                     <div
                       key={index}
-                      className="bg-white/[0.05] rounded-2xl p-5 border border-white/8 hover:border-[#ff914d]/30 transition-colors duration-300"
+                      className="bg-white/[0.05] rounded-xl md:rounded-2xl p-3 md:p-5 border border-white/8 hover:border-[#ff914d]/30 transition-colors duration-300"
                     >
-                      <div className="text-3xl font-bold text-[#ff914d] mb-1">{stat.value}</div>
-                      <div className="text-white/40 text-sm">{stat.label}</div>
+                      <div className="text-2xl md:text-3xl font-bold text-[#ff914d] mb-0.5 md:mb-1">{stat.value}</div>
+                      <div className="text-white/40 text-xs md:text-sm">{stat.label}</div>
                     </div>
                   ))}
                 </div>
@@ -62,12 +62,12 @@ export default function About({ data }: AboutProps) {
             </div>
 
             {/* Text */}
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               <div>
                 <span className="inline-block text-xs font-bold text-[#ff914d] uppercase tracking-widest mb-3">Tentang Kami</span>
                 <h2 className="text-3xl md:text-4xl font-bold text-black leading-tight">{data.title}</h2>
               </div>
-              <p className="text-black/55 text-lg leading-relaxed">{data.description}</p>
+              <p className="text-black/55 text-sm md:text-lg leading-relaxed">{data.description}</p>
 
               <div className="flex flex-wrap gap-3 pt-2">
                 <Link

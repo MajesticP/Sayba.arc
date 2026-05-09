@@ -44,11 +44,11 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
       <Header navItems={navItems} ctaText="Hubungi Kami" />
 
       {/* Hero */}
-      <section className="bg-black py-20">
+      <section className="bg-black py-8 md:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
             href="/services"
-            className="text-white/30 hover:text-[#ff914d] text-sm flex items-center gap-1.5 mb-8 transition-colors"
+            className="text-white/30 hover:text-[#ff914d] text-sm flex items-center gap-1.5 mb-5 md:mb-8 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -56,15 +56,15 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
             Kembali ke Layanan
           </Link>
 
-          <div className="flex items-center gap-5 mb-6">
+          <div className="flex items-center gap-3 md:gap-5 mb-4 md:mb-6">
             <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
+              className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0"
               style={{ backgroundColor: accent === "#111111" ? "rgba(255,255,255,0.08)" : `${accent}26` }}
             >
-              <DynamicIcon name={service.icon ?? "layers"} color={accent === "#111111" ? "#fff" : accent} size={32} />
+              <DynamicIcon name={service.icon ?? "layers"} color={accent === "#111111" ? "#fff" : accent} size={24} />
             </div>
             <div>
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <div className="flex items-center gap-2 mb-0.5 md:mb-1 flex-wrap">
                 <span
                   className="text-xs font-bold uppercase tracking-widest"
                   style={{ color: accent === "#111111" ? "rgba(255,255,255,0.4)" : accent }}
@@ -86,42 +86,43 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                   </>
                 )}
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold text-white">{service.title}</h1>
+              <h1 className="text-xl md:text-4xl font-bold text-white">{service.title}</h1>
             </div>
           </div>
 
           {service.description && (
-            <p className="text-white/45 text-lg leading-relaxed max-w-2xl">{service.description}</p>
+            <p className="text-white/45 text-sm md:text-lg leading-relaxed max-w-2xl">{service.description}</p>
           )}
         </div>
       </section>
 
       {/* Pricing */}
       {prices.length > 0 && (
-        <section className="py-20 bg-white flex-1">
+        <section className="py-8 md:py-20 bg-white flex-1">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
+            <div className="text-center mb-6 md:mb-12">
               <span
-                className="inline-block text-xs font-bold uppercase tracking-widest mb-3"
+                className="inline-block text-xs font-bold uppercase tracking-widest mb-2 md:mb-3"
                 style={{ color: service.dept === "arcgis" ? "#ff914d" : "#111" }}
               >
                 Pilih Paket
               </span>
-              <h2 className="text-3xl md:text-4xl font-bold text-black mb-3">Paket Harga</h2>
-              <p className="text-black/45 max-w-xl mx-auto">
+              <h2 className="text-2xl md:text-4xl font-bold text-black mb-2 md:mb-3">Paket Harga</h2>
+              <p className="text-black/45 text-sm md:text-base max-w-xl mx-auto">
                 Pilih paket yang paling sesuai dengan kebutuhan dan skala organisasi Anda.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Mobile: horizontal scroll; Desktop: 3-col grid */}
+            <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 scrollbar-hide">
               {prices.map((tier, i) => {
                 const isMiddle = i === 1
                 return (
                   <div
                     key={i}
-                    className={`relative rounded-2xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 ${
+                    className={`relative rounded-2xl p-5 md:p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 flex-shrink-0 w-[72vw] sm:w-[55vw] md:w-auto snap-center ${
                       isMiddle
-                        ? "bg-black text-white shadow-2xl shadow-black/20 scale-105"
+                        ? "bg-black text-white shadow-2xl shadow-black/20 md:scale-105"
                         : "bg-white border border-black/10 hover:border-black/20 hover:shadow-xl"
                     }`}
                   >
@@ -219,7 +220,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
       {/* Fallback if no prices yet */}
       {prices.length === 0 && (
-        <section className="py-20 bg-white flex-1">
+        <section className="py-8 md:py-20 bg-white flex-1">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-2xl font-bold text-black mb-4">Tertarik dengan layanan ini?</h2>
             <p className="text-black/45 mb-6">

@@ -6,7 +6,7 @@ import { LAYANAN_DEPTS as DEFAULT_DEPTS, type LayananDept, getDept as getDefault
 import {
   LayoutGrid, Layers, Settings, Plus, Pencil, Trash2,
   RefreshCw, Search, X, Save, ChevronDown, ExternalLink,
-  Map, CheckCircle, AlertCircle, Loader2, Tag,
+  Map, CheckCircle, AlertCircle, Loader2, Tag, Users, ImageIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -27,7 +27,33 @@ function saveDepts(depts: LayananDept[]) {
 
 
 // ── Types ──────────────────────────────────────────────────────────────────
-type Tab = "portfolio" | "layanan" | "tipe"
+type Tab = "portfolio" | "layanan" | "tipe" | "tim"
+
+// Tim (Team) types
+interface TimMember {
+  id: string
+  name: string
+  role: string
+  bio: string | null
+  photo_url: string | null
+  github_url: string | null
+  linkedin_url: string | null
+  instagram_url: string | null
+  dept: "lingkungan" | "it" | "kelautan" | null
+  order_num: number
+  status: "active" | "draft"
+  created_at: string
+}
+
+function gdriveToImg(url: string): string {
+  if (!url) return url
+  if (url.includes("drive.google.com/uc")) return url
+  const fileMatch = url.match(/\/d\/([\w-]+)/)
+  if (fileMatch) return `https://drive.google.com/uc?export=view&id=${fileMatch[1]}`
+  const idMatch = url.match(/[?&]id=([\w-]+)/)
+  if (idMatch) return `https://drive.google.com/uc?export=view&id=${idMatch[1]}`
+  return url
+}
 type DeptFilter = "semua" | string
 type Status = "active" | "draft" | "archived"
 type Toast = { id: number; msg: string; type: "success" | "error" }
@@ -83,8 +109,10 @@ export default function AdminDashboard() {
 
   const [portfolioData, setPortfolioData] = useState<Portfolio[]>([])
   const [layananData, setLayananData] = useState<Layanan[]>([])
+  const [timData, setTimData] = useState<TimMember[]>([])
   const [loadingP, setLoadingP] = useState(true)
   const [loadingL, setLoadingL] = useState(true)
+  const [loadingT, setLoadingT] = useState(true)
 
   const [toasts, setToasts] = useState<Toast[]>([])
   const toastCounter = useRef(0)
@@ -93,7 +121,10 @@ export default function AdminDashboard() {
   const [pfEdit, setPfEdit] = useState<Portfolio | null>(null)
   const [lvModal, setLvModal] = useState(false)
   const [lvEdit, setLvEdit] = useState<Layanan | null>(null)
+  const [timModal, setTimModal] = useState(false)
+  const [timEdit, setTimEdit] = useState<TimMember | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<{ table: Tab; id: string; name: string } | null>(null)
+  const deleteRef = useRef<{ table: Tab; id: string; name: string } | null>(null)
 
   const showToast = useCallback((msg: string, type: "success" | "error" = "success") => {
     const id = ++toastCounter.current
@@ -117,7 +148,15 @@ export default function AdminDashboard() {
     setLoadingL(false)
   }, [showToast])
 
-  useEffect(() => { fetchPortfolio(); fetchLayanan() }, [fetchPortfolio, fetchLayanan])
+  const fetchTim = useCallback(async () => {
+    setLoadingT(true)
+    const res = await fetch("/api/admin/tim")
+    if (!res.ok) showToast("Gagal memuat tim", "error")
+    else setTimData(await res.json())
+    setLoadingT(false)
+  }, [showToast])
+
+  useEffect(() => { fetchPortfolio(); fetchLayanan(); fetchTim() }, [fetchPortfolio, fetchLayanan, fetchTim])
 
   const filteredPortfolio = portfolioData.filter(p => {
     const matchDept = deptFilter === "semua" || p.dept === deptFilter
@@ -131,17 +170,35 @@ export default function AdminDashboard() {
     return matchDept && matchSearch
   })
 
+  const [deleting, setDeleting] = useState(false)
+
   const handleDelete = async () => {
-    if (!deleteTarget) return
-    const res = await fetch(`/api/admin/${deleteTarget.table}?id=${deleteTarget.id}`, { method: "DELETE" })
-    if (!res.ok) { showToast((await res.json()).error ?? "Delete failed", "error"); return }
-    showToast("Data berhasil dihapus")
-    setDeleteTarget(null)
-    if (deleteTarget.table === "portfolio") fetchPortfolio()
-    else fetchLayanan()
+    // Read from ref so the value is never stale across async awaits
+    const target = deleteRef.current
+    if (!target || deleting) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/admin/${target.table}?id=${target.id}`, { method: "DELETE" })
+      if (!res.ok) {
+        let errMsg = "Delete gagal"
+        try { errMsg = (await res.json()).error ?? errMsg } catch { /* non-JSON body */ }
+        showToast(errMsg, "error")
+        return
+      }
+      showToast("Data berhasil dihapus")
+      setDeleteTarget(null)
+      deleteRef.current = null
+      if (target.table === "portfolio") fetchPortfolio()
+      else if (target.table === "layanan") fetchLayanan()
+      else fetchTim()
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Delete gagal", "error")
+    } finally {
+      setDeleting(false)
+    }
   }
 
-  const switchTab = (t: Tab) => { setTab(t); setDeptFilter("semua"); setSearch("") }
+  const switchTab = (t: Tab) => { setTab(t); setDeptFilter("semua"); setSearch(""); if (t === "tim") fetchTim() }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans flex">
@@ -160,7 +217,7 @@ export default function AdminDashboard() {
 
         <nav className="flex-1 py-4 px-3 space-y-0.5">
           <p className="text-[9.5px] font-bold uppercase tracking-widest text-white/20 px-2 mb-2">Menu</p>
-          {(["portfolio", "layanan", "tipe"] as Tab[]).map(t => (
+          {(["portfolio", "layanan", "tim", "tipe"] as Tab[]).map(t => (
             <button
               key={t}
               onClick={() => switchTab(t)}
@@ -169,10 +226,10 @@ export default function AdminDashboard() {
                 tab === t ? "bg-[#ff914d]/10 text-[#ff914d]" : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
               )}
             >
-              {t === "portfolio" ? <LayoutGrid size={14} /> : t === "layanan" ? <Layers size={14} /> : <Settings size={14} />}
-              {t === "portfolio" ? "Portofolio" : t === "layanan" ? "Layanan" : "Tipe Layanan"}
+              {t === "portfolio" ? <LayoutGrid size={14} /> : t === "layanan" ? <Layers size={14} /> : t === "tim" ? <Users size={14} /> : <Settings size={14} />}
+              {t === "portfolio" ? "Portofolio" : t === "layanan" ? "Layanan" : t === "tim" ? "Tim" : "Tipe Layanan"}
               <span className={cn("ml-auto text-[11px] font-bold px-1.5 py-0.5 rounded-md", tab === t ? "bg-[#ff914d]/20 text-[#ff914d]" : "bg-white/[0.06] text-white/30")}>
-                {t === "portfolio" ? portfolioData.length : t === "layanan" ? layananData.length : depts.length}
+                {t === "portfolio" ? portfolioData.length : t === "layanan" ? layananData.length : t === "tim" ? timData.length : depts.length}
               </span>
             </button>
           ))}
@@ -223,7 +280,7 @@ export default function AdminDashboard() {
         <header className="h-14 bg-[#111] border-b border-white/[0.07] flex items-center px-7 gap-4 sticky top-0 z-30">
           <h1 className="font-bold text-[15px] flex-1 capitalize">{tab}</h1>
           <button
-            onClick={() => tab === "portfolio" ? fetchPortfolio() : fetchLayanan()}
+            onClick={() => tab === "portfolio" ? fetchPortfolio() : tab === "layanan" ? fetchLayanan() : fetchTim()}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold text-white/40 border border-white/[0.07] hover:text-white/70 hover:border-white/15 transition-all"
           >
             <RefreshCw size={13} className={cn(loadingP || loadingL ? "animate-spin" : "")} />
@@ -231,7 +288,7 @@ export default function AdminDashboard() {
           </button>
           {tab !== "tipe" && (
           <button
-            onClick={() => { if (tab === "portfolio") { setPfEdit(null); setPfModal(true) } else { setLvEdit(null); setLvModal(true) } }}
+            onClick={() => { if (tab === "portfolio") { setPfEdit(null); setPfModal(true) } else if (tab === "layanan") { setLvEdit(null); setLvModal(true) } else { setTimEdit(null); setTimModal(true) } }}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12.5px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all"
           >
             <Plus size={14} />
@@ -277,10 +334,10 @@ export default function AdminDashboard() {
           <div className="bg-[#111] border border-white/[0.07] rounded-xl overflow-hidden">
             <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.07]">
               <p className="font-bold text-[14px] flex-1">
-                {tab === "portfolio" ? "Daftar Portofolio" : tab === "layanan" ? "Daftar Layanan" : "Kelola Tipe Layanan"}
+                {tab === "portfolio" ? "Daftar Portofolio" : tab === "layanan" ? "Daftar Layanan" : tab === "tim" ? "Daftar Anggota Tim" : "Kelola Tipe Layanan"}
               </p>
 
-              {tab !== "tipe" && <>
+              {(tab === "portfolio" || tab === "layanan") && <>
                 <div className="relative">
                   <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25 pointer-events-none" />
                   <input
@@ -320,7 +377,7 @@ export default function AdminDashboard() {
                 loading={loadingP}
                 depts={depts}
                 onEdit={p => { setPfEdit(p); setPfModal(true) }}
-                onDelete={p => setDeleteTarget({ table: "portfolio", id: p.id, name: p.title })}
+                onDelete={p => { const t = { table: "portfolio" as Tab, id: p.id, name: p.title }; deleteRef.current = t; setDeleteTarget(t) }}
               />
             ) : tab === "layanan" ? (
               <LayananTable
@@ -328,7 +385,14 @@ export default function AdminDashboard() {
                 loading={loadingL}
                 depts={depts}
                 onEdit={l => { setLvEdit(l); setLvModal(true) }}
-                onDelete={l => setDeleteTarget({ table: "layanan", id: l.id, name: l.title })}
+                onDelete={l => { const t = { table: "layanan" as Tab, id: l.id, name: l.title }; deleteRef.current = t; setDeleteTarget(t) }}
+              />
+            ) : tab === "tim" ? (
+              <TimTable
+                data={timData}
+                loading={loadingT}
+                onEdit={m => { setTimEdit(m); setTimModal(true) }}
+                onDelete={m => { const t = { table: "tim" as Tab, id: m.id, name: m.name }; deleteRef.current = t; setDeleteTarget(t) }}
               />
             ) : (
               <TipeTable
@@ -342,6 +406,13 @@ export default function AdminDashboard() {
       </div>
 
       {/* MODALS */}
+      <TimModal
+        open={timModal}
+        initial={timEdit}
+        onClose={() => setTimModal(false)}
+        onSaved={() => { setTimModal(false); fetchTim(); showToast(timEdit ? "Anggota tim diperbarui" : "Anggota tim ditambahkan") }}
+        onError={(msg, t) => showToast(msg, t)}
+      />
       <PortfolioModal
         open={pfModal}
         initial={pfEdit}
@@ -376,16 +447,19 @@ export default function AdminDashboard() {
         existingValues={depts.map(d => d.value)}
       />
 
-      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxW="max-w-sm">
-        <ModalHeader icon={<Trash2 size={16} className="text-red-400" />} iconBg="bg-red-500/10" title="Konfirmasi Hapus" onClose={() => setDeleteTarget(null)} />
+      <Modal open={!!deleteTarget} onClose={() => { deleteRef.current = null; setDeleteTarget(null) }} maxW="max-w-sm">
+        <ModalHeader icon={<Trash2 size={16} className="text-red-400" />} iconBg="bg-red-500/10" title="Konfirmasi Hapus" onClose={() => { deleteRef.current = null; setDeleteTarget(null) }} />
         <div className="px-6 py-5">
           <p className="text-[13.5px] text-white/60 leading-relaxed">
             Yakin hapus <span className="text-white font-semibold">"{deleteTarget?.name}"</span>? Tindakan ini tidak dapat dibatalkan.
           </p>
         </div>
         <ModalFooter>
-          <button onClick={() => setDeleteTarget(null)} className="btn-ghost">Batal</button>
-          <button onClick={handleDelete} className="btn-danger"><Trash2 size={13} /> Ya, Hapus</button>
+          <button onClick={() => { deleteRef.current = null; setDeleteTarget(null) }} disabled={deleting} className="btn-ghost">Batal</button>
+          <button onClick={handleDelete} disabled={deleting} className="btn-danger">
+            {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+            {deleting ? "Menghapus…" : "Ya, Hapus"}
+          </button>
         </ModalFooter>
       </Modal>
 
@@ -1045,6 +1119,253 @@ function TipeModal({ open, initial, onClose, onSaved, onError, existingValues }:
       <ModalFooter>
         <button onClick={onClose} className="btn-ghost">Batal</button>
         <button onClick={handleSubmit} className="btn-primary"><Save size={13} /> Simpan</button>
+      </ModalFooter>
+    </Modal>
+  )
+}
+
+// ── Tim Table ──────────────────────────────────────────────────────────────
+function TimTable({ data, loading, onEdit, onDelete }: {
+  data: TimMember[]
+  loading: boolean
+  onEdit: (m: TimMember) => void
+  onDelete: (m: TimMember) => void
+}) {
+  if (loading) return <TableLoading />
+  if (!data.length) return <TableEmpty label="anggota tim" />
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-white/[0.05]">
+            {["Foto & Nama", "Jabatan", "Bio", "Urutan", "Status", "Aksi"].map(h => (
+              <th key={h} className="text-left text-[10.5px] font-bold uppercase tracking-widest text-white/20 px-5 py-3">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map(m => {
+            const photoSrc = m.photo_url ? gdriveToImg(m.photo_url) : null
+            return (
+              <tr key={m.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+                <td className="px-5 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl overflow-hidden bg-[#1a1a1a] border border-white/[0.07] flex-shrink-0 flex items-center justify-center">
+                      {photoSrc ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={photoSrc} alt={m.name} className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
+                      ) : (
+                        <span className="text-sm font-bold text-[#ff914d]">{m.name.charAt(0)}</span>
+                      )}
+                    </div>
+                    <p className="text-[13.5px] font-medium text-white">{m.name}</p>
+                  </div>
+                </td>
+                <td className="px-5 py-3.5">
+                  <p className="text-[12.5px] text-[#ff914d] font-medium">{m.role}</p>
+                </td>
+                <td className="px-5 py-3.5 max-w-xs">
+                  <p className="text-[11.5px] text-white/35 line-clamp-2 leading-relaxed">{m.bio ?? "—"}</p>
+                </td>
+                <td className="px-5 py-3.5">
+                  <span className="text-[12px] text-white/40 font-mono">{m.order_num}</span>
+                </td>
+                <td className="px-5 py-3.5">
+                  <span className={cn(
+                    "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ring-1",
+                    m.status === "active"
+                      ? "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20"
+                      : "bg-yellow-500/10 text-yellow-400 ring-yellow-500/20"
+                  )}>
+                    {m.status === "active" ? "Active" : "Draft"}
+                  </span>
+                </td>
+                <td className="px-5 py-3.5">
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => onEdit(m)} className="btn-icon"><Pencil size={13} /></button>
+                    <button onClick={() => onDelete(m)} className="btn-icon-danger"><Trash2 size={13} /></button>
+                  </div>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// ── Tim Modal ──────────────────────────────────────────────────────────────
+function TimModal({ open, initial, onClose, onSaved, onError }: {
+  open: boolean
+  initial: TimMember | null
+  onClose: () => void
+  onSaved: () => void
+  onError: (msg: string, t: "error") => void
+}) {
+  const blank = { name: "", role: "", bio: "", photo_url: "", github_url: "", linkedin_url: "", instagram_url: "", dept: null as "lingkungan" | "it" | "kelautan" | null, order_num: 0, status: "active" as const }
+  const [form, setForm] = useState({ ...blank })
+  const [saving, setSaving] = useState(false)
+  const [previewError, setPreviewError] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    if (initial) {
+      setForm({
+        name: initial.name,
+        role: initial.role,
+        bio: initial.bio ?? "",
+        photo_url: initial.photo_url ?? "",
+        github_url: initial.github_url ?? "",
+        linkedin_url: initial.linkedin_url ?? "",
+        instagram_url: initial.instagram_url ?? "",
+        dept: initial.dept ?? null,
+        order_num: initial.order_num,
+        status: initial.status,
+      })
+    } else {
+      setForm({ ...blank })
+    }
+    setPreviewError(false)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initial])
+
+  const set = (k: keyof typeof form, v: string | number) => setForm(f => ({ ...f, [k]: v }))
+  const previewUrl = form.photo_url ? gdriveToImg(form.photo_url) : null
+
+  const handleSubmit = async () => {
+    if (!form.name.trim()) { onError("Nama wajib diisi", "error"); return }
+    if (!form.role.trim()) { onError("Jabatan wajib diisi", "error"); return }
+    setSaving(true)
+    const payload = {
+      name: form.name,
+      role: form.role,
+      bio: form.bio || null,
+      photo_url: form.photo_url || null,
+      github_url: form.github_url || null,
+      linkedin_url: form.linkedin_url || null,
+      instagram_url: form.instagram_url || null,
+      dept: form.dept || null,
+      order_num: form.order_num,
+      status: form.status,
+    }
+    const res = initial
+      ? await fetch(`/api/admin/tim?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      : await fetch("/api/admin/tim", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+    setSaving(false)
+    if (!res.ok) { onError((await res.json()).error ?? "Save failed", "error"); return }
+    onSaved()
+  }
+
+  return (
+    <Modal open={open} onClose={onClose}>
+      <ModalHeader
+        icon={<Users size={16} className="text-[#ff914d]" />}
+        iconBg="bg-[#ff914d]/10"
+        title={initial ? "Edit Anggota Tim" : "Tambah Anggota Tim"}
+        onClose={onClose}
+      />
+      <div className="px-6 py-5 space-y-4 overflow-y-auto max-h-[75vh]">
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Nama Lengkap" required>
+            <Input value={form.name} onChange={v => set("name", v)} placeholder="Budi Santoso" />
+          </Field>
+          <Field label="Jabatan / Role" required>
+            <Input value={form.role} onChange={v => set("role", v)} placeholder="Lead Developer" />
+          </Field>
+        </div>
+
+        <Field label="Bio / Deskripsi Singkat">
+          <Textarea value={form.bio} onChange={v => set("bio", v)} placeholder="Menangani pengembangan web dan mobile…" />
+        </Field>
+
+        <Field
+          label="Google Drive Photo URL"
+          hint="Paste link share Google Drive — otomatis dikonversi ke URL gambar"
+        >
+          <div className="flex items-center gap-2">
+            <ImageIcon size={13} className="text-white/30 flex-shrink-0" />
+            <Input
+              value={form.photo_url}
+              onChange={v => { set("photo_url", v); setPreviewError(false) }}
+              placeholder="https://drive.google.com/file/d/…/view"
+            />
+          </div>
+          {previewUrl && (
+            <div className="mt-2 relative h-32 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] flex items-center justify-center">
+              {!previewError ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={previewUrl}
+                  alt="preview"
+                  className="w-full h-full object-cover"
+                  onError={() => setPreviewError(true)}
+                />
+              ) : (
+                <p className="text-[11px] text-white/30">Gambar tidak dapat dimuat — pastikan file Drive dibagikan secara publik</p>
+              )}
+            </div>
+          )}
+          {previewUrl && !previewError && (
+            <p className="text-[10.5px] text-white/25 mt-1">
+              URL konversi: <code className="text-[#ff914d]/70">{previewUrl}</code>
+            </p>
+          )}
+        </Field>
+
+        <Field label="Departemen">
+          <Select
+            value={form.dept ?? ""}
+            onChange={v => setForm(f => ({ ...f, dept: (v || null) as typeof f.dept }))}
+            options={[
+              { value: "", label: "— Pilih Departemen —" },
+              { value: "lingkungan", label: "Tim Teknik Lingkungan" },
+              { value: "it", label: "Tim IT & Digital" },
+              { value: "kelautan", label: "Tim Teknik Kelautan" },
+            ]}
+          />
+        </Field>
+
+        <div className="space-y-3">
+          <p className="text-[10.5px] font-bold uppercase tracking-widest text-white/25">Social Links (opsional)</p>
+          <Field label="GitHub URL">
+            <Input value={form.github_url} onChange={v => set("github_url", v)} placeholder="https://github.com/username" />
+          </Field>
+          <Field label="LinkedIn URL">
+            <Input value={form.linkedin_url} onChange={v => set("linkedin_url", v)} placeholder="https://linkedin.com/in/username" />
+          </Field>
+          <Field label="Instagram URL">
+            <Input value={form.instagram_url} onChange={v => set("instagram_url", v)} placeholder="https://instagram.com/username" />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Urutan Tampil" hint="Angka lebih kecil tampil lebih dulu">
+            <input
+              type="number"
+              value={form.order_num}
+              onChange={e => set("order_num", Number(e.target.value))}
+              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors"
+            />
+          </Field>
+          <Field label="Status">
+            <Select
+              value={form.status}
+              onChange={v => set("status", v)}
+              options={[
+                { value: "active", label: "Active — tampil di website" },
+                { value: "draft", label: "Draft — tersembunyi" },
+              ]}
+            />
+          </Field>
+        </div>
+      </div>
+      <ModalFooter>
+        <button onClick={onClose} className="btn-ghost">Batal</button>
+        <button onClick={handleSubmit} disabled={saving} className="btn-primary">
+          {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+          {saving ? "Menyimpan…" : "Simpan"}
+        </button>
       </ModalFooter>
     </Modal>
   )

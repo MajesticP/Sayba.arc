@@ -53,8 +53,8 @@ function SocialIcon({ icon, className }: { icon: string; className: string }) {
 export default function Footer({ footerLinks, socialLinks }: FooterProps) {
   return (
     <footer className="bg-black text-white/40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5 md:gap-10 mb-6 md:mb-12">
           {/* Brand */}
           <div className="md:col-span-2">
             <div className="flex items-center gap-2.5 mb-4">
@@ -69,7 +69,7 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
             <p className="text-xs text-white/25">{siteConfig.address}</p>
 
             {/* Dept pills */}
-            <div className="flex gap-2 mt-5">
+            <div className="flex gap-2 mt-3 md:mt-5 flex-wrap">
               <span className="text-xs px-3 py-1 rounded-full border border-[#ff914d]/30 text-[#ff914d]/70">Departemen ArcGIS</span>
               <span className="text-xs px-3 py-1 rounded-full border border-white/10 text-white/30">Departemen IT</span>
             </div>

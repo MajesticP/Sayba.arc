@@ -97,13 +97,13 @@ export default function Services({ allLayanan }: ServicesProps) {
   if (grouped.size === 0) return null
 
   return (
-    <section className="py-24 bg-white" id="services">
+    <section className="py-8 md:py-24 bg-white" id="services">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Section header */}
-        <div className="text-center mb-20">
-          <h2 className="text-3xl md:text-4xl font-bold text-black mb-4">Layanan Kami</h2>
-          <p className="text-black/50 text-lg max-w-2xl mx-auto">
+        <div className="text-center mb-6 md:mb-20">
+          <h2 className="text-2xl md:text-4xl font-bold text-black mb-2 md:mb-3">Layanan Kami</h2>
+          <p className="text-black/50 text-sm md:text-lg max-w-2xl mx-auto">
             Departemen spesialis dengan satu misi — solusi teknis yang nyata untuk kebutuhan organisasi Anda.
           </p>
         </div>
@@ -113,54 +113,54 @@ export default function Services({ allLayanan }: ServicesProps) {
           const cfg = getDeptCfg(dept)
           return (
             <PageTransition key={dept} delay={(gi + 1) * 100}>
-              <div className={gi < grouped.size - 1 ? "mb-20" : ""}>
+              <div className={gi < grouped.size - 1 ? "mb-7 md:mb-20" : ""}>
 
                 {/* Dept header */}
-                <div className="flex items-center gap-4 mb-10">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 mb-3 md:mb-10">
+                  <div className="flex items-center gap-2.5">
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center"
+                      className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: cfg.color }}
                     >
                       {cfg.headerIcon}
                     </div>
                     <div>
                       <div
-                        className="text-xs font-bold uppercase tracking-widest"
+                        className="text-[10px] font-bold uppercase tracking-widest"
                         style={{ color: cfg.color === "#111111" ? "rgba(0,0,0,0.4)" : cfg.color }}
                       >
                         Departemen
                       </div>
-                      <h3 className="text-xl font-bold text-black">{cfg.label}</h3>
+                      <h3 className="text-base md:text-xl font-bold text-black leading-tight">{cfg.label}</h3>
                     </div>
                   </div>
                   <div className="flex-1 h-px bg-black/8" />
                 </div>
 
                 {cfg.subtitle && (
-                  <p className="text-black/50 text-base mb-8 max-w-2xl">{cfg.subtitle}</p>
+                  <p className="text-black/50 text-sm mb-3 md:mb-8 max-w-2xl hidden md:block">{cfg.subtitle}</p>
                 )}
 
-                {/* Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {/* Cards — 2-col on mobile, 3-col on large */}
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 md:gap-5">
                   {services.map((service) => (
                     <Link
                       key={service.slug ?? service.id}
                       href={service.slug ? `/services/${service.slug}` : "#"}
-                      className={`group bg-white rounded-2xl p-6 border border-black/8 ${cfg.border} ${cfg.shadow} transition-all duration-300 hover:-translate-y-1 relative overflow-hidden flex flex-col`}
+                      className={`group bg-white rounded-xl md:rounded-2xl p-3 md:p-6 border border-black/8 ${cfg.border} ${cfg.shadow} transition-all duration-300 hover:-translate-y-1 relative overflow-hidden flex flex-col`}
                     >
                       <div
                         className="absolute bottom-0 left-0 h-0.5 w-0 group-hover:w-full transition-all duration-500"
                         style={{ backgroundColor: cfg.color }}
                       />
-                      <div className={`w-12 h-12 rounded-xl ${cfg.iconBg} flex items-center justify-center mb-5 flex-shrink-0 transition-colors duration-300`}>
-                        <DynamicIcon name={service.icon ?? "map"} color={cfg.color} size={24} />
+                      <div className={`w-9 h-9 md:w-12 md:h-12 rounded-lg md:rounded-xl ${cfg.iconBg} flex items-center justify-center mb-2 md:mb-5 flex-shrink-0 transition-colors duration-300`}>
+                        <DynamicIcon name={service.icon ?? "map"} color={cfg.color} size={18} />
                       </div>
 
-                      {/* Category badge */}
+                      {/* Category badge — hide on mobile to save space */}
                       {service.category && (
                         <span
-                          className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-3 w-fit"
+                          className="hidden md:inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-3 w-fit"
                           style={{
                             backgroundColor: `${cfg.color}14`,
                             color: cfg.color === "#111111" ? "#555" : cfg.color,
@@ -170,12 +170,12 @@ export default function Services({ allLayanan }: ServicesProps) {
                         </span>
                       )}
 
-                      <h4 className={`text-base font-bold text-black mb-2 ${cfg.accent} transition-colors duration-200`}>
+                      <h4 className={`text-xs md:text-base font-bold text-black mb-1 md:mb-2 ${cfg.accent} transition-colors duration-200 leading-snug`}>
                         {service.title}
                       </h4>
-                      <p className="text-black/50 text-sm leading-relaxed flex-1">{service.description}</p>
+                      <p className="text-black/50 text-xs md:text-sm leading-relaxed flex-1 line-clamp-2 md:line-clamp-none">{service.description}</p>
                       <div
-                        className="mt-4 flex items-center gap-1 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="mt-2 md:mt-4 flex items-center gap-1 text-xs md:text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                         style={{ color: cfg.color === "#111111" ? "#111" : cfg.color }}
                       >
                         Selengkapnya

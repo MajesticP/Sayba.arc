@@ -54,6 +54,27 @@ export type Database = {
         }
         Update: Partial<Database["public"]["Tables"]["layanan"]["Insert"]>
       }
+      tim: {
+        Row: {
+          id: string
+          name: string
+          role: string
+          bio: string | null
+          photo_url: string | null
+          github_url: string | null
+          linkedin_url: string | null
+          instagram_url: string | null
+          dept: "lingkungan" | "it" | "kelautan" | null
+          order_num: number
+          status: "active" | "draft"
+          created_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["tim"]["Row"], "id" | "created_at"> & {
+          id?: string
+          created_at?: string
+        }
+        Update: Partial<Database["public"]["Tables"]["tim"]["Insert"]>
+      }
     }
   }
 }
