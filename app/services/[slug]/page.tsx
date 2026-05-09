@@ -113,14 +113,14 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
               </p>
             </div>
 
-            {/* Mobile: horizontal scroll; Desktop: 3-col grid */}
-            <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 scrollbar-hide">
+            {/* Stack on mobile, 3-col grid on desktop */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
               {prices.map((tier, i) => {
                 const isMiddle = i === 1
                 return (
                   <div
                     key={i}
-                    className={`relative rounded-2xl p-5 md:p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 flex-shrink-0 w-[72vw] sm:w-[55vw] md:w-auto snap-center ${
+                    className={`relative rounded-2xl p-5 md:p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 ${
                       isMiddle
                         ? "bg-black text-white shadow-2xl shadow-black/20 md:scale-105"
                         : "bg-white border border-black/10 hover:border-black/20 hover:shadow-xl"
@@ -128,7 +128,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                   >
                     {isMiddle && (
                       <div
-                        className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold text-white"
+                        className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold text-white whitespace-nowrap"
                         style={{ backgroundColor: accent }}
                       >
                         Paling Populer
@@ -136,7 +136,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                     )}
 
                     {/* Tier name */}
-                    <div className="mb-6">
+                    <div className="mb-5 md:mb-6">
                       <p
                         className={`text-xs font-bold uppercase tracking-widest mb-2 ${
                           isMiddle ? "text-white/40" : "text-black/40"
@@ -146,7 +146,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                       </p>
                       <div className="flex items-end gap-1">
                         <span
-                          className={`text-3xl font-bold ${isMiddle ? "text-white" : "text-black"}`}
+                          className={`text-2xl md:text-3xl font-bold ${isMiddle ? "text-white" : "text-black"}`}
                         >
                           {formatPrice(tier.price)}
                         </span>
@@ -162,13 +162,13 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
                     {/* Divider */}
                     <div
-                      className={`h-px mb-6 ${
+                      className={`h-px mb-5 md:mb-6 ${
                         isMiddle ? "bg-white/10" : "bg-black/8"
                       }`}
                     />
 
                     {/* Features */}
-                    <ul className="space-y-3 flex-1 mb-8">
+                    <ul className="space-y-2.5 md:space-y-3 flex-1 mb-6 md:mb-8">
                       {tier.features.map((f, fi) => (
                         <li key={fi} className="flex items-start gap-2.5">
                           <svg
