@@ -1221,7 +1221,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
         instagram_url: initial.instagram_url ?? "",
         dept: initial.dept ?? null,
         order_num: initial.order_num,
-        status: initial.status,
+        status: initial.status as "active",
       })
     } else {
       setForm({ ...blank })
