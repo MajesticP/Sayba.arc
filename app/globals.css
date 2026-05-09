@@ -188,3 +188,38 @@ p, h1, h2, h3, h4, h5 { overflow-wrap: break-word; word-break: break-word; }
 
 /* Ensure images never overflow their containers on mobile */
 img { max-width: 100%; height: auto; }
+
+/* ── Admin button styles ── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: #ff914d;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+.btn-primary:hover { background-color: #e07b3a; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: transparent;
+  color: rgba(255,255,255,0.5);
+  border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-ghost:hover { background-color: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
