@@ -1118,7 +1118,7 @@ function TipeModal({ open, initial, onClose, onSaved, onError, existingValues }:
       </div>
       <ModalFooter>
         <button onClick={onClose} className="btn-ghost">Batal</button>
-        <button onClick={handleSubmit} className="btn-primary"><Save size={13} /> Simpan</button>
+        <button onClick={handleSubmit} className="btn-primary">Simpan</button>
       </ModalFooter>
     </Modal>
   )
