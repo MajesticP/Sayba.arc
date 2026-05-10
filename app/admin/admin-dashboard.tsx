@@ -6,7 +6,7 @@ import { LAYANAN_DEPTS as DEFAULT_DEPTS, type LayananDept, getDept as getDefault
 import {
   LayoutGrid, Layers, Settings, Plus, Pencil, Trash2,
   RefreshCw, Search, X, Save, ChevronDown, ExternalLink,
-  Map, CheckCircle, AlertCircle, Loader2, Tag, Users, ImageIcon,
+  Map, CheckCircle, AlertCircle, Loader2, Tag, Users, ImageIcon, Menu,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -199,12 +199,25 @@ export default function AdminDashboard() {
   }
 
   const switchTab = (t: Tab) => { setTab(t); setDeptFilter("semua"); setSearch(""); if (t === "tim") fetchTim() }
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans flex">
 
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* SIDEBAR */}
-      <aside className="w-[220px] min-h-screen bg-[#111] border-r border-white/[0.07] flex flex-col fixed top-0 left-0 bottom-0 z-40">
+      <aside className={cn(
+        "w-[220px] min-h-screen bg-[#111] border-r border-white/[0.07] flex flex-col fixed top-0 left-0 bottom-0 z-40 transition-transform duration-300",
+        "md:translate-x-0",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+      )}>
         <div className="px-5 py-5 border-b border-white/[0.07] flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-[#ff914d] flex items-center justify-center flex-shrink-0">
             <Map size={15} className="text-white" />
@@ -220,7 +233,7 @@ export default function AdminDashboard() {
           {(["portfolio", "layanan", "tim", "tipe"] as Tab[]).map(t => (
             <button
               key={t}
-              onClick={() => switchTab(t)}
+              onClick={() => { switchTab(t); setSidebarOpen(false) }}
               className={cn(
                 "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all",
                 tab === t ? "bg-[#ff914d]/10 text-[#ff914d]" : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
@@ -276,15 +289,23 @@ export default function AdminDashboard() {
       </aside>
 
       {/* MAIN */}
-      <div className="ml-[220px] flex-1 flex flex-col min-h-screen">
-        <header className="h-14 bg-[#111] border-b border-white/[0.07] flex items-center px-7 gap-4 sticky top-0 z-30">
+      <div className="md:ml-[220px] flex-1 flex flex-col min-h-screen w-full">
+        <header className="h-14 bg-[#111] border-b border-white/[0.07] flex items-center px-4 md:px-7 gap-3 sticky top-0 z-30">
+          {/* Hamburger — mobile only */}
+          <button
+            className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.06] transition-all"
+            onClick={() => setSidebarOpen(o => !o)}
+            aria-label="Toggle menu"
+          >
+            <Menu size={18} />
+          </button>
           <h1 className="font-bold text-[15px] flex-1 capitalize">{tab}</h1>
           <button
             onClick={() => tab === "portfolio" ? fetchPortfolio() : tab === "layanan" ? fetchLayanan() : fetchTim()}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold text-white/40 border border-white/[0.07] hover:text-white/70 hover:border-white/15 transition-all"
           >
             <RefreshCw size={13} className={cn(loadingP || loadingL ? "animate-spin" : "")} />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
           </button>
           {tab !== "tipe" && (
           <button
@@ -306,7 +327,7 @@ export default function AdminDashboard() {
           )}
         </header>
 
-        <main className="p-7 flex-1">
+        <main className="p-4 md:p-7 flex-1">
           {/* Stats — 2 fixed + dynamic per dept */}
           {tab !== "tipe" && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 mb-7">
@@ -511,9 +532,9 @@ function PortfolioTable({ data, loading, onEdit, onDelete, depts }: {
         <tbody>
           {data.map(p => (
             <tr key={p.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
-              <td className="px-5 py-3.5">
-                <p className="text-[13.5px] font-medium text-white">{p.title}</p>
-                {p.description && <p className="text-[11.5px] text-white/30 mt-0.5 max-w-[280px] truncate">{p.description}</p>}
+              <td className="px-5 py-3.5 max-w-[240px]">
+                <p className="text-[13.5px] font-medium text-white truncate">{p.title}</p>
+                {p.description && <p className="text-[11.5px] text-white/30 mt-0.5 max-w-[220px] truncate">{p.description}</p>}
               </td>
               <td className="px-5 py-3.5">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -559,9 +580,9 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
         <tbody>
           {data.map(l => (
             <tr key={l.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
-              <td className="px-5 py-3.5">
-                <p className="text-[13.5px] font-medium text-white">{l.title}</p>
-                {l.description && <p className="text-[11.5px] text-white/30 mt-0.5 max-w-[280px] truncate">{l.description}</p>}
+              <td className="px-5 py-3.5 max-w-[240px]">
+                <p className="text-[13.5px] font-medium text-white truncate">{l.title}</p>
+                {l.description && <p className="text-[11.5px] text-white/30 mt-0.5 max-w-[220px] truncate">{l.description}</p>}
               </td>
               <td className="px-5 py-3.5">
                 <div className="flex flex-col gap-1">
@@ -1158,11 +1179,11 @@ function TimTable({ data, loading, onEdit, onDelete }: {
                         <span className="text-sm font-bold text-[#ff914d]">{m.name.charAt(0)}</span>
                       )}
                     </div>
-                    <p className="text-[13.5px] font-medium text-white">{m.name}</p>
+                    <p className="text-[13.5px] font-medium text-white max-w-[120px] truncate">{m.name}</p>
                   </div>
                 </td>
-                <td className="px-5 py-3.5">
-                  <p className="text-[12.5px] text-[#ff914d] font-medium">{m.role}</p>
+                <td className="px-5 py-3.5 max-w-[140px]">
+                  <p className="text-[12.5px] text-[#ff914d] font-medium truncate">{m.role}</p>
                 </td>
                 <td className="px-5 py-3.5 max-w-xs">
                   <p className="text-[11.5px] text-white/35 line-clamp-2 leading-relaxed">{m.bio ?? "—"}</p>
