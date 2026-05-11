@@ -16,6 +16,7 @@ function buildCsp(nonce: string): string {
     // by nonce-capable browsers, so security is not degraded.
     `script-src 'self' 'unsafe-inline' 'nonce-${nonce}' https://va.vercel-scripts.com${isDev ? " 'unsafe-eval'" : ""}`,
     // supabaseUrl covers Supabase Storage image URLs (portfolio image_url field)
+    // /api/gdrive-img proxy serves Drive images as same-origin — no external img-src needed beyond lh3
     `img-src 'self' data: ${supabaseUrl}/storage/v1/object/public/ https://lh3.googleusercontent.com https://drive.google.com https://storage.googleapis.com`,
     `connect-src 'self' ${supabaseUrl} https://docs.google.com https://va.vercel-scripts.com`,
     "frame-ancestors 'none'",
@@ -52,9 +53,12 @@ export async function middleware(req: NextRequest) {
 
   const supabase = createSupabaseMiddleware(req, res)
 
+  // getSession() reads the JWT from the cookie — no network request to Supabase,
+  // so it never triggers the auth rate limit. Sufficient for route-guard redirects.
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
+  const user = session?.user ?? null
 
   if (isLoginPage && user) {
     return NextResponse.redirect(new URL("/admin", req.url))

@@ -26,7 +26,9 @@ export default async function Home() {
     .from("layanan")
     .select("*")
     .eq("status", "active")
-    .order("created_at", { ascending: true })
+    .not("featured_order", "is", null)
+    .order("featured_order", { ascending: true })
+    .limit(3)
 
   if (error) {
     console.error("Error fetching layanan:", error)

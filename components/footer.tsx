@@ -53,10 +53,10 @@ function SocialIcon({ icon, className }: { icon: string; className: string }) {
 export default function Footer({ footerLinks, socialLinks }: FooterProps) {
   return (
     <footer className="bg-black text-white/40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5 md:gap-10 mb-6 md:mb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-10 mb-6 md:mb-12">
           {/* Brand */}
-          <div className="md:col-span-2">
+          <div className="col-span-2 md:col-span-2">
             <div className="flex items-center gap-2.5 mb-4">
               <div className="w-8 h-8 rounded-lg bg-[#ff914d] flex items-center justify-center">
                 <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,19 +69,19 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
             <p className="text-xs text-white/25">{siteConfig.address}</p>
 
             {/* Dept pills */}
-            <div className="flex gap-2 mt-3 md:mt-5 flex-wrap">
-              <span className="text-xs px-3 py-1 rounded-full border border-[#ff914d]/30 text-[#ff914d]/70">Departemen ArcGIS</span>
-              <span className="text-xs px-3 py-1 rounded-full border border-white/10 text-white/30">Departemen IT</span>
+            <div className="flex gap-2 mt-5">
+              <span className="text-[10px] md:text-xs px-2 md:px-3 py-0.5 md:py-1 rounded-full border border-[#ff914d]/30 text-[#ff914d]/70">Dept. ArcGIS</span>
+              <span className="text-[10px] md:text-xs px-2 md:px-3 py-0.5 md:py-1 rounded-full border border-white/10 text-white/30">Dept. IT</span>
             </div>
           </div>
 
           {/* Nav */}
           <div>
-            <h4 className="text-white font-semibold text-sm mb-4">Navigasi</h4>
-            <ul className="space-y-2.5">
+            <h4 className="text-white font-semibold text-xs md:text-sm mb-2 md:mb-4">Navigasi</h4>
+            <ul className="space-y-1.5 md:space-y-2.5">
               {footerLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm hover:text-[#ff914d] transition-colors duration-200">
+                  <Link href={link.href} className="text-xs md:text-sm hover:text-[#ff914d] transition-colors duration-200">
                     {link.label}
                   </Link>
                 </li>
@@ -91,8 +91,8 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
 
           {/* Contact */}
           <div>
-            <h4 className="text-white font-semibold text-sm mb-4">Hubungi Kami</h4>
-            <div className="space-y-2.5 mb-5">
+            <h4 className="text-white font-semibold text-xs md:text-sm mb-2 md:mb-4">Kontak</h4>
+            <div className="space-y-1.5 md:space-y-2.5 mb-3 md:mb-5">
               <a href={`mailto:${siteConfig.email}`} className="flex items-center gap-2 text-sm hover:text-[#ff914d] transition-colors duration-200">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -114,9 +114,9 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   title={social.name}
-                  className="w-9 h-9 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center hover:bg-[#ff914d]/20 hover:border-[#ff914d]/40 hover:text-[#ff914d] transition-all duration-200"
+                  className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center hover:bg-[#ff914d]/20 hover:border-[#ff914d]/40 hover:text-[#ff914d] transition-all duration-200"
                 >
-                  <SocialIcon icon={social.icon} className="w-4 h-4" />
+                  <SocialIcon icon={social.icon} className="w-3.5 h-3.5" />
                 </a>
               ))}
             </div>

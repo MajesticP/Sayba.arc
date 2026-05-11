@@ -28,6 +28,14 @@ export async function POST(req: NextRequest) {
   if (!user) return unauthorized()
 
   const payload = await req.json()
+
+  // Auto-clear any existing service that already holds this featured_order slot
+  if (payload.featured_order !== null && payload.featured_order !== undefined) {
+    await db.from("layanan")
+      .update({ featured_order: null })
+      .eq("featured_order", payload.featured_order)
+  }
+
   const { data, error } = await db.from("layanan").insert(payload).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -43,6 +51,15 @@ export async function PUT(req: NextRequest) {
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 })
 
   const payload = await req.json()
+
+  // Auto-clear any OTHER service that already holds this featured_order slot
+  if (payload.featured_order !== null && payload.featured_order !== undefined) {
+    await db.from("layanan")
+      .update({ featured_order: null })
+      .eq("featured_order", payload.featured_order)
+      .neq("id", id)
+  }
+
   const { data, error } = await db.from("layanan").update(payload).eq("id", id).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

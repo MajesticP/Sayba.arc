@@ -47,19 +47,19 @@ export default function FeatureTabs({ features, techStack, accent }: Props) {
 
       {/* Features Tab */}
       {active === "features" && (
-        <div className="flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-3 duration-300">
+        <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-3 duration-300">
           {features.map((feat, i) => (
             <div
               key={i}
-              className="flex items-center gap-4 rounded-xl px-5 py-4 bg-black/[0.025] hover:bg-black/[0.04] transition-colors duration-150 group"
+              className="flex items-center gap-3 rounded-lg md:rounded-xl px-3 md:px-5 py-3 md:py-4 bg-black/[0.025] hover:bg-black/[0.04] transition-colors duration-150 group"
             >
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{ backgroundColor: `${accent}18` }}
               >
-                <CheckCircle2 size={16} style={{ color: accent }} />
+                <CheckCircle2 size={14} style={{ color: accent }} />
               </div>
-              <span className="text-black/75 font-medium text-sm">{feat}</span>
+              <span className="text-black/75 font-medium text-xs md:text-sm">{feat}</span>
             </div>
           ))}
         </div>
@@ -67,19 +67,19 @@ export default function FeatureTabs({ features, techStack, accent }: Props) {
 
       {/* Tech Stack Tab */}
       {active === "tech" && (
-        <div className="flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-3 duration-300">
+        <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-3 duration-300">
           {techStack.map((tech, i) => (
             <div
               key={i}
-              className="flex items-center gap-4 rounded-xl px-5 py-4 bg-black/[0.025] hover:bg-black/[0.04] transition-colors duration-150 group"
+              className="flex items-center gap-3 rounded-lg md:rounded-xl px-3 md:px-5 py-3 md:py-4 bg-black/[0.025] hover:bg-black/[0.04] transition-colors duration-150 group"
             >
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{ backgroundColor: `${accent}18` }}
               >
-                <Cpu size={16} style={{ color: accent }} />
+                <Cpu size={14} style={{ color: accent }} />
               </div>
-              <span className="text-black/75 font-medium text-sm">{tech}</span>
+              <span className="text-black/75 font-medium text-xs md:text-sm">{tech}</span>
             </div>
           ))}
         </div>

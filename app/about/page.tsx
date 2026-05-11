@@ -40,12 +40,12 @@ export default async function AboutPage() {
       <Header navItems={navItems} ctaText="Hubungi Kami" />
 
       {/* Hero */}
-      <section className="bg-black py-10 md:py-20">
+      <section className="bg-black py-12 md:py-20">
         <PageTransition>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <span className="inline-block text-xs font-bold text-[#ff914d] uppercase tracking-widest mb-2 md:mb-3">Siapa Kami</span>
-            <h1 className="text-2xl md:text-5xl font-bold text-white mb-2 md:mb-3">{aboutPage.hero.title}</h1>
-            <p className="text-white/45 text-sm md:text-lg">{aboutPage.hero.subtitle}</p>
+            <span className="inline-block text-xs font-bold text-[#ff914d] uppercase tracking-widest mb-3">Siapa Kami</span>
+            <h1 className="text-3xl md:text-5xl font-bold text-white mb-3">{aboutPage.hero.title}</h1>
+            <p className="text-white/45 text-base md:text-lg">{aboutPage.hero.subtitle}</p>
           </div>
         </PageTransition>
       </section>

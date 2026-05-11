@@ -44,8 +44,10 @@ export type Database = {
           category: string | null       // sub-category within a dept (e.g. "Web GIS")
           description: string | null
           icon: string | null
+          image_url: string | null
           prices: PriceTier[] | null
           status: "active" | "draft" | "archived"
+          featured_order: number | null   // 1, 2, or 3 = shown on homepage; null = not featured
           created_at: string
         }
         Insert: Omit<Database["public"]["Tables"]["layanan"]["Row"], "id" | "created_at"> & {

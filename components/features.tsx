@@ -17,13 +17,13 @@ interface FeaturesProps {
 
 export default function Features({ title, subtitle, items }: FeaturesProps) {
   return (
-    <section className="py-10 md:py-24 bg-black" id="features">
+    <section className="py-14 md:py-24 bg-black" id="features">
       <PageTransition delay={200}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-6 md:mb-16">
-            <span className="inline-block text-xs font-bold text-[#ff914d] uppercase tracking-widest mb-2 md:mb-3">Keunggulan Kami</span>
+          <div className="text-center mb-10 md:mb-16">
+            <span className="inline-block text-xs font-bold text-[#ff914d] uppercase tracking-widest mb-3">Keunggulan Kami</span>
             <h2 className="text-2xl md:text-4xl font-bold text-white mb-2 md:mb-4">{title}</h2>
-            <p className="text-white/40 text-sm md:text-lg max-w-2xl mx-auto">{subtitle}</p>
+            <p className="text-white/40 text-sm md:text-base max-w-2xl mx-auto">{subtitle}</p>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 md:gap-5">

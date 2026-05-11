@@ -48,9 +48,9 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
             href="/services"
-            className="text-white/30 hover:text-[#ff914d] text-sm flex items-center gap-1.5 mb-5 md:mb-8 transition-colors"
+            className="text-white/30 hover:text-[#ff914d] text-xs flex items-center gap-1.5 mb-5 md:mb-8 transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Kembali ke Layanan
@@ -58,7 +58,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
           <div className="flex items-center gap-3 md:gap-5 mb-4 md:mb-6">
             <div
-              className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0"
+              className="w-11 h-11 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0"
               style={{ backgroundColor: accent === "#111111" ? "rgba(255,255,255,0.08)" : `${accent}26` }}
             >
               <DynamicIcon name={service.icon ?? "layers"} color={accent === "#111111" ? "#fff" : accent} size={24} />
@@ -86,7 +86,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                   </>
                 )}
               </div>
-              <h1 className="text-xl md:text-4xl font-bold text-white">{service.title}</h1>
+              <h1 className="text-xl md:text-4xl font-bold text-white leading-tight">{service.title}</h1>
             </div>
           </div>
 
@@ -98,7 +98,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
       {/* Pricing */}
       {prices.length > 0 && (
-        <section className="py-8 md:py-20 bg-white flex-1">
+        <section className="py-12 md:py-20 bg-white flex-1">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-6 md:mb-12">
               <span
@@ -113,14 +113,14 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
               </p>
             </div>
 
-            {/* Stack on mobile, 3-col grid on desktop */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+            {/* Mobile: horizontal scroll; Desktop: 3-col grid */}
+            <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 scrollbar-hide">
               {prices.map((tier, i) => {
                 const isMiddle = i === 1
                 return (
                   <div
                     key={i}
-                    className={`relative rounded-2xl p-5 md:p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 ${
+                    className={`relative rounded-2xl p-5 md:p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 flex-shrink-0 w-[72vw] sm:w-[55vw] md:w-auto snap-center ${
                       isMiddle
                         ? "bg-black text-white shadow-2xl shadow-black/20 md:scale-105"
                         : "bg-white border border-black/10 hover:border-black/20 hover:shadow-xl"
@@ -128,7 +128,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                   >
                     {isMiddle && (
                       <div
-                        className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold text-white whitespace-nowrap"
+                        className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold text-white"
                         style={{ backgroundColor: accent }}
                       >
                         Paling Populer
@@ -136,7 +136,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                     )}
 
                     {/* Tier name */}
-                    <div className="mb-5 md:mb-6">
+                    <div className="mb-6">
                       <p
                         className={`text-xs font-bold uppercase tracking-widest mb-2 ${
                           isMiddle ? "text-white/40" : "text-black/40"
@@ -146,7 +146,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                       </p>
                       <div className="flex items-end gap-1">
                         <span
-                          className={`text-2xl md:text-3xl font-bold ${isMiddle ? "text-white" : "text-black"}`}
+                          className={`text-3xl font-bold ${isMiddle ? "text-white" : "text-black"}`}
                         >
                           {formatPrice(tier.price)}
                         </span>
@@ -162,13 +162,13 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
                     {/* Divider */}
                     <div
-                      className={`h-px mb-5 md:mb-6 ${
+                      className={`h-px mb-6 ${
                         isMiddle ? "bg-white/10" : "bg-black/8"
                       }`}
                     />
 
                     {/* Features */}
-                    <ul className="space-y-2.5 md:space-y-3 flex-1 mb-6 md:mb-8">
+                    <ul className="space-y-3 flex-1 mb-8">
                       {tier.features.map((f, fi) => (
                         <li key={fi} className="flex items-start gap-2.5">
                           <svg
@@ -220,7 +220,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
       {/* Fallback if no prices yet */}
       {prices.length === 0 && (
-        <section className="py-8 md:py-20 bg-white flex-1">
+        <section className="py-12 md:py-20 bg-white flex-1">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-2xl font-bold text-black mb-4">Tertarik dengan layanan ini?</h2>
             <p className="text-black/45 mb-6">

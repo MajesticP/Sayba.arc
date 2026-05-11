@@ -178,9 +178,9 @@ export default function ServicesClient({ allLayanan }: Props) {
                 <div>
                   {/* Dept header */}
                   <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-8">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 md:gap-3">
                       <div
-                        className="w-9 h-9 rounded-xl flex items-center justify-center"
+                        className="w-8 h-8 md:w-9 md:h-9 rounded-lg md:rounded-xl flex items-center justify-center"
                         style={{ backgroundColor: cfg.color }}
                       >
                         <DeptIcon dept={dept} />
@@ -192,7 +192,7 @@ export default function ServicesClient({ allLayanan }: Props) {
                         >
                           Departemen
                         </div>
-                        <h2 className="text-xl font-bold text-black">{cfg.label}</h2>
+                        <h2 className="text-base md:text-xl font-bold text-black leading-tight">{cfg.label}</h2>
                       </div>
                     </div>
                     <div className="flex-1 h-px bg-black/8" />
@@ -227,8 +227,8 @@ export default function ServicesClient({ allLayanan }: Props) {
         <div className="text-center bg-black rounded-3xl p-7 md:p-10 relative overflow-hidden mt-10 md:mt-16">
           <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#ff914d] opacity-[0.08] blur-3xl" />
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#ff914d] rounded-full" />
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 relative z-10">Butuh solusi kustom?</h2>
-          <p className="text-white/40 mb-6 relative z-10">Setiap organisasi memiliki tantangan unik. Mari diskusikan solusi yang tepat untuk Anda.</p>
+          <h2 className="text-xl md:text-3xl font-bold text-white mb-2 md:mb-3 relative z-10">Butuh solusi kustom?</h2>
+          <p className="text-white/40 text-sm mb-5 md:mb-6 relative z-10">Setiap organisasi memiliki tantangan unik. Mari diskusikan solusi yang tepat untuk Anda.</p>
           <Link href="/contact" className="inline-block px-8 py-3 rounded-xl font-semibold bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:scale-105 relative z-10">
             Diskusikan Proyek Anda
           </Link>
@@ -240,6 +240,17 @@ export default function ServicesClient({ allLayanan }: Props) {
 }
 
 // ── Sub-components ──────────────────────────────────────────────────────────
+
+/** Route Google Drive share links through the local image proxy */
+function gdriveToImg(url: string): string {
+  if (!url) return url
+  if (url.startsWith("/api/gdrive-img")) return url
+  const fileMatch = url.match(/\/d\/([\w-]+)/)
+  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
+  const idMatch = url.match(/[?&]id=([\w-]+)/)
+  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
+  return url
+}
 
 function FilterChip({ label, active, color, onClick, small }: {
   label: string; active: boolean; color: string; onClick: () => void; small?: boolean
@@ -262,50 +273,73 @@ function FilterChip({ label, active, color, onClick, small }: {
 }
 
 function ServiceCard({ service, cfg }: { service: Layanan; cfg: ReturnType<typeof getDeptCfg> }) {
+  const imgSrc = (service as any).image_url ? gdriveToImg((service as any).image_url) : null
+
   return (
     <Link
       href={service.slug ? `/services/${service.slug}` : "#"}
-      className={`group bg-white rounded-xl md:rounded-2xl p-3 md:p-6 border border-black/8 ${cfg.border} ${cfg.shadow} transition-all duration-300 hover:-translate-y-1 relative overflow-hidden flex flex-col`}
+      className={`group bg-white rounded-xl md:rounded-2xl border border-black/8 ${cfg.border} ${cfg.shadow} transition-all duration-300 hover:-translate-y-1 relative overflow-hidden flex flex-col`}
     >
-      {/* Bottom accent bar */}
-      <div
-        className="absolute bottom-0 left-0 h-0.5 w-0 group-hover:w-full transition-all duration-500"
-        style={{ backgroundColor: cfg.color }}
-      />
+      {/* Image area */}
+      <div className="relative w-full h-36 md:h-44 overflow-hidden bg-black/5 flex-shrink-0">
+        {imgSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imgSrc}
+            alt={service.title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={e => {
+              const el = e.currentTarget
+              el.style.display = "none"
+              const fb = el.nextElementSibling as HTMLElement | null
+              if (fb) fb.style.display = "flex"
+            }}
+          />
+        ) : null}
 
-      {/* Icon */}
-      <div className={`w-9 h-9 md:w-12 md:h-12 rounded-lg md:rounded-xl ${cfg.iconBg} flex items-center justify-center mb-2 md:mb-5 flex-shrink-0 transition-colors duration-300`}>
-        <DynamicIcon name={service.icon ?? "map"} color={cfg.color} size={18} />
+        {/* Fallback icon */}
+        <div
+          className={`absolute inset-0 items-center justify-center ${cfg.iconBg} transition-colors duration-300`}
+          style={{ display: imgSrc ? "none" : "flex" }}
+        >
+          <DynamicIcon name={service.icon ?? "map"} color={cfg.color} size={28} />
+        </div>
+
+        {/* Colored bottom border on image */}
+        <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: cfg.color }} />
       </div>
 
-      {/* Category badge — hidden on mobile */}
-      {service.category && (
-        <span
-          className="hidden md:inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-3 w-fit"
-          style={{
-            backgroundColor: `${cfg.color}14`,
-            color: cfg.color === "#111111" ? "#555" : cfg.color,
-          }}
+      {/* Content */}
+      <div className="flex flex-col flex-1 p-3 md:p-5">
+        {/* Category badge — hidden on mobile */}
+        {service.category && (
+          <span
+            className="hidden md:inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-2 w-fit"
+            style={{
+              backgroundColor: `${cfg.color}14`,
+              color: cfg.color === "#111111" ? "#555" : cfg.color,
+            }}
+          >
+            # {service.category}
+          </span>
+        )}
+
+        {/* Title + description */}
+        <h4 className={`text-xs md:text-base font-bold text-black mb-1 md:mb-2 ${cfg.accent} transition-colors duration-200 leading-snug`}>
+          {service.title}
+        </h4>
+        <p className="text-black/50 text-xs md:text-sm leading-relaxed flex-1 line-clamp-2 md:line-clamp-3">{service.description}</p>
+
+        {/* Arrow CTA */}
+        <div
+          className="mt-2 md:mt-4 flex items-center gap-1 text-xs md:text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{ color: cfg.color === "#111111" ? "#111" : cfg.color }}
         >
-          # {service.category}
-        </span>
-      )}
-
-      {/* Title + description */}
-      <h4 className={`text-xs md:text-base font-bold text-black mb-1 md:mb-2 ${cfg.accent} transition-colors duration-200 leading-snug`}>
-        {service.title}
-      </h4>
-      <p className="text-black/50 text-xs md:text-sm leading-relaxed flex-1 line-clamp-2 md:line-clamp-none">{service.description}</p>
-
-      {/* Arrow CTA */}
-      <div
-        className="mt-2 md:mt-4 flex items-center gap-1 text-xs md:text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{ color: cfg.color === "#111111" ? "#111" : cfg.color }}
-      >
-        Selengkapnya
-        <svg className="w-3 h-3 md:w-3.5 md:h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
+          Selengkapnya
+          <svg className="w-3 h-3 md:w-3.5 md:h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
       </div>
     </Link>
   )

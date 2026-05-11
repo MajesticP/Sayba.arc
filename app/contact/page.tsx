@@ -4,7 +4,6 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import PageTransition from "@/components/page-transition"
 import { DynamicIcon } from "@/lib/dynamic-icon"
-import ContactForm from "@/components/contact-form"
 
 export const metadata: Metadata = {
   title: `Kontak — ${siteConfig.name}`,
@@ -17,17 +16,17 @@ export default function ContactPage() {
       <Header navItems={navItems} ctaText="Hubungi Kami" />
 
       {/* Hero */}
-      <section className="bg-black py-10 md:py-20">
+      <section className="bg-black py-12 md:py-20">
         <PageTransition>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <span className="inline-block text-xs font-bold text-[#ff914d] uppercase tracking-widest mb-2 md:mb-4">Ayo Bicara</span>
-            <h1 className="text-2xl md:text-5xl font-bold text-white mb-2 md:mb-4">{contactPage.title}</h1>
-            <p className="text-white/45 text-sm md:text-lg max-w-xl mx-auto">{contactPage.subtitle}</p>
+            <span className="inline-block text-xs font-bold text-[#ff914d] uppercase tracking-widest mb-3 md:mb-4">Ayo Bicara</span>
+            <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4">{contactPage.title}</h1>
+            <p className="text-white/45 text-base md:text-lg max-w-xl mx-auto">{contactPage.subtitle}</p>
           </div>
         </PageTransition>
       </section>
 
-      <section className="py-8 md:py-20 bg-white flex-1">
+      <section className="py-12 md:py-20 bg-white flex-1">
         <PageTransition delay={100}>
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
@@ -37,11 +36,7 @@ export default function ContactPage() {
                 {contactPage.info.map((item, index) => (
                   <a
                     key={index}
-                    href={item.icon === "map-pin"
-                      ? "https://maps.google.com/?q=Pontianak,Kalimantan+Barat,Indonesia"
-                      : item.href}
-                    target={item.icon === "map-pin" ? "_blank" : undefined}
-                    rel={item.icon === "map-pin" ? "noopener noreferrer" : undefined}
+                    href={item.href}
                     className="flex items-center gap-3 md:gap-4 p-4 md:p-5 bg-white rounded-xl md:rounded-2xl border border-black/8 hover:border-[#ff914d]/30 hover:shadow-lg hover:shadow-orange-50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 md:w-11 md:h-11 rounded-lg md:rounded-xl bg-[#ff914d]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#ff914d]/20 transition-colors">
@@ -62,31 +57,37 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              {/* Form — Client Component with send notification */}
-              <ContactForm />
+              {/* Form */}
+              <div className="bg-[#f7f7f7] rounded-xl md:rounded-2xl p-5 md:p-8 border border-black/5">
+                <h2 className="text-xl font-bold text-black mb-6">Kirim Pesan</h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-black/60 mb-1.5">Nama Lengkap</label>
+                    <input type="text" className="w-full px-4 py-3 rounded-xl border border-black/10 bg-white text-black placeholder-black/30 focus:outline-none focus:ring-2 focus:ring-[#ff914d]/40 focus:border-[#ff914d] transition-all text-sm" placeholder="Nama Anda" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-black/60 mb-1.5">Email</label>
+                    <input type="email" className="w-full px-4 py-3 rounded-xl border border-black/10 bg-white text-black placeholder-black/30 focus:outline-none focus:ring-2 focus:ring-[#ff914d]/40 focus:border-[#ff914d] transition-all text-sm" placeholder="email@perusahaan.com" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-black/60 mb-1.5">Departemen yang Dibutuhkan</label>
+                    <select className="w-full px-4 py-3 rounded-xl border border-black/10 bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#ff914d]/40 focus:border-[#ff914d] transition-all text-sm">
+                      <option value="">Pilih departemen...</option>
+                      <option value="arcgis">Departemen ArcGIS</option>
+                      <option value="it">Departemen IT</option>
+                      <option value="both">Keduanya</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-black/60 mb-1.5">Pesan</label>
+                    <textarea rows={5} className="w-full px-4 py-3 rounded-xl border border-black/10 bg-white text-black placeholder-black/30 focus:outline-none focus:ring-2 focus:ring-[#ff914d]/40 focus:border-[#ff914d] transition-all text-sm resize-none" placeholder="Ceritakan proyek atau kebutuhan Anda..." />
+                  </div>
+                  <button className="w-full py-3.5 rounded-xl font-semibold bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:shadow-lg hover:shadow-orange-500/25 hover:scale-[1.01]">
+                    Kirim Pesan
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </PageTransition>
-      </section>
-
-      {/* Map Section */}
-      <section className="bg-[#f7f7f7] py-8 md:py-14">
-        <PageTransition delay={150}>
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-xl md:text-2xl font-bold text-black mb-4 md:mb-6">Lokasi Kantor</h2>
-            <div className="rounded-2xl overflow-hidden border border-black/8 shadow-sm">
-              <iframe
-                title="Lokasi SAYBA ARC"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d127843.98752085762!2d109.27920824999999!3d-0.02312800000000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e1d59008ff11e59%3A0x5030bfbca832eb8!2sPontianak%2C%20West%20Kalimantan!5e0!3m2!1sen!2sid!4v1715000000000!5m2!1sen!2sid"
-                width="100%"
-                height="360"
-                style={{ border: 0, display: "block" }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            </div>
-            <p className="mt-3 text-sm text-black/40 text-center">{siteConfig.address}</p>
           </div>
         </PageTransition>
       </section>

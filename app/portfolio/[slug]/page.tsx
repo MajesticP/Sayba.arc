@@ -81,56 +81,56 @@ export default async function PortfolioSlugPage({ params }: Props) {
                 {/* Left: Content */}
                 <div>
                   <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+                    className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-6"
                     style={{ backgroundColor: `${accent}15` }}
                   >
                     {isArcgis
-                      ? <Map size={26} style={{ color: accent }} />
-                      : <Globe size={26} style={{ color: accent }} />
+                      ? <Map size={20} style={{ color: accent }} />
+                      : <Globe size={20} style={{ color: accent }} />
                     }
                   </div>
 
-                  <h1 className="text-xl md:text-4xl font-bold text-black mb-2 leading-tight">
+                  <h1 className="text-2xl md:text-4xl font-bold text-black mb-1.5 md:mb-2 leading-tight">
                     {item.title}
                   </h1>
 
                   {item.category && (
-                    <p className="text-base font-semibold mb-5" style={{ color: accent }}>
+                    <p className="text-sm font-semibold mb-3 md:mb-5" style={{ color: accent }}>
                       {item.category}
                     </p>
                   )}
 
-                  <p className="text-black/55 text-base leading-relaxed mb-8">
+                  <p className="text-black/55 text-sm md:text-base leading-relaxed mb-5 md:mb-8">
                     {item.description ?? "Detail proyek tidak tersedia."}
                   </p>
 
-                  <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+                  <div className="flex flex-col sm:flex-row flex-wrap gap-2 md:gap-3">
                     {item.result_url && item.result_url !== "-" && (
                       <a
                         href={item.result_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-white transition-all duration-200 hover:opacity-90 hover:scale-105 hover:shadow-lg"
+                        className="inline-flex items-center gap-2 px-5 md:px-7 py-2.5 md:py-3.5 rounded-xl font-semibold text-white text-sm transition-all duration-200 hover:opacity-90 hover:scale-105 hover:shadow-lg"
                         style={{ backgroundColor: accent }}
                       >
                         Lihat Hasil Proyek
-                        <ExternalLink size={15} />
+                        <ExternalLink size={14} />
                       </a>
                     )}
                     <Link
                       href="/contact"
-                      className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold border-2 border-black/10 text-black/70 hover:border-black hover:text-black transition-all duration-200"
+                      className="inline-flex items-center gap-2 px-5 md:px-7 py-2.5 md:py-3.5 rounded-xl font-semibold border-2 border-black/10 text-black/70 text-sm hover:border-black hover:text-black transition-all duration-200"
                     >
                       Diskusikan Proyek Serupa
                     </Link>
                   </div>
 
-                  <div className="mt-6">
+                  <div className="mt-4 md:mt-6">
                     <Link
                       href="/portfolio"
-                      className="inline-flex items-center gap-2 text-sm text-black/30 hover:text-black transition-colors group"
+                      className="inline-flex items-center gap-2 text-xs text-black/30 hover:text-black transition-colors group"
                     >
-                      <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" />
+                      <ArrowLeft size={12} className="transition-transform group-hover:-translate-x-1" />
                       Kembali ke Portofolio
                     </Link>
                   </div>

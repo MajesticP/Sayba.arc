@@ -17,13 +17,13 @@ interface AboutProps {
 
 export default function About({ data }: AboutProps) {
   return (
-    <section className="py-10 md:py-24 bg-white" id="about">
+    <section className="py-8 md:py-24 bg-white" id="about">
       <PageTransition delay={300}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 items-center">
             {/* Stats panel */}
             <div className="relative">
-              <div className="bg-black rounded-3xl p-6 md:p-10">
+              <div className="bg-black rounded-2xl md:rounded-3xl p-5 md:p-10">
                 <div className="grid grid-cols-2 gap-3 md:gap-5">
                   {data.stats.map((stat, index) => (
                     <div
@@ -64,21 +64,21 @@ export default function About({ data }: AboutProps) {
             {/* Text */}
             <div className="space-y-4 md:space-y-6">
               <div>
-                <span className="inline-block text-xs font-bold text-[#ff914d] uppercase tracking-widest mb-3">Tentang Kami</span>
-                <h2 className="text-3xl md:text-4xl font-bold text-black leading-tight">{data.title}</h2>
+                <span className="inline-block text-xs font-bold text-[#ff914d] uppercase tracking-widest mb-2 md:mb-3">Tentang Kami</span>
+                <h2 className="text-2xl md:text-4xl font-bold text-black leading-tight">{data.title}</h2>
               </div>
               <p className="text-black/55 text-sm md:text-lg leading-relaxed">{data.description}</p>
 
-              <div className="flex flex-wrap gap-3 pt-2">
+              <div className="flex flex-wrap gap-2 md:gap-3 pt-1">
                 <Link
                   href={data.buttonHref}
-                  className="px-6 py-3 rounded-xl font-semibold bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:shadow-lg hover:shadow-orange-500/25 hover:scale-105"
+                  className="px-5 py-2.5 md:py-3 rounded-xl font-semibold bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:shadow-lg hover:shadow-orange-500/25 hover:scale-105 text-sm"
                 >
                   {data.buttonText}
                 </Link>
                 <Link
                   href="/services"
-                  className="px-6 py-3 rounded-xl font-semibold bg-black text-white hover:bg-black/80 transition-all duration-200 hover:scale-105"
+                  className="px-5 py-2.5 md:py-3 rounded-xl font-semibold bg-black text-white hover:bg-black/80 transition-all duration-200 hover:scale-105 text-sm"
                 >
                   Layanan Kami
                 </Link>
