@@ -1321,7 +1321,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
   open: boolean; initial: TimMember | null
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
-  const blank = { name: "", role: "", bio: "", photo_url: "", github_url: "", linkedin_url: "", instagram_url: "", dept: null as "lingkungan" | "it" | "kelautan" | null, order_num: 0, status: "active" as const }
+  const blank = { name: "", role: "", bio: "", photo_url: "", github_url: "", linkedin_url: "", instagram_url: "", dept: null as "lingkungan" | "it" | "kelautan" | null, order_num: 0, status: "active" as "active" | "draft" }
   const [form, setForm] = useState({ ...blank })
   const [saving, setSaving] = useState(false)
   const [previewError, setPreviewError] = useState(false)
