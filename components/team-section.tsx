@@ -76,23 +76,21 @@ function ProfileModal({ member, color, onClose }: { member: TimMember; color: st
   }, [onClose])
 
   return (
-    <div onClick={onClose} style={{
+    <div onClick={onClose} className="pm-overlay" style={{
       position: "fixed", inset: 0, zIndex: 60,
-      display: "flex", alignItems: "flex-end", justifyContent: "center",
+      display: "flex", justifyContent: "center",
       backgroundColor: "rgba(0,0,0,0.65)", backdropFilter: "blur(10px)",
       animation: "mfade .18s ease",
     }}>
-      <div onClick={e => e.stopPropagation()} style={{
+      <div onClick={e => e.stopPropagation()} className="pm-card" style={{
         background: "#fff",
-        borderRadius: "20px 20px 0 0",
         width: "100%", maxWidth: 460,
         overflow: "hidden",
-        boxShadow: "0 -8px 40px rgba(0,0,0,0.2)",
         animation: "mup .26s cubic-bezier(.16,1,.3,1)",
         maxHeight: "92dvh", overflowY: "auto",
       }}>
-        {/* Drag handle */}
-        <div style={{ display: "flex", justifyContent: "center", paddingTop: 10, paddingBottom: 2 }}>
+        {/* Drag handle — mobile only */}
+        <div className="pm-drag-handle" style={{ display: "flex", justifyContent: "center", paddingTop: 10, paddingBottom: 2 }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: "#ddd" }} />
         </div>
 
@@ -169,6 +167,13 @@ function ProfileModal({ member, color, onClose }: { member: TimMember; color: st
       <style>{`
         @keyframes mfade { from{opacity:0} to{opacity:1} }
         @keyframes mup { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:none} }
+        .pm-overlay { align-items: flex-end; }
+        .pm-card { border-radius: 20px 20px 0 0; box-shadow: 0 -8px 40px rgba(0,0,0,0.2); }
+        @media (min-width: 768px) {
+          .pm-overlay { align-items: center; }
+          .pm-card { border-radius: 20px !important; box-shadow: 0 8px 48px rgba(0,0,0,0.24) !important; margin: 24px; }
+          .pm-drag-handle { display: none !important; }
+        }
       `}</style>
     </div>
   )
