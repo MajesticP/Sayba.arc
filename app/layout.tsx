@@ -14,19 +14,22 @@ export const viewport: Viewport = {
 const geist = Geist({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "SAYBA ARC — GIS Intelligence & IT Solutions",
+  title: "SAYBA ARC — ART YOU BELIEVE",
   description:
     "SAYBA ARC is an Indonesian geospatial and IT agency specializing in ArcGIS development, Web GIS, spatial analysis, and full-stack IT solutions.",
   applicationName: "SAYBA ARC",
   keywords: [
     "ArcGIS development",
-    "GIS agency Indonesia",
+    "GIS agency",
     "Web GIS",
     "spatial analysis",
-    "IT development Kalimantan",
+    "IT development",
     "ArcGIS Enterprise",
     "geospatial solutions",
     "SAYBA ARC",
+    "3D DESIGN",
+    "AUTOCAD",
+    "SKETCHUP"
   ],
   authors: [{ name: "SAYBA ARC", url: "https://sayba.web.id" }],
   metadataBase: new URL("https://sayba.web.id"),
@@ -34,7 +37,7 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://sayba.web.id",
     siteName: "SAYBA ARC",
-    title: "SAYBA ARC — GIS Intelligence & IT Solutions",
+    title: "SAYBA ARC — ART YOU BELIEVE",
     description: "ArcGIS development, Web GIS, spatial analysis, and IT solutions from West Kalimantan, Indonesia.",
     images: [{ url: "https://sayba.web.id/logo.png", width: 1200, height: 630, alt: "SAYBA ARC" }],
   },
