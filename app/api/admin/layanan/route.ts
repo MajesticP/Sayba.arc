@@ -36,9 +36,10 @@ export async function POST(req: NextRequest) {
       .eq("featured_order", payload.featured_order)
   }
 
-  const { data, error } = await db.from("layanan").insert(payload).select().single()
+  const { data, error } = await db.from("layanan").insert(payload).select().maybeSingle()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!data) return NextResponse.json({ error: "Insert did not return a record" }, { status: 500 })
   return NextResponse.json(data, { status: 201 })
 }
 
@@ -60,9 +61,10 @@ export async function PUT(req: NextRequest) {
       .neq("id", id)
   }
 
-  const { data, error } = await db.from("layanan").update(payload).eq("id", id).select().single()
+  const { data, error } = await db.from("layanan").update(payload).eq("id", id).select().maybeSingle()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!data) return NextResponse.json({ error: "Record not found or no changes made" }, { status: 404 })
   return NextResponse.json(data)
 }
 

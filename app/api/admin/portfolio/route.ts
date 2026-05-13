@@ -25,9 +25,10 @@ export async function POST(req: NextRequest) {
   if (!user) return unauthorized()
 
   const payload = await req.json()
-  const { data, error } = await db.from("portfolio").insert(payload).select().single()
+  const { data, error } = await db.from("portfolio").insert(payload).select().maybeSingle()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!data) return NextResponse.json({ error: "Insert did not return a record" }, { status: 500 })
   return NextResponse.json(data, { status: 201 })
 }
 
@@ -40,9 +41,10 @@ export async function PUT(req: NextRequest) {
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 })
 
   const payload = await req.json()
-  const { data, error } = await db.from("portfolio").update(payload).eq("id", id).select().single()
+  const { data, error } = await db.from("portfolio").update(payload).eq("id", id).select().maybeSingle()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!data) return NextResponse.json({ error: "Record not found or no changes made" }, { status: 404 })
   return NextResponse.json(data)
 }
 
