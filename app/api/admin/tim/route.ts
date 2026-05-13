@@ -24,9 +24,10 @@ export async function POST(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const payload = await req.json()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabaseAdmin as any).from("tim").insert(payload).select().single()
+  const { data, error } = await (supabaseAdmin as any).from("tim").insert(payload).select().maybeSingle()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!data) return NextResponse.json({ error: "Insert did not return a record" }, { status: 500 })
   return NextResponse.json(data, { status: 201 })
 }
 
@@ -40,9 +41,10 @@ export async function PUT(req: NextRequest) {
 
   const payload = await req.json()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabaseAdmin as any).from("tim").update(payload).eq("id", id).select().single()
+  const { data, error } = await (supabaseAdmin as any).from("tim").update(payload).eq("id", id).select().maybeSingle()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!data) return NextResponse.json({ error: "Record not found or no changes made" }, { status: 404 })
   return NextResponse.json(data)
 }
 
