@@ -5,11 +5,10 @@ import Image from "next/image"
 
 function gdriveToImg(url: string | null | undefined): string | null {
   if (!url) return null
-  if (url.includes("drive.google.com/uc")) return url
   const fileMatch = url.match(/\/d\/([\w-]+)/)
-  if (fileMatch) return `https://drive.google.com/uc?export=view&id=${fileMatch[1]}`
+  if (fileMatch) return `https://drive.google.com/thumbnail?id=${fileMatch[1]}&sz=w400`
   const idMatch = url.match(/[?&]id=([\w-]+)/)
-  if (idMatch) return `https://drive.google.com/uc?export=view&id=${idMatch[1]}`
+  if (idMatch) return `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w400`
   return url
 }
 
