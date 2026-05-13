@@ -11,20 +11,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const LS_KEY = "sayba_layanan_depts"
-
-function loadDepts(): LayananDept[] {
-  if (typeof window === "undefined") return DEFAULT_DEPTS
-  try {
-    const raw = localStorage.getItem(LS_KEY)
-    if (raw) return JSON.parse(raw) as LayananDept[]
-  } catch {}
-  return DEFAULT_DEPTS
-}
-
-function saveDepts(depts: LayananDept[]) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(depts)) } catch {}
-}
+// Dept config is now persisted in Supabase via /api/admin/tipe
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type Tab = "portfolio" | "layanan" | "tipe" | "tim"
@@ -109,10 +96,17 @@ export default function AdminDashboard() {
   const [deptFilter, setDeptFilter] = useState<DeptFilter>("semua")
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  useEffect(() => { setDepts(loadDepts()) }, [])
+  const fetchDepts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/tipe")
+      if (!res.ok) return
+      const data = await res.json()
+      if (Array.isArray(data) && data.length > 0) setDepts(data)
+    } catch {}
+  }, [])
 
   const getDept = (value: string) => depts.find(d => d.value === value)
-  const updateDepts = (newDepts: LayananDept[]) => { setDepts(newDepts); saveDepts(newDepts) }
+  const updateDepts = (newDepts: LayananDept[]) => { setDepts(newDepts) }
 
   const [tipeModal, setTipeModal] = useState(false)
   const [tipeEdit, setTipeEdit] = useState<LayananDept | null>(null)
@@ -168,7 +162,7 @@ export default function AdminDashboard() {
     setLoadingT(false)
   }, [showToast])
 
-  useEffect(() => { fetchPortfolio(); fetchLayanan(); fetchTim() }, [fetchPortfolio, fetchLayanan, fetchTim])
+  useEffect(() => { fetchDepts(); fetchPortfolio(); fetchLayanan(); fetchTim() }, [fetchDepts, fetchPortfolio, fetchLayanan, fetchTim])
 
   const filteredPortfolio = portfolioData.filter(p => {
     const matchDept = deptFilter === "semua" || p.dept === deptFilter
@@ -435,7 +429,7 @@ export default function AdminDashboard() {
               <TipeTable
                 depts={depts}
                 onEdit={d => { setTipeEdit(d); setTipeModal(true) }}
-                onDelete={d => updateDepts(depts.filter(x => x.value !== d.value))}
+                onDelete={async d => { await fetch(`/api/admin/tipe?value=${d.value}`, { method: "DELETE" }); await fetchDepts() }}
               />
             )}
           </div>
@@ -470,11 +464,18 @@ export default function AdminDashboard() {
         onSaved={() => { setLvModal(false); fetchLayanan(); showToast(lvEdit ? "Layanan diperbarui" : "Layanan ditambahkan") }}
         onError={showToast} />
       <TipeModal open={tipeModal} initial={tipeEdit} onClose={() => setTipeModal(false)}
-        onSaved={(dept) => {
-          if (tipeEdit) updateDepts(depts.map(d => d.value === tipeEdit.value ? dept : d))
-          else updateDepts([...depts, dept])
-          setTipeModal(false)
-          showToast(tipeEdit ? "Tipe diperbarui" : "Tipe ditambahkan")
+        onSaved={async (dept) => {
+          try {
+            const isEdit = !!tipeEdit
+            const res = await fetch(
+              isEdit ? `/api/admin/tipe?value=${tipeEdit!.value}` : "/api/admin/tipe",
+              { method: isEdit ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dept) }
+            )
+            if (!res.ok) { const e = await res.json(); showToast(e.error ?? "Gagal menyimpan", "error"); return }
+            await fetchDepts()
+            setTipeModal(false)
+            showToast(isEdit ? "Tipe diperbarui" : "Tipe ditambahkan")
+          } catch { showToast("Gagal menyimpan tipe", "error") }
         }}
         onError={showToast} existingValues={depts.map(d => d.value)} />
 
