@@ -58,17 +58,16 @@ export async function PUT(req: NextRequest) {
   if (!value) return NextResponse.json({ error: "Missing value" }, { status: 400 })
 
   const body = await req.json()
-  const { data, error } = await db.from("layanan_depts").update({
+  const { error } = await db.from("layanan_depts").update({
     label: body.label,
     description: body.description ?? null,
     badge_class: body.badgeClass,
     color: body.color,
     sub_categories: body.subCategories ?? [],
-  }).eq("value", value).select().maybeSingle()
+  }).eq("value", value)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 })
-  return NextResponse.json(data)
+  return NextResponse.json({ ok: true })
 }
 
 // DELETE /api/admin/tipe?value=<slug>
