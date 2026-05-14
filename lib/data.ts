@@ -10,8 +10,8 @@ export const siteConfig = {
   url: "https://sayba.web.id",
   logoText: "SAYBA ARC",
   logoLink: "/",
-  email: "hello@sayba.web.id",
-  phone: "+62 812-3456-7890",
+  email: "sayba.help@gmail.com",
+  phone: "+62 877-2191-6495",
   address: "Pontianak, Kalimantan Barat, Indonesia",
 }
 
@@ -24,12 +24,12 @@ export const navItems = [
 ]
 
 export const hero = {
-  title: "Peta. Kode. Kapal.",
+  SAYBA ARC.",
   subtitle:
-    "Tiga bidang keahlian dalam satu agensi — pemetaan lingkungan berbasis ArcGIS, pengembangan digital & kecerdasan data, serta gambar teknik kapal dengan AutoCAD. Kami mengubah data dan desain menjadi solusi nyata.",
+    "SAYBA ARC adalah agensi digital dan engineering yang berfokus pada pengembangan solusi inovatif untuk mendukung kebutuhan bisnis dan proyek teknis di Indonesia. Kami menggabungkan teknologi modern dengan keahlian teknik untuk menghasilkan solusi yang tidak hanya fungsional, tetapi juga efisien dan berkelanjutan. Di era transformasi digital yang terus berkembang, SAYBA ARC hadir sebagai mitra strategis yang membantu klien dalam membangun sistem digital, meningkatkan efisiensi operasional, serta mengoptimalkan potensi bisnis melalui pendekatan berbasis teknologi dan data.",
   primaryButton: { text: "Jelajahi Layanan Kami", href: "/services" },
   secondaryButton: { text: "Lihat Portofolio", href: "/portfolio" },
-  badge: "Berbasis di Pontianak · 3 Departemen Spesialis",
+  badge: "Lebih Dari 5 Departemen Spesialis",
 }
 
 export const arcgisDepartment = {
