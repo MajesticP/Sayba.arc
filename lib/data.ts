@@ -24,7 +24,7 @@ export const navItems = [
 ]
 
 export const hero = {
-  title: "SAYBA ARC",
+  title: "SAYBA ARC.",
   subtitle:
     "SAYBA ARC adalah agensi digital dan engineering yang berfokus pada pengembangan solusi inovatif untuk mendukung kebutuhan bisnis dan proyek teknis di Indonesia. Kami menggabungkan teknologi modern dengan keahlian teknik untuk menghasilkan solusi yang tidak hanya fungsional, tetapi juga efisien dan berkelanjutan. Di era transformasi digital yang terus berkembang, SAYBA ARC hadir sebagai mitra strategis yang membantu klien dalam membangun sistem digital, meningkatkan efisiensi operasional, serta mengoptimalkan potensi bisnis melalui pendekatan berbasis teknologi dan data.",
   primaryButton: { text: "Jelajahi Layanan Kami", href: "/services" },
