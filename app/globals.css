@@ -268,3 +268,9 @@ img { max-width: 100%; height: auto; }
   flex-shrink: 0;
 }
 .btn-icon-danger:hover { color: #f87171; background-color: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2); }
+
+/* Portfolio card: dynamic dept-color hover effects via CSS custom properties */
+.portfolio-card:hover {
+  border-color: var(--dept-color-30);
+  box-shadow: 0 20px 25px -5px var(--dept-color-08), 0 8px 10px -6px var(--dept-color-08);
+}

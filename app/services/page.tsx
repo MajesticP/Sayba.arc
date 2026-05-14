@@ -3,7 +3,10 @@ import { siteConfig, navItems, footerLinks, socialLinks } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { supabase } from "@/lib/supabase"
+import { supabaseAdmin } from "@/lib/supabase-admin"
 import type { Layanan } from "@/lib/database.types"
+import type { LayananDept } from "@/lib/layanan-config"
+import { LAYANAN_DEPTS } from "@/lib/layanan-config"
 import ServicesClient from "./services-client"
 
 export const metadata: Metadata = {
@@ -24,6 +27,11 @@ export default async function ServicesPage() {
 
   const allLayanan: Layanan[] = layananItems ?? []
 
+  const { data: deptsData } = await supabaseAdmin.from("layanan_depts").select("*").order("sort_order", { ascending: true })
+  const depts: LayananDept[] = deptsData && deptsData.length > 0
+    ? deptsData.map((r: any) => ({ value: r.value, label: r.label, description: r.description ?? "", badgeClass: r.badge_class, color: r.color, subCategories: r.sub_categories ?? [] }))
+    : LAYANAN_DEPTS
+
   return (
     <main className="min-h-screen flex flex-col">
       <Header navItems={navItems} ctaText="Hubungi Kami" />
@@ -39,7 +47,7 @@ export default async function ServicesPage() {
         </div>
       </section>
 
-      <ServicesClient allLayanan={allLayanan} />
+      <ServicesClient allLayanan={allLayanan} allDepts={depts} />
 
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />
     </main>

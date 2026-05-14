@@ -5,52 +5,28 @@ import Link from "next/link"
 import PageTransition from "@/components/page-transition"
 import { DynamicIcon } from "@/lib/dynamic-icon"
 import type { Layanan } from "@/lib/database.types"
-import { getDeptLabel } from "@/lib/layanan-config"
+import type { LayananDept } from "@/lib/layanan-config"
 
-// Dept config — color + label per dept value
-const DEPT_CONFIG: Record<string, { label: string; color: string; iconBg: string; accent: string; border: string; shadow: string }> = {
-  arcgis: {
-    label: "Pemetaan & Lingkungan",
-    color: "#ff914d",
-    iconBg: "bg-[#ff914d]/10 group-hover:bg-[#ff914d]/20",
-    accent: "group-hover:text-[#ff914d]",
-    border: "hover:border-[#ff914d]/40 hover:shadow-orange-100",
+function getDeptCfg(dept: string, depts: LayananDept[]) {
+  const d = depts.find(x => x.value === dept)
+  const color = d?.color ?? "#888"
+  const hex = color.replace("#", "")
+  return {
+    label: d?.label ?? dept,
+    color,
+    iconBg: `bg-[${color}]/10 group-hover:bg-[${color}]/20`,
+    accent: `group-hover:text-[${color}]`,
+    border: `hover:border-[${color}]/40`,
     shadow: "hover:shadow-xl",
-  },
-  it: {
-    label: "Teknologi & Digital",
-    color: "#111111",
-    iconBg: "bg-black/5 group-hover:bg-black/10",
-    accent: "",
-    border: "hover:border-black/25 hover:shadow-black/5",
-    shadow: "hover:shadow-xl",
-  },
-  kelautan: {
-    label: "Teknik Kelautan",
-    color: "#0a6e8a",
-    iconBg: "bg-[#0a6e8a]/10 group-hover:bg-[#0a6e8a]/20",
-    accent: "group-hover:text-[#0a6e8a]",
-    border: "hover:border-[#0a6e8a]/40 hover:shadow-cyan-100",
-    shadow: "hover:shadow-xl",
-  },
-}
-
-function getDeptCfg(dept: string) {
-  return DEPT_CONFIG[dept] ?? {
-    label: getDeptLabel(dept),
-    color: "#888",
-    iconBg: "bg-gray-100",
-    accent: "",
-    border: "hover:border-gray-300",
-    shadow: "hover:shadow-md",
   }
 }
 
 interface Props {
   allLayanan: Layanan[]
+  allDepts: LayananDept[]
 }
 
-export default function ServicesClient({ allLayanan }: Props) {
+export default function ServicesClient({ allLayanan, allDepts }: Props) {
   const [activeDept, setActiveDept] = useState<string>("semua")
   const [activeCategory, setActiveCategory] = useState<string>("semua")
 
@@ -125,7 +101,7 @@ export default function ServicesClient({ allLayanan }: Props) {
               onClick={() => handleDeptChange("semua")}
             />
             {depts.map(dept => {
-              const cfg = getDeptCfg(dept)
+              const cfg = getDeptCfg(dept, allDepts)
               return (
                 <FilterChip
                   key={dept}
@@ -154,7 +130,7 @@ export default function ServicesClient({ allLayanan }: Props) {
                   key={cat}
                   label={cat}
                   active={activeCategory === cat}
-                  color={activeDept !== "semua" ? getDeptCfg(activeDept).color : "#888"}
+                  color={activeDept !== "semua" ? getDeptCfg(activeDept, allDepts).color : "#888"}
                   onClick={() => setActiveCategory(cat)}
                   small
                 />
@@ -172,7 +148,7 @@ export default function ServicesClient({ allLayanan }: Props) {
         {/* ── Grouped service cards ── */}
         <div className="space-y-8 md:space-y-16">
           {[...grouped.entries()].map(([dept, services], gi) => {
-            const cfg = getDeptCfg(dept)
+            const cfg = getDeptCfg(dept, allDepts)
             return (
               <PageTransition key={dept} delay={gi * 80}>
                 <div>
@@ -272,7 +248,7 @@ function FilterChip({ label, active, color, onClick, small }: {
   )
 }
 
-function ServiceCard({ service, cfg }: { service: Layanan; cfg: ReturnType<typeof getDeptCfg> }) {
+function ServiceCard({ service, cfg }: { service: Layanan; cfg: { label: string; color: string; iconBg: string; accent: string; border: string; shadow: string } }) {
   const imgSrc = (service as any).image_url ? gdriveToImg((service as any).image_url) : null
 
   return (
@@ -317,7 +293,7 @@ function ServiceCard({ service, cfg }: { service: Layanan; cfg: ReturnType<typeo
             className="hidden md:inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-2 w-fit"
             style={{
               backgroundColor: `${cfg.color}14`,
-              color: cfg.color === "#111111" ? "#555" : cfg.color,
+              color: cfg.color,
             }}
           >
             # {service.category}
@@ -333,7 +309,7 @@ function ServiceCard({ service, cfg }: { service: Layanan; cfg: ReturnType<typeo
         {/* Arrow CTA */}
         <div
           className="mt-2 md:mt-4 flex items-center gap-1 text-xs md:text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          style={{ color: cfg.color === "#111111" ? "#111" : cfg.color }}
+          style={{ color: cfg.color }}
         >
           Selengkapnya
           <svg className="w-3 h-3 md:w-3.5 md:h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">

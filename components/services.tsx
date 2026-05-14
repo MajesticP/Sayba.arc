@@ -3,27 +3,7 @@
 import Link from "next/link"
 import { DynamicIcon } from "@/lib/dynamic-icon"
 import type { Layanan } from "@/lib/database.types"
-import { LAYANAN_DEPTS } from "@/lib/layanan-config"
-
-function getDeptColor(dept: string): string {
-  const map: Record<string, string> = {
-    arcgis: "#ff914d",
-    it: "#111111",
-    kelautan: "#0a6e8a",
-  }
-  const found = LAYANAN_DEPTS.find(d => d.value === dept)
-  return map[dept] ?? found?.color ?? "#888"
-}
-
-function getDeptLabel(dept: string): string {
-  const map: Record<string, string> = {
-    arcgis: "Pemetaan & GIS",
-    it: "Digital & IT",
-    kelautan: "Teknik Kelautan",
-  }
-  const found = LAYANAN_DEPTS.find(d => d.value === dept)
-  return map[dept] ?? found?.label ?? dept
-}
+import type { LayananDept } from "@/lib/layanan-config"
 
 /** Route Google Drive share links through the local image proxy (/api/gdrive-img) */
 function gdriveToImg(url: string): string {
@@ -40,9 +20,10 @@ function gdriveToImg(url: string): string {
 
 interface ServicesProps {
   allLayanan: Layanan[]
+  depts: LayananDept[]
 }
 
-export default function Services({ allLayanan }: ServicesProps) {
+export default function Services({ allLayanan, depts }: ServicesProps) {
   if (!allLayanan.length) return null
 
   return (
@@ -80,8 +61,9 @@ export default function Services({ allLayanan }: ServicesProps) {
         {/* 3 Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {allLayanan.slice(0, 3).map((service, i) => {
-            const color = getDeptColor(service.dept)
-            const deptLabel = getDeptLabel(service.dept)
+            const deptCfg = depts.find(d => d.value === service.dept)
+            const color = deptCfg?.color ?? "#888"
+            const deptLabel = deptCfg?.label ?? service.dept
             const imgSrc = service.image_url ? gdriveToImg(service.image_url) : null
 
             return (
@@ -133,7 +115,7 @@ export default function Services({ allLayanan }: ServicesProps) {
                   {/* Dept tag */}
                   <span
                     className="text-[10px] font-bold uppercase tracking-widest mb-2"
-                    style={{ color: color === "#111111" ? "#777" : color }}
+                    style={{ color: color }}
                   >
                     {deptLabel}
                     {service.category ? ` · ${service.category}` : ""}
@@ -152,7 +134,7 @@ export default function Services({ allLayanan }: ServicesProps) {
                   {/* CTA */}
                   <div
                     className="mt-4 flex items-center gap-1.5 text-sm font-bold opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-200"
-                    style={{ color: color === "#111111" ? "#111" : color }}
+                    style={{ color: color }}
                   >
                     Pelajari lebih lanjut
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

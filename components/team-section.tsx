@@ -34,6 +34,48 @@ const DEPT: Record<string, { label: string; specialty: string; color: string; bg
   kelautan:   { label: "Teknik Kelautan",    specialty: "Desain & Gambar Teknik Kapal",      color: "#0891b2", bg: "#ecfeff" },
   other:      { label: "Lainnya",            specialty: "",                                  color: "#ff914d", bg: "#fff7ed" },
 }
+
+/** Build a runtime dept map that merges CMS colors over the hardcoded fallbacks */
+/**
+ * Maps team-section dept keys → CMS dept values when they differ.
+ * e.g. team members use "lingkungan" but the CMS stores it as "arcgis".
+ */
+const DEPT_ALIASES: Record<string, string> = {
+  lingkungan: "arcgis",
+}
+
+function buildDeptMap(
+  cmsOrEmpty: { value: string; label: string; color: string }[]
+): Record<string, { label: string; specialty: string; color: string; bg: string }> {
+  const merged = { ...DEPT }
+
+  // Index CMS entries by value for quick lookup
+  const cmsIndex: Record<string, { label: string; color: string }> = {}
+  for (const d of cmsOrEmpty) {
+    cmsIndex[d.value] = d
+    merged[d.value] = {
+      label: d.label,
+      specialty: merged[d.value]?.specialty ?? "",
+      color: d.color,
+      bg: `${d.color}14`,
+    }
+  }
+
+  // Apply aliases: team key gets color from its CMS alias, keeps own label/specialty
+  for (const [teamKey, cmsValue] of Object.entries(DEPT_ALIASES)) {
+    const cms = cmsIndex[cmsValue]
+    if (cms) {
+      merged[teamKey] = {
+        label: merged[teamKey]?.label ?? cms.label,
+        specialty: merged[teamKey]?.specialty ?? "",
+        color: cms.color,
+        bg: `${cms.color}14`,
+      }
+    }
+  }
+
+  return merged
+}
 const DEPT_ORDER = ["lingkungan", "it", "kelautan"]
 
 const ALL_DEPTS = [
@@ -62,10 +104,9 @@ function LinkedinIcon() { return <svg viewBox="0 0 24 24" fill="currentColor" wi
 function InstagramIcon() { return <svg viewBox="0 0 24 24" fill="currentColor" width={14} height={14}><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg> }
 
 // ── Profile Modal — bottom sheet on mobile, centered on desktop ───────────
-function ProfileModal({ member, color, onClose }: { member: TimMember; color: string; onClose: () => void }) {
+function ProfileModal({ member, color, deptLabel, onClose }: { member: TimMember; color: string; deptLabel: string; onClose: () => void }) {
   const photoSrc = gdriveToImg(member.photo_url)
   const hasSocials = member.github_url || member.linkedin_url || member.instagram_url
-  const deptCfg = DEPT[member.dept ?? "other"] ?? DEPT.other
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
@@ -123,7 +164,7 @@ function ProfileModal({ member, color, onClose }: { member: TimMember; color: st
             background: `${color}12`, border: `1px solid ${color}30`,
             fontSize: 11, fontWeight: 700, color, letterSpacing: "0.05em", textTransform: "uppercase" as const,
           }}>
-            {deptCfg.label}
+            {deptLabel}
           </div>
 
           <h3 style={{ margin: "10px 0 3px", fontSize: 19, fontWeight: 800, color: "#0a0a0a", letterSpacing: "-0.4px" }}>
@@ -227,13 +268,14 @@ function MobileCard({ member, color, onClick }: { member: TimMember; color: stri
 }
 
 // ── MOBILE: dept tabs + 2-col grid ────────────────────────────────────────
-function MobileTeam({ grouped, keys, onSelect }: {
+function MobileTeam({ grouped, keys, deptMap, onSelect }: {
   grouped: Record<string, TimMember[]>
   keys: string[]
+  deptMap: Record<string, { label: string; specialty: string; color: string; bg: string }>
   onSelect: (m: TimMember) => void
 }) {
   const [activeKey, setActiveKey] = useState(keys[0] ?? "")
-  const activeCfg = DEPT[activeKey] ?? DEPT.other
+  const activeCfg = deptMap[activeKey] ?? deptMap.other ?? DEPT.other
   const members = [...(grouped[activeKey] ?? [])].sort((a, b) => a.order_num - b.order_num)
 
   return (
@@ -244,7 +286,7 @@ function MobileTeam({ grouped, keys, onSelect }: {
         marginBottom: 18, scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
       }}>
         {keys.map(k => {
-          const cfg = DEPT[k] ?? DEPT.other
+          const cfg = deptMap[k] ?? deptMap.other ?? DEPT.other
           const isActive = k === activeKey
           return (
             <button
@@ -356,10 +398,10 @@ function OrgCard({
   )
 }
 
-function DeptOrgBlock({ deptKey, members, onSelect }: {
-  deptKey: string; members: TimMember[]; onSelect: (m: TimMember) => void
+function DeptOrgBlock({ deptKey, members, deptMap, onSelect }: {
+  deptKey: string; members: TimMember[]; deptMap: Record<string, { label: string; specialty: string; color: string; bg: string }>; onSelect: (m: TimMember) => void
 }) {
-  const cfg = DEPT[deptKey] ?? DEPT.other
+  const cfg = deptMap[deptKey] ?? deptMap.other ?? DEPT.other
   const sorted = [...members].sort((a, b) => a.order_num - b.order_num)
   const [leader, ...rest] = sorted
   const LINE_COLOR = `${cfg.color}50`
@@ -398,20 +440,29 @@ function DeptOrgBlock({ deptKey, members, onSelect }: {
   )
 }
 
-function FlatGrid({ members, onSelect }: { members: TimMember[]; onSelect: (m: TimMember) => void }) {
+function FlatGrid({ members, otherColor, onSelect }: { members: TimMember[]; otherColor: string; onSelect: (m: TimMember) => void }) {
   return (
     <div style={{ display: "flex", gap: 14, flexWrap: "wrap" as const, justifyContent: "center" }}>
       {members.map(m => (
-        <OrgCard key={m.id} member={m} color={DEPT.other.color} size="md" onClick={() => onSelect(m)} />
+        <OrgCard key={m.id} member={m} color={otherColor} size="md" onClick={() => onSelect(m)} />
       ))}
     </div>
   )
 }
 
 // ── Main Export ────────────────────────────────────────────────────────────
-export default function TeamSection({ team }: { team: TimMember[] }) {
+export default function TeamSection({
+  team,
+  depts = [],
+}: {
+  team: TimMember[]
+  depts?: { value: string; label: string; color: string }[]
+}) {
   const [selected, setSelected] = useState<TimMember | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+
+  // Merge CMS dept colors over hardcoded fallbacks
+  const deptMap = buildDeptMap(depts)
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -433,7 +484,9 @@ export default function TeamSection({ team }: { team: TimMember[] }) {
   for (const k of DEPT_ORDER) if (grouped[k]) keys.push(k)
   for (const k of Object.keys(grouped)) if (!keys.includes(k)) keys.push(k)
 
-  const color = selected?.dept ? (DEPT[selected.dept]?.color ?? DEPT.other.color) : DEPT.other.color
+  const color = selected?.dept
+    ? (deptMap[selected.dept]?.color ?? deptMap.other?.color ?? DEPT.other.color)
+    : (deptMap.other?.color ?? DEPT.other.color)
 
   if (team.length === 0) {
     return (
@@ -450,10 +503,10 @@ export default function TeamSection({ team }: { team: TimMember[] }) {
       {/* MOBILE */}
       {isMobile ? (
         hasDeptInfo
-          ? <MobileTeam grouped={grouped} keys={keys} onSelect={setSelected} />
+          ? <MobileTeam grouped={grouped} keys={keys} deptMap={deptMap} onSelect={setSelected} />
           : (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              {team.map(m => <MobileCard key={m.id} member={m} color={DEPT.other.color} onClick={() => setSelected(m)} />)}
+              {team.map(m => <MobileCard key={m.id} member={m} color={deptMap.other?.color ?? DEPT.other.color} onClick={() => setSelected(m)} />)}
             </div>
           )
       ) : (
@@ -461,12 +514,15 @@ export default function TeamSection({ team }: { team: TimMember[] }) {
         <>
           {hasDeptInfo && (
             <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap" as const, marginBottom: 40 }}>
-              {ALL_DEPTS.filter(d => grouped[d.key]?.length).map(d => (
-                <div key={d.key} style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: "50%", background: DEPT[d.key].color }} />
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: "#666" }}>{d.label}</span>
-                </div>
-              ))}
+              {keys.map(k => {
+                const cfg = deptMap[k] ?? DEPT.other
+                return (
+                  <div key={k} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: cfg.color }} />
+                    <span style={{ fontSize: 12.5, fontWeight: 600, color: "#666" }}>{cfg.label}</span>
+                  </div>
+                )
+              })}
             </div>
           )}
           {hasDeptInfo ? (
@@ -474,17 +530,24 @@ export default function TeamSection({ team }: { team: TimMember[] }) {
               {keys.map((k, i) => (
                 <div key={k} style={{ display: "flex", alignItems: "flex-start" }}>
                   {i > 0 && <div style={{ width: 1, background: "#e8e8e8", alignSelf: "stretch", margin: "0 32px", flexShrink: 0, minHeight: 200 }} />}
-                  <DeptOrgBlock deptKey={k} members={grouped[k]} onSelect={setSelected} />
+                  <DeptOrgBlock deptKey={k} members={grouped[k]} deptMap={deptMap} onSelect={setSelected} />
                 </div>
               ))}
             </div>
           ) : (
-            <FlatGrid members={team} onSelect={setSelected} />
+            <FlatGrid members={team} otherColor={deptMap.other?.color ?? DEPT.other.color} onSelect={setSelected} />
           )}
         </>
       )}
 
-      {selected && <ProfileModal member={selected} color={color} onClose={() => setSelected(null)} />}
+      {selected && (
+        <ProfileModal
+          member={selected}
+          color={color}
+          deptLabel={selected.dept ? (deptMap[selected.dept]?.label ?? selected.dept) : (deptMap.other?.label ?? DEPT.other.label)}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </>
   )
 }

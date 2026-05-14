@@ -101,7 +101,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/admin/tipe")
       if (!res.ok) return
       const data = await res.json()
-      if (Array.isArray(data) && data.length > 0) setDepts(data)
+      if (Array.isArray(data)) setDepts(data.length > 0 ? data : DEFAULT_DEPTS)
     } catch {}
   }, [])
 
@@ -387,14 +387,7 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {tab === "tipe" && (
-            <div className="bg-[#ff914d]/5 border border-[#ff914d]/15 rounded-xl px-4 py-3 mb-3.5 flex items-start gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#ff914d] flex-shrink-0 mt-1.5" />
-              <p className="text-[11px] text-white/50 leading-relaxed">
-                Tipe layanan disimpan di browser (localStorage). Perubahan langsung berlaku di semua form.
-              </p>
-            </div>
-          )}
+
 
           {/* Table card */}
           <div className="bg-[#111] border border-white/[0.07] rounded-xl overflow-hidden">

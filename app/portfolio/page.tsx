@@ -14,6 +14,12 @@ export const metadata: Metadata = {
   description: "Portofolio proyek GIS dan IT dari SAYBA ARC.",
 }
 
+interface DeptConfig {
+  value: string
+  label: string
+  color: string
+}
+
 function convertDriveUrl(url: string | null): string | null {
   if (!url || url === "-") return null
   if (url.includes("drive.google.com")) {
@@ -25,18 +31,46 @@ function convertDriveUrl(url: string | null): string | null {
   return url
 }
 
+/** Convert a hex color to rgba with the given opacity (0–1) */
+function hexToRgba(hex: string, alpha: number): string {
+  const clean = hex.replace("#", "")
+  const r = parseInt(clean.substring(0, 2), 16)
+  const g = parseInt(clean.substring(2, 4), 16)
+  const b = parseInt(clean.substring(4, 6), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
 export default async function PortfolioPage() {
-  const { data: portfolioItems, error } = await supabase
-    .from("portfolio")
-    .select("*")
-    .eq("status", "active")
-    .order("created_at", { ascending: false })
+  // Fetch portfolio items and dept configs in parallel
+  const [{ data: portfolioItems, error }, { data: deptRows }] = await Promise.all([
+    supabase
+      .from("portfolio")
+      .select("*")
+      .eq("status", "active")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("layanan_depts")
+      .select("value, label, color, badge_class")
+      .order("sort_order", { ascending: true }),
+  ])
 
   if (error) {
     console.error("Error fetching portfolio:", error)
   }
 
   const items: Portfolio[] = portfolioItems ?? []
+
+  // Build a lookup map: dept slug → DeptConfig
+  const deptMap = new Map<string, DeptConfig>()
+  for (const row of deptRows ?? []) {
+    deptMap.set(row.value, {
+      value: row.value,
+      label: row.label,
+      color: row.color ?? "#000000",
+    })
+  }
+
+  const fallback: DeptConfig = { value: "unknown", label: "DEPT", color: "#000000" }
 
   return (
     <main className="min-h-screen flex flex-col">
@@ -61,60 +95,18 @@ export default async function PortfolioPage() {
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 md:gap-6">
                 {items.map((item) => {
                   const thumbnail = convertDriveUrl(item.image_url)
-                  const isArcgis = item.dept === "arcgis"
+                  const dept = deptMap.get(item.dept) ?? fallback
+                  const color = dept.color
+
                   return (
-                    <Link
+                    <PortfolioCard
                       key={item.id}
-                      href={`/portfolio/${item.slug}`}
-                      className={`group rounded-xl md:rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer relative overflow-hidden flex flex-col ${
-                        isArcgis
-                          ? "border-black/8 hover:border-[#ff914d]/30 hover:shadow-orange-50"
-                          : "border-black/8 hover:border-black/20 hover:shadow-black/5"
-                      }`}
-                    >
-                      {/* Thumbnail */}
-                      <div className="relative w-full aspect-video overflow-hidden bg-black/5">
-                        {thumbnail ? (
-                          <Image
-                            src={thumbnail}
-                            alt={item.title}
-                            fill
-                            className="object-cover transition-transform duration-500 group-hover:scale-105"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className={`w-full h-full flex items-center justify-center ${isArcgis ? "bg-[#ff914d]/8" : "bg-black/5"}`}>
-                            <span className="text-3xl opacity-20">{isArcgis ? "🗺️" : "💻"}</span>
-                          </div>
-                        )}
-                        <div className="absolute top-3 left-3">
-                          <span className={`text-xs font-bold px-2.5 py-1 rounded-full backdrop-blur-sm ${
-                            isArcgis ? "bg-[#ff914d]/90 text-white" : "bg-black/80 text-white"
-                          }`}>{item.dept.toUpperCase()}</span>
-                        </div>
-                      </div>
-
-                      {/* Card body */}
-                      <div className="p-3 md:p-6 flex flex-col flex-1">
-                        {item.category && (
-                          <span className={`hidden md:inline-flex text-xs font-bold px-2.5 py-1 rounded-full w-fit mb-3 ${
-                            isArcgis ? "bg-[#ff914d]/10 text-[#ff914d]" : "bg-black/8 text-black/50"
-                          }`}>{item.category}</span>
-                        )}
-                        <h3 className="text-xs md:text-lg font-bold text-black mb-1 md:mb-2 leading-snug line-clamp-2">{item.title}</h3>
-                        {item.description && (
-                          <p className="hidden md:block text-black/50 text-sm leading-relaxed flex-1 line-clamp-3">{item.description}</p>
-                        )}
-                        <div className={`mt-2 md:mt-4 flex items-center gap-1 text-xs font-semibold transition-colors duration-200 ${
-                          isArcgis ? "text-[#ff914d]" : "text-black"
-                        }`}>
-                          Lihat Detail
-                          <ArrowRight size={13} className="transition-transform duration-200 group-hover:translate-x-1" />
-                        </div>
-                      </div>
-
-                      <div className={`absolute bottom-0 left-0 h-0.5 w-0 group-hover:w-full transition-all duration-500 ${isArcgis ? "bg-[#ff914d]" : "bg-black"}`} />
-                    </Link>
+                      item={item}
+                      thumbnail={thumbnail}
+                      dept={dept}
+                      color={color}
+                      hexToRgba={hexToRgba}
+                    />
                   )
                 })}
               </div>
@@ -132,5 +124,83 @@ export default async function PortfolioPage() {
 
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />
     </main>
+  )
+}
+
+// Client-friendly card — hover effects via CSS custom properties
+function PortfolioCard({
+  item,
+  thumbnail,
+  dept,
+  color,
+  hexToRgba,
+}: {
+  item: Portfolio
+  thumbnail: string | null
+  dept: DeptConfig
+  color: string
+  hexToRgba: (hex: string, alpha: number) => string
+}) {
+  return (
+    <Link
+      href={`/portfolio/${item.slug}`}
+      className="portfolio-card group rounded-xl md:rounded-2xl border border-black/8 transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden flex flex-col"
+      style={{ "--dept-color": color, "--dept-color-30": hexToRgba(color, 0.3), "--dept-color-08": hexToRgba(color, 0.08) } as React.CSSProperties}
+    >
+      {/* Thumbnail */}
+      <div className="relative w-full aspect-video overflow-hidden bg-black/5">
+        {thumbnail ? (
+          <Image
+            src={thumbnail}
+            alt={item.title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            unoptimized
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center"
+            style={{ backgroundColor: hexToRgba(color, 0.08) }}
+          >
+            <span className="text-3xl opacity-20">🗂️</span>
+          </div>
+        )}
+        {/* Dept badge top-left */}
+        <div className="absolute top-3 left-3">
+          <span
+            className="text-xs font-bold px-2.5 py-1 rounded-full backdrop-blur-sm text-white"
+            style={{ backgroundColor: hexToRgba(color, 0.9) }}
+          >
+            {dept.label.toUpperCase()}
+          </span>
+        </div>
+      </div>
+
+      {/* Card body */}
+      <div className="p-3 md:p-6 flex flex-col flex-1">
+        {item.category && (
+          <span
+            className="hidden md:inline-flex text-xs font-bold px-2.5 py-1 rounded-full w-fit mb-3"
+            style={{ backgroundColor: hexToRgba(color, 0.1), color }}
+          >
+            {item.category}
+          </span>
+        )}
+        <h3 className="text-xs md:text-lg font-bold text-black mb-1 md:mb-2 leading-snug line-clamp-2">{item.title}</h3>
+        {item.description && (
+          <p className="hidden md:block text-black/50 text-sm leading-relaxed flex-1 line-clamp-3">{item.description}</p>
+        )}
+        <div className="mt-2 md:mt-4 flex items-center gap-1 text-xs font-semibold transition-colors duration-200" style={{ color }}>
+          Lihat Detail
+          <ArrowRight size={13} className="transition-transform duration-200 group-hover:translate-x-1" />
+        </div>
+      </div>
+
+      {/* Bottom hover bar */}
+      <div
+        className="absolute bottom-0 left-0 h-0.5 w-0 group-hover:w-full transition-all duration-500"
+        style={{ backgroundColor: color }}
+      />
+    </Link>
   )
 }

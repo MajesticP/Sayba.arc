@@ -11,6 +11,13 @@ export const metadata: Metadata = {
   description: aboutPage.hero.subtitle,
 }
 
+export interface DeptConfig {
+  value: string
+  label: string
+  color: string
+  description?: string
+}
+
 async function getTeam(): Promise<TimMember[]> {
   try {
     const { createClient } = await import("@supabase/supabase-js")
@@ -30,8 +37,25 @@ async function getTeam(): Promise<TimMember[]> {
   }
 }
 
+async function getDepts(): Promise<DeptConfig[]> {
+  try {
+    const { createClient } = await import("@supabase/supabase-js")
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+    )
+    const { data } = await supabase
+      .from("layanan_depts")
+      .select("value, label, color, description")
+      .order("sort_order", { ascending: true })
+    return (data ?? []) as DeptConfig[]
+  } catch {
+    return []
+  }
+}
+
 export default async function AboutPage() {
-  const teamFromDb = await getTeam()
+  const [teamFromDb, deptsFromDb] = await Promise.all([getTeam(), getDepts()])
 
   const team: TimMember[] = teamFromDb
 
@@ -88,7 +112,7 @@ export default async function AboutPage() {
             </div>
           </PageTransition>
 
-          <TeamSection team={team as TimMember[]} />
+          <TeamSection team={team as TimMember[]} depts={deptsFromDb} />
         </div>
       </section>
 
