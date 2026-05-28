@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import { siteConfig, navItems, footerLinks, socialLinks } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
@@ -21,13 +22,11 @@ interface DeptConfig {
 
 function convertDriveUrl(url: string | null): string | null {
   if (!url || url === "-") return null
-  // Already proxied
-  if (url.startsWith("/api/gdrive-img")) return url
   if (url.includes("drive.google.com")) {
     const match1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)
-    if (match1) return `/api/gdrive-img?id=${match1[1]}`
+    if (match1) return `https://lh3.googleusercontent.com/d/${match1[1]}`
     const match2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/)
-    if (match2) return `/api/gdrive-img?id=${match2[1]}`
+    if (match2) return `https://lh3.googleusercontent.com/d/${match2[1]}`
   }
   return url
 }
@@ -151,11 +150,12 @@ function PortfolioCard({
       {/* Thumbnail */}
       <div className="relative w-full aspect-video overflow-hidden bg-black/5">
         {thumbnail ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={thumbnail}
             alt={item.title}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            unoptimized
           />
         ) : (
           <div

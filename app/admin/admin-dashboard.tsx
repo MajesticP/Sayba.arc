@@ -25,7 +25,6 @@ interface TimMember {
   github_url: string | null
   linkedin_url: string | null
   instagram_url: string | null
-  dept: "lingkungan" | "it" | "kelautan" | null
   order_num: number
   status: "active" | "draft"
   created_at: string
@@ -1315,7 +1314,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
   open: boolean; initial: TimMember | null
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
-  const blank = { name: "", role: "", bio: "", photo_url: "", github_url: "", linkedin_url: "", instagram_url: "", dept: null as "lingkungan" | "it" | "kelautan" | null, order_num: 0, status: "active" as "active" | "draft" }
+  const blank = { name: "", role: "", bio: "", photo_url: "", github_url: "", linkedin_url: "", instagram_url: "", order_num: 0, status: "active" as "active" | "draft" }
   const [form, setForm] = useState({ ...blank })
   const [saving, setSaving] = useState(false)
   const [previewError, setPreviewError] = useState(false)
@@ -1323,7 +1322,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
   useEffect(() => {
     if (!open) return
     if (initial) {
-      setForm({ name: initial.name, role: initial.role, bio: initial.bio ?? "", photo_url: initial.photo_url ?? "", github_url: initial.github_url ?? "", linkedin_url: initial.linkedin_url ?? "", instagram_url: initial.instagram_url ?? "", dept: initial.dept ?? null, order_num: initial.order_num, status: initial.status })
+      setForm({ name: initial.name, role: initial.role, bio: initial.bio ?? "", photo_url: initial.photo_url ?? "", github_url: initial.github_url ?? "", linkedin_url: initial.linkedin_url ?? "", instagram_url: initial.instagram_url ?? "", order_num: initial.order_num, status: initial.status })
     } else { setForm({ ...blank }) }
     setPreviewError(false)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1336,7 +1335,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
     if (!form.name.trim()) { onError("Nama wajib diisi", "error"); return }
     if (!form.role.trim()) { onError("Jabatan wajib diisi", "error"); return }
     setSaving(true)
-    const payload = { name: form.name, role: form.role, bio: form.bio || null, photo_url: form.photo_url || null, github_url: form.github_url || null, linkedin_url: form.linkedin_url || null, instagram_url: form.instagram_url || null, dept: form.dept || null, order_num: form.order_num, status: form.status }
+    const payload = { name: form.name, role: form.role, bio: form.bio || null, photo_url: form.photo_url || null, github_url: form.github_url || null, linkedin_url: form.linkedin_url || null, instagram_url: form.instagram_url || null, order_num: form.order_num, status: form.status }
     const res = initial
       ? await fetch(`/api/admin/tim?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
       : await fetch("/api/admin/tim", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
@@ -1370,10 +1369,6 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
             </div>
           )}
         </Field>
-        <Field label="Departemen">
-          <Select value={form.dept ?? ""} onChange={v => setForm(f => ({ ...f, dept: (v || null) as typeof f.dept }))}
-            options={[{ value: "", label: "— Pilih Departemen —" }, { value: "lingkungan", label: "Tim Teknik Lingkungan" }, { value: "it", label: "Tim IT & Digital" }, { value: "kelautan", label: "Tim Teknik Kelautan" }]} />
-        </Field>
         <div className="space-y-2.5">
           <p className="text-[9.5px] font-bold uppercase tracking-widest text-white/25">Social Links (opsional)</p>
           <Field label="GitHub URL"><Input value={form.github_url} onChange={v => set("github_url", v)} placeholder="https://github.com/username" /></Field>
@@ -1381,7 +1376,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
           <Field label="Instagram URL"><Input value={form.instagram_url} onChange={v => set("instagram_url", v)} placeholder="https://instagram.com/username" /></Field>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Urutan Tampil" hint="Angka lebih kecil tampil lebih dulu">
+          <Field label="Hierarki / Urutan Tampil" hint="Angka 1 = posisi teratas (pemimpin), angka lebih besar di bawahnya">
             <input type="number" value={form.order_num} onChange={e => set("order_num", Number(e.target.value))}
               className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
           </Field>

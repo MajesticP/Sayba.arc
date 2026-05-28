@@ -11,13 +11,6 @@ export const metadata: Metadata = {
   description: aboutPage.hero.subtitle,
 }
 
-export interface DeptConfig {
-  value: string
-  label: string
-  color: string
-  description?: string
-}
-
 async function getTeam(): Promise<TimMember[]> {
   try {
     const { createClient } = await import("@supabase/supabase-js")
@@ -27,7 +20,7 @@ async function getTeam(): Promise<TimMember[]> {
     )
     const { data, error } = await supabase
       .from("tim")
-      .select("id, name, role, bio, photo_url, github_url, linkedin_url, instagram_url, dept, order_num, status")
+      .select("id, name, role, bio, photo_url, github_url, linkedin_url, instagram_url, order_num, status")
       .eq("status", "active")
       .order("order_num", { ascending: true })
     if (error || !data?.length) return []
@@ -37,25 +30,8 @@ async function getTeam(): Promise<TimMember[]> {
   }
 }
 
-async function getDepts(): Promise<DeptConfig[]> {
-  try {
-    const { createClient } = await import("@supabase/supabase-js")
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-    )
-    const { data } = await supabase
-      .from("layanan_depts")
-      .select("value, label, color, description")
-      .order("sort_order", { ascending: true })
-    return (data ?? []) as DeptConfig[]
-  } catch {
-    return []
-  }
-}
-
 export default async function AboutPage() {
-  const [teamFromDb, deptsFromDb] = await Promise.all([getTeam(), getDepts()])
+  const teamFromDb = await getTeam()
 
   const team: TimMember[] = teamFromDb
 
@@ -112,7 +88,7 @@ export default async function AboutPage() {
             </div>
           </PageTransition>
 
-          <TeamSection team={team as TimMember[]} depts={deptsFromDb} />
+          <TeamSection team={team as TimMember[]} />
         </div>
       </section>
 
