@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Header from "@/components/header"
-import { navItems, footerLinks, socialLinks } from "@/lib/data"
+import { footerLinks, socialLinks } from "@/lib/data"
 import Footer from "@/components/footer"
 import Link from "next/link"
 import Image from "next/image"
@@ -168,11 +168,7 @@ export default function ServiceDetailClient({ slug }: { slug: string }) {
   if (!serviceData) {
     return (
       <>
-        <Header
-          navItems={navItems}
-          ctaText="Hubungi Kami"
-          ctaHref="/contact"
-        />
+        <Header />
         <div className="flex-1 flex items-center justify-center bg-gray-50">
           <PageTransition>
             <div className="text-center p-8">
@@ -213,11 +209,7 @@ export default function ServiceDetailClient({ slug }: { slug: string }) {
 
   return (
     <>
-      <Header
-          navItems={navItems}
-          ctaText="Hubungi Kami"
-          ctaHref="/contact"
-        />
+      <Header />
 
       {/* Breadcrumb with semantic HTML */}
       <section style={{ backgroundColor: bgColor }} className="pt-28 pb-4">
