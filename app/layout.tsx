@@ -2,6 +2,8 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Geist } from "next/font/google"
 import { headers } from "next/headers"
+import { siteConfig } from "@/lib/data"
+import { I18nProvider } from "@/lib/i18n"
 import "./globals.css"
 
 export const viewport: Viewport = {
@@ -14,22 +16,22 @@ export const viewport: Viewport = {
 const geist = Geist({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "SAYBA ARC — ART YOU BELIEVE",
-  description:
-    "SAYBA ARC is an Indonesian geospatial and IT agency specializing in ArcGIS development, Web GIS, spatial analysis, and full-stack IT solutions.",
+  title: `${siteConfig.name} — ${siteConfig.tagline}`,
+  description: siteConfig.description,
   applicationName: "SAYBA ARC",
   keywords: [
-    "ArcGIS development",
-    "GIS agency",
+    "ArcGIS",
     "Web GIS",
-    "spatial analysis",
-    "IT development",
-    "ArcGIS Enterprise",
-    "geospatial solutions",
+    "analisis spasial lingkungan",
+    "penginderaan jauh",
+    "machine learning",
+    "data science",
+    "pengembangan web",
+    "pengembangan aplikasi mobile",
+    "desain kapal AutoCAD",
+    "gambar teknik kapal",
     "SAYBA ARC",
-    "3D DESIGN",
-    "AUTOCAD",
-    "SKETCHUP"
+    "agensi multidisiplin Pontianak",
   ],
   authors: [{ name: "SAYBA ARC", url: "https://sayba.web.id" }],
   metadataBase: new URL("https://sayba.web.id"),
@@ -37,8 +39,8 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://sayba.web.id",
     siteName: "SAYBA ARC",
-    title: "SAYBA ARC — ART YOU BELIEVE",
-    description: "ArcGIS development, Web GIS, spatial analysis, and IT solutions from West Kalimantan, Indonesia.",
+    title: `${siteConfig.name} — ${siteConfig.tagline}`,
+    description: siteConfig.description,
     images: [{ url: "https://sayba.web.id/logo.png", width: 1200, height: 630, alt: "SAYBA ARC" }],
   },
 }
@@ -50,7 +52,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const nonce = (await headers()).get("x-nonce") ?? undefined
 
   return (
-    <html lang="en">
+    <html lang="id">
       <head>
         {/* Exposes nonce to Next.js runtime so it stamps all its inline scripts */}
         {nonce && <meta property="csp-nonce" content={nonce} />}
@@ -59,7 +61,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className={`${geist.className} antialiased bg-white text-gray-900`}>
-        {children}
+        <I18nProvider>
+          {children}
+        </I18nProvider>
       </body>
     </html>
   )

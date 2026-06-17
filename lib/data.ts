@@ -1,10 +1,14 @@
 // ============================================================
 // SAYBA ARC — Konten Situs (Bahasa Indonesia)
+//
+// English mirror: lib/data.en.ts — keep the same shape/keys in
+// both files. lib/site-content.ts picks the right one based on
+// the active language (see lib/i18n.ts).
 // ============================================================
 
 export const siteConfig = {
   name: "SAYBA ARC",
-  tagline: "Teknik Lingkungan · Teknologi Digital · Teknik Kelautan",
+  tagline: "Geospasial · Digital · Kelautan",
   description:
     "SAYBA ARC adalah agensi multidisiplin dari Pontianak yang menghadirkan layanan pemetaan lingkungan berbasis ArcGIS, pengembangan web & mobile, machine learning, data science, serta gambar teknik kapal dengan AutoCAD.",
   url: "https://sayba.web.id",
@@ -26,15 +30,15 @@ export const navItems = [
 export const hero = {
   title: "Solusi Digital & Engineering Terpadu oleh SAYBA ARC",
   subtitle:
-    "SAYBA ARC adalah agensi digital dan engineering yang berfokus pada pengembangan solusi inovatif untuk mendukung kebutuhan bisnis dan proyek teknis di Indonesia. Kami menggabungkan teknologi modern dengan keahlian teknik untuk menghasilkan solusi yang tidak hanya fungsional, tetapi juga efisien dan berkelanjutan. Di era transformasi digital yang terus berkembang, SAYBA ARC hadir sebagai mitra strategis yang membantu klien dalam membangun sistem digital, meningkatkan efisiensi operasional, serta mengoptimalkan potensi bisnis melalui pendekatan berbasis teknologi dan data.",
+    "Satu tim, tiga keahlian: pemetaan & analisis lingkungan berbasis ArcGIS, pengembangan web/mobile dan machine learning, serta gambar teknik kapal dengan AutoCAD. Berbasis di Pontianak, kami menangani proyek Anda dari awal sampai sistem benar-benar berjalan — tanpa perlu bolak-balik ke vendor yang berbeda-beda.",
   primaryButton: { text: "Jelajahi Layanan Kami", href: "/services" },
   secondaryButton: { text: "Lihat Portofolio", href: "/portfolio" },
-  badge: "Lebih Dari 5 Departemen Spesialis",
+  badge: "Tiga Keahlian, Satu Tim",
 }
 
 export const arcgisDepartment = {
   id: "environmental",
-  label: "Departemen Teknik Lingkungan",
+  label: "Geospasial & Lingkungan",
   title: "Pemetaan & Analisis Lingkungan",
   subtitle:
     "Layanan GIS dan pemetaan berbasis ArcGIS untuk kebutuhan analisis lingkungan, tata ruang, dan pengelolaan sumber daya alam.",
@@ -86,7 +90,7 @@ export const arcgisDepartment = {
 
 export const itDepartment = {
   id: "it",
-  label: "Departemen IT & Digital",
+  label: "Digital & Perangkat Lunak",
   title: "Pengembangan Digital & Kecerdasan Data",
   subtitle:
     "Dari web dan mobile hingga machine learning dan data science — solusi digital end-to-end untuk kebutuhan modern organisasi Anda.",
@@ -138,7 +142,7 @@ export const itDepartment = {
 
 export const oceanicDepartment = {
   id: "oceanic",
-  label: "Departemen Teknik Kelautan",
+  label: "Kelautan & Perkapalan",
   title: "Desain & Gambar Teknik Kapal",
   subtitle:
     "Gambar teknik kapal 2D dengan AutoCAD — dari desain lambung dan rencana garis hingga gambar konstruksi dan tata letak akomodasi.",
@@ -193,9 +197,9 @@ export const services = [...arcgisDepartment.services, ...itDepartment.services,
 export const features = [
   {
     icon: "layers",
-    title: "Tim Tiga Disiplin Ilmu",
+    title: "Tim Lintas Bidang",
     description:
-      "Satu agensi dengan tiga keahlian nyata — Teknik Lingkungan, Teknologi Digital, dan Teknik Kelautan. Tidak perlu koordinasi antar vendor yang menyulitkan.",
+      "Satu agensi dengan tiga keahlian nyata — Geospasial & Lingkungan, Digital & Perangkat Lunak, dan Kelautan & Perkapalan. Tidak perlu koordinasi antar vendor yang menyulitkan.",
   },
   {
     icon: "zap",
@@ -230,14 +234,14 @@ export const features = [
 ]
 
 export const about = {
-  title: "Tiga Disiplin. Satu Tim. Satu Tujuan.",
+  title: "Tiga Keahlian. Satu Tim. Satu Tujuan.",
   description:
-    "SAYBA ARC adalah agensi multidisiplin dari Pontianak yang lahir dari satu keyakinan sederhana: masalah yang kompleks butuh tim yang punya lebih dari satu cara pandang. Kami menggabungkan keahlian Teknik Lingkungan, Teknologi Digital, dan Teknik Kelautan dalam satu atap — sehingga klien tidak perlu keliling mencari tiga vendor berbeda untuk satu proyek yang saling terkait.",
+    "SAYBA ARC adalah agensi multidisiplin dari Pontianak yang lahir dari satu keyakinan sederhana: masalah yang kompleks butuh tim yang punya lebih dari satu cara pandang. Kami menggabungkan keahlian di bidang Geospasial & Lingkungan, Digital & Perangkat Lunak, dan Kelautan & Perkapalan dalam satu atap — sehingga klien tidak perlu keliling mencari tiga vendor berbeda untuk satu proyek yang saling terkait.",
   stats: [
     { value: "3", label: "Departemen Spesialis" },
     { value: "2025", label: "Tahun Berdiri" },
     { value: "100%", label: "Komitmen Terhadap Kualitas" },
-    { value: "1", label: "Tim, Banyak Solusi" },
+    { value: String(services.length), label: "Layanan Spesialis" },
   ],
   buttonText: "Kenali Tim Kami",
   buttonHref: "/about",
@@ -262,14 +266,14 @@ export const footerLinks = [
 export const socialLinks = [
   { name: "Instagram", icon: "instagram", href: "https://instagram.com/sayba.arc" },
   { name: "LinkedIn", icon: "linkedin", href: "https://linkedin.com/company/sayba-arc" },
-  { name: "WhatsApp", icon: "whatsapp", href: "https://wa.me/6281234567890" },
+  { name: "WhatsApp", icon: "whatsapp", href: `https://wa.me/${siteConfig.phone.replace(/\D/g, "")}` },
   { name: "GitHub", icon: "github", href: "https://github.com/sayba-arc" },
 ]
 
 export const servicesPage = {
   title: "Layanan Kami",
   subtitle:
-    "Tiga departemen spesialis — Teknik Lingkungan, IT & Digital, dan Teknik Kelautan — siap menangani proyek dari ujung ke ujung.",
+    "Tiga lini layanan utama — Geospasial & Lingkungan, Digital & Perangkat Lunak, dan Kelautan & Perkapalan — siap menangani proyek dari ujung ke ujung.",
   items: services.map((s) => ({
     ...s,
     longDescription: s.description,
@@ -280,25 +284,26 @@ export const servicesPage = {
 export const aboutPage = {
   hero: {
     title: "Tentang SAYBA ARC",
-    subtitle: "Agensi multidisiplin dari Pontianak — Teknik Lingkungan, Teknologi Digital, dan Teknik Kelautan dalam satu tim.",
+    subtitle:
+      "Agensi multidisiplin dari Pontianak — Geospasial & Lingkungan, Digital & Perangkat Lunak, dan Kelautan & Perkapalan dalam satu tim.",
   },
   mission:
     "Menghadirkan solusi teknis yang relevan, jujur, dan berkualitas — tanpa overpromise, tanpa inflasi angka, dan tanpa meninggalkan klien setelah proyek selesai.",
   vision:
-    "Menjadi agensi multidisiplin terpercaya di Indonesia yang dikenal bukan karena sertifikat di dinding, melainkan karena hasil nyata yang bisa klien tunjukkan.",
+    "Menjadi agensi multidisiplin terpercaya di Indonesia yang dikenal bukan karena janji di proposal, melainkan karena hasil nyata yang bisa klien tunjukkan.",
   team: [
     {
-      name: "Tim Teknik Lingkungan",
+      name: "Tim Geospasial & Lingkungan",
       role: "Pemetaan ArcGIS & Analisis Spasial",
       bio: "Menangani seluruh pekerjaan pemetaan, GIS, penginderaan jauh, dan analisis data lingkungan. Berpengalaman dalam pengolahan data spasial untuk kebutuhan kajian lingkungan dan tata ruang.",
     },
     {
-      name: "Tim IT & Digital",
+      name: "Tim Digital & Perangkat Lunak",
       role: "Web, Mobile, ML & Data Science",
       bio: "Membangun aplikasi web dan mobile modern, model machine learning, sistem analitik data, dan sistem informasi — dari nol hingga deployment. Stack utama: Next.js, Python, React Native.",
     },
     {
-      name: "Tim Teknik Kelautan",
+      name: "Tim Kelautan & Perkapalan",
       role: "Desain & Gambar Teknik Kapal",
       bio: "Mengerjakan seluruh gambar teknik kapal 2D menggunakan AutoCAD — lines plan, general arrangement, konstruksi, outfitting, hingga tata letak akomodasi sesuai standar teknis.",
     },
@@ -311,7 +316,12 @@ export const contactPage = {
     "Punya proyek yang ingin dikerjakan atau sekadar ingin mengeksplorasi kemungkinan? Kami senang mendengar dari Anda.",
   info: [
     { icon: "mail", label: "Email", value: siteConfig.email, href: `mailto:${siteConfig.email}` },
-    { icon: "phone", label: "Telepon / WhatsApp", value: siteConfig.phone, href: `https://wa.me/6281234567890` },
+    {
+      icon: "phone",
+      label: "Telepon / WhatsApp",
+      value: siteConfig.phone,
+      href: `https://wa.me/${siteConfig.phone.replace(/\D/g, "")}`,
+    },
     { icon: "map-pin", label: "Lokasi", value: siteConfig.address, href: "#" },
   ],
 }

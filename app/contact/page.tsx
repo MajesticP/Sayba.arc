@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <main className="min-h-screen flex flex-col">
-      <Header navItems={navItems} ctaText="Hubungi Kami" />
+      <Header />
 
       {/* Hero */}
       <section className="bg-black py-12 md:py-20">
@@ -52,7 +52,7 @@ export default function ContactPage() {
                 <div className="mt-4 md:mt-8 p-4 md:p-6 bg-black rounded-xl md:rounded-2xl relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 h-full bg-[#ff914d]" />
                   <p className="text-white/50 text-sm leading-relaxed pl-2">
-                    Kami biasanya merespons dalam 1 hari kerja. Untuk keperluan mendesak, silakan hubungi via WhatsApp.
+                    Kami biasanya merespons dalam 1 hari kerja. Untuk keperluan mendesak, hubungi langsung via WhatsApp.
                   </p>
                 </div>
               </div>
@@ -70,17 +70,18 @@ export default function ContactPage() {
                     <input type="email" className="w-full px-4 py-3 rounded-xl border border-black/10 bg-white text-black placeholder-black/30 focus:outline-none focus:ring-2 focus:ring-[#ff914d]/40 focus:border-[#ff914d] transition-all text-sm" placeholder="email@perusahaan.com" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-black/60 mb-1.5">Departemen yang Dibutuhkan</label>
+                    <label className="block text-sm font-semibold text-black/60 mb-1.5">Layanan yang Dibutuhkan</label>
                     <select className="w-full px-4 py-3 rounded-xl border border-black/10 bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#ff914d]/40 focus:border-[#ff914d] transition-all text-sm">
-                      <option value="">Pilih departemen...</option>
-                      <option value="arcgis">Departemen ArcGIS</option>
-                      <option value="it">Departemen IT</option>
-                      <option value="both">Keduanya</option>
+                      <option value="">Pilih layanan...</option>
+                      <option value="environmental">Geospasial & Lingkungan</option>
+                      <option value="it">Digital & Perangkat Lunak</option>
+                      <option value="oceanic">Kelautan & Perkapalan</option>
+                      <option value="multiple">Lebih dari satu layanan</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-black/60 mb-1.5">Pesan</label>
-                    <textarea rows={5} className="w-full px-4 py-3 rounded-xl border border-black/10 bg-white text-black placeholder-black/30 focus:outline-none focus:ring-2 focus:ring-[#ff914d]/40 focus:border-[#ff914d] transition-all text-sm resize-none" placeholder="Ceritakan proyek atau kebutuhan Anda..." />
+                    <textarea rows={5} className="w-full px-4 py-3 rounded-xl border border-black/10 bg-white text-black placeholder-black/30 focus:outline-none focus:ring-2 focus:ring-[#ff914d]/40 focus:border-[#ff914d] transition-all text-sm resize-none" placeholder="Ceritakan proyek atau kebutuhan Anda secara singkat..." />
                   </div>
                   <button className="w-full py-3.5 rounded-xl font-semibold bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:shadow-lg hover:shadow-orange-500/25 hover:scale-[1.01]">
                     Kirim Pesan

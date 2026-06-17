@@ -3,26 +3,17 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { siteConfig } from "@/lib/data"
+import { useI18n, useContent } from "@/lib/i18n"
+import LangToggle from "@/components/lang-toggle"
 
-interface NavItem {
-  label: string
-  href: string
-}
-
-interface HeaderProps {
-  navItems: NavItem[]
-  ctaText?: string
-  ctaHref?: string
-}
-
-export default function Header({
-  navItems,
-  ctaText = "Hubungi Kami",
-  ctaHref = "/contact",
-}: HeaderProps) {
+export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const { lang } = useI18n()
+  const { siteConfig, navItems } = useContent()
+
+  const ctaText = lang === "en" ? "Contact Us" : "Hubungi Kami"
+  const ctaHref = "/contact"
 
   return (
     <header className="bg-white border-b border-black/8 sticky top-0 z-50">
@@ -60,7 +51,9 @@ export default function Header({
             ))}
           </nav>
 
-          <div className="hidden md:block">
+          {/* Desktop right side — lang toggle + CTA */}
+          <div className="hidden md:flex items-center gap-3">
+            <LangToggle />
             <Link
               href={ctaHref}
               className="px-5 py-2 rounded-lg text-sm font-semibold bg-black text-white hover:bg-[#ff914d] transition-all duration-200"
@@ -69,7 +62,7 @@ export default function Header({
             </Link>
           </div>
 
-          {/* Mobile toggle */}
+          {/* Mobile hamburger */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden text-black/60 hover:text-black transition-colors"
@@ -105,13 +98,16 @@ export default function Header({
                   {item.label}
                 </Link>
               ))}
-              <Link
-                href={ctaHref}
-                onClick={() => setIsOpen(false)}
-                className="mt-2 py-2.5 px-3 rounded-lg text-sm font-semibold bg-black text-white text-center hover:bg-[#ff914d] transition-colors"
-              >
-                {ctaText}
-              </Link>
+              <div className="flex items-center justify-between mt-3 px-3">
+                <LangToggle />
+                <Link
+                  href={ctaHref}
+                  onClick={() => setIsOpen(false)}
+                  className="py-2.5 px-5 rounded-lg text-sm font-semibold bg-black text-white hover:bg-[#ff914d] transition-colors"
+                >
+                  {ctaText}
+                </Link>
+              </div>
             </div>
           </div>
         )}

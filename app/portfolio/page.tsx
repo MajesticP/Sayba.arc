@@ -74,14 +74,16 @@ export default async function PortfolioPage() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <Header navItems={navItems} ctaText="Hubungi Kami" />
+      <Header />
 
       <section className="bg-black py-12 md:py-20">
         <PageTransition>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <span className="inline-block text-xs font-bold text-[#ff914d] uppercase tracking-widest mb-3 md:mb-4">Karya Kami</span>
             <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4">Portofolio</h1>
-            <p className="text-white/45 text-base md:text-lg max-w-xl mx-auto">Proyek-proyek pilihan dari Departemen ArcGIS dan Departemen IT kami.</p>
+            <p className="text-white/45 text-base md:text-lg max-w-xl mx-auto">
+              Proyek-proyek pilihan dari lini Geospasial & Lingkungan, Digital & Perangkat Lunak, dan Kelautan & Perkapalan.
+            </p>
           </div>
         </PageTransition>
       </section>
@@ -113,7 +115,7 @@ export default async function PortfolioPage() {
             )}
 
             <div className="mt-10 md:mt-16 text-center">
-              <p className="text-black/40 mb-4">Tertarik dengan proyek serupa?</p>
+              <p className="text-black/40 mb-4">Punya proyek yang ingin dikerjakan?</p>
               <Link href="/contact" className="inline-block px-8 py-3.5 rounded-xl font-semibold bg-black text-white hover:bg-[#ff914d] transition-all duration-200 hover:scale-105">
                 Diskusikan Proyek Anda
               </Link>

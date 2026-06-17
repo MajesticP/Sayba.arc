@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation"
-import { navItems, footerLinks, socialLinks } from "@/lib/data"
+import { footerLinks, socialLinks } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import Link from "next/link"
 import { DynamicIcon } from "@/lib/dynamic-icon"
 import { supabase } from "@/lib/supabase"
 import type { PriceTier } from "@/lib/database.types"
+import { LAYANAN_DEPTS } from "@/lib/layanan-config"
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -30,18 +31,15 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
   const prices: PriceTier[] = service.prices ?? []
 
-  // Dynamic dept styling
-  const DEPT_MAP: Record<string, { label: string; color: string }> = {
-    arcgis: { label: "Departemen ArcGIS", color: "#ff914d" },
-    it: { label: "Departemen IT", color: "#111111" },
-    kelautan: { label: "Departemen Kelautan", color: "#0a6e8a" },
+  // Pull dept config from LAYANAN_DEPTS so labels stay in sync with layanan-config.ts
+  const deptCfg = LAYANAN_DEPTS.find(d => d.value === service.dept) ?? {
+    label: service.dept,
+    color: "#888888",
   }
-  const deptCfg = DEPT_MAP[service.dept] ?? { label: `Departemen ${service.dept}`, color: "#888" }
   const accent = deptCfg.color
 
   return (
-    <main className="min-h-screen flex flex-col">
-      <Header navItems={navItems} ctaText="Hubungi Kami" />
+      <Header />
 
       {/* Hero */}
       <section className="bg-black py-8 md:py-20">
@@ -59,15 +57,15 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
           <div className="flex items-center gap-3 md:gap-5 mb-4 md:mb-6">
             <div
               className="w-11 h-11 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: accent === "#111111" ? "rgba(255,255,255,0.08)" : `${accent}26` }}
+              style={{ backgroundColor: `${accent}26` }}
             >
-              <DynamicIcon name={service.icon ?? "layers"} color={accent === "#111111" ? "#fff" : accent} size={24} />
+              <DynamicIcon name={service.icon ?? "layers"} color={accent} size={24} />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-0.5 md:mb-1 flex-wrap">
                 <span
                   className="text-xs font-bold uppercase tracking-widest"
-                  style={{ color: accent === "#111111" ? "rgba(255,255,255,0.4)" : accent }}
+                  style={{ color: accent }}
                 >
                   {deptCfg.label}
                 </span>
@@ -77,8 +75,8 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                     <span
                       className="text-xs font-semibold px-2 py-0.5 rounded-full"
                       style={{
-                        backgroundColor: accent === "#111111" ? "rgba(255,255,255,0.08)" : `${accent}22`,
-                        color: accent === "#111111" ? "rgba(255,255,255,0.5)" : accent,
+                        backgroundColor: `${accent}22`,
+                        color: accent,
                       }}
                     >
                       {service.category}
@@ -103,7 +101,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
             <div className="text-center mb-6 md:mb-12">
               <span
                 className="inline-block text-xs font-bold uppercase tracking-widest mb-2 md:mb-3"
-                style={{ color: service.dept === "arcgis" ? "#ff914d" : "#111" }}
+                style={{ color: accent }}
               >
                 Pilih Paket
               </span>
@@ -176,7 +174,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
-                            style={{ color: isMiddle ? (service.dept === "arcgis" ? "#ff914d" : "#60a5fa") : accent }}
+                            style={{ color: isMiddle ? accent : accent }}
                           >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                           </svg>

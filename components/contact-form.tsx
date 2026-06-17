@@ -86,17 +86,18 @@ export default function ContactForm() {
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-black/60 mb-1.5">Departemen yang Dibutuhkan</label>
+          <label className="block text-sm font-semibold text-black/60 mb-1.5">Layanan yang Dibutuhkan</label>
           <select
             value={dept}
             onChange={e => setDept(e.target.value)}
             disabled={status === "sending"}
             className="w-full px-4 py-3 rounded-xl border border-black/10 bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#ff914d]/40 focus:border-[#ff914d] transition-all text-sm disabled:opacity-60"
           >
-            <option value="">Pilih departemen...</option>
-            <option value="arcgis">Departemen ArcGIS</option>
-            <option value="it">Departemen IT</option>
-            <option value="both">Keduanya</option>
+            <option value="">Pilih layanan...</option>
+            <option value="arcgis">Geospasial & Lingkungan</option>
+            <option value="it">Digital & Perangkat Lunak</option>
+            <option value="kelautan">Kelautan & Perkapalan</option>
+            <option value="multiple">Lebih dari satu layanan</option>
           </select>
         </div>
         <div>

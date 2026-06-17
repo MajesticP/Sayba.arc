@@ -37,7 +37,7 @@ export default async function AboutPage() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <Header navItems={navItems} ctaText="Hubungi Kami" />
+      <Header />
 
       {/* Hero */}
       <section className="bg-black py-12 md:py-20">
@@ -96,8 +96,8 @@ export default async function AboutPage() {
       <section className="py-12 md:py-16 bg-black">
         <PageTransition delay={200}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Siap Berkolaborasi?</h2>
-            <p className="text-white/40 mb-7">Mari diskusikan bagaimana SAYBA ARC dapat membantu proyek Anda.</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Punya Proyek yang Ingin Dikerjakan?</h2>
+            <p className="text-white/40 mb-7">Geospasial, digital, atau kelautan — ceritakan kebutuhan Anda dan kami tentukan pendekatannya bersama.</p>
             <Link
               href="/contact"
               className="inline-block px-8 py-3.5 rounded-xl font-semibold bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:scale-105"

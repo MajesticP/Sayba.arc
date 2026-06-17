@@ -3,12 +3,13 @@ import { notFound } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
-import { siteConfig, navItems, footerLinks, socialLinks } from "@/lib/data"
+import { siteConfig, footerLinks, socialLinks } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import PageTransition from "@/components/page-transition"
 import FeatureTabs from "@/components/portfolio-feature-tabs"
 import { ArrowLeft, ExternalLink, Globe, Map, ChevronRight } from "lucide-react"
+import { LAYANAN_DEPTS } from "@/lib/layanan-config"
 
 function convertDriveUrl(url: string | null): string | null {
   if (!url || url === "-") return null
@@ -49,14 +50,14 @@ export default async function PortfolioSlugPage({ params }: Props) {
   if (error || !item) notFound()
 
   const thumbnail = convertDriveUrl(item.image_url)
-  const isArcgis = item.dept === "arcgis"
-  const accent = isArcgis ? "#ff914d" : "#1a1a1a"
+  const deptCfg = LAYANAN_DEPTS.find(d => d.value === item.dept) ?? { label: item.dept, color: "#888888" }
+  const accent = deptCfg.color
   const features: string[] = item.features ?? []
   const techStack: string[] = item.tech_stack ?? []
 
   return (
     <main className="min-h-screen flex flex-col bg-white">
-      <Header navItems={navItems} ctaText="Hubungi Kami" />
+      <Header />
 
       <div className="flex-1">
         {/* Breadcrumb */}
@@ -84,8 +85,10 @@ export default async function PortfolioSlugPage({ params }: Props) {
                     className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-6"
                     style={{ backgroundColor: `${accent}15` }}
                   >
-                    {isArcgis
+                    {item.dept === "arcgis"
                       ? <Map size={20} style={{ color: accent }} />
+                      : item.dept === "kelautan"
+                      ? <Globe size={20} style={{ color: accent }} />
                       : <Globe size={20} style={{ color: accent }} />
                     }
                   </div>
@@ -160,7 +163,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
                         className="w-full h-full flex flex-col items-center justify-center gap-3"
                         style={{ backgroundColor: `${accent}08` }}
                       >
-                        {isArcgis
+                        {item.dept === "arcgis"
                           ? <Map size={40} style={{ color: accent, opacity: 0.25 }} />
                           : <Globe size={40} style={{ color: accent, opacity: 0.25 }} />
                         }

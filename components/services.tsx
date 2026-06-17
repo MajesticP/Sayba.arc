@@ -62,7 +62,7 @@ export default function Services({ allLayanan, depts }: ServicesProps) {
                 <span className="text-[#ff914d]"> untuk Anda</span>
               </h2>
               <p className="text-black/50 text-sm md:text-base mt-3 max-w-md">
-                Tiga layanan paling diminati klien kami — dipilih langsung dari portofolio aktif.
+                Tiga layanan unggulan kami — dipilih langsung dari portofolio aktif.
               </p>
             </div>
             <Link

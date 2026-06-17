@@ -1,34 +1,34 @@
 // Structured Data untuk SEO Rich Snippets
+//
+// NOTE: none of the generators below are currently imported/rendered by any
+// page in app/ — this is dead code for now. Left in place (and fixed) in
+// case it gets wired up later, but double-check address/hours fields before
+// shipping since some are still placeholders.
+
+import { siteConfig, socialLinks } from "@/lib/data"
 
 export function generateOrganizationSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "SAYBA ARC",
-    alternateName: "Sayba Architecture",
     url: "https://sayba.web.id",
     logo: "https://sayba.web.id/logo.png",
-    description:
-      "SAYBA ARC adalah perusahaan digital solutions yang menyediakan layanan web development, mobile app development, UI/UX design, dan software testing profesional.",
-    sameAs: [
-      "https://www.facebook.com/sayba-arc",
-      "https://www.instagram.com/sayba-arc",
-      "https://twitter.com/sayba-arc",
-      "https://www.linkedin.com/company/sayba-arc",
-    ],
+    description: siteConfig.description,
+    sameAs: socialLinks.map((s) => s.href),
     address: {
       "@type": "PostalAddress",
       addressCountry: "ID",
-      addressLocality: "Jakarta",
-      postalCode: "12345",
-      streetAddress: "Your Address Here",
+      addressLocality: "Pontianak",
+      addressRegion: "Kalimantan Barat",
+      // TODO: add streetAddress / postalCode here if this schema gets wired up
     },
     contactPoint: [
       {
         "@type": "ContactPoint",
-        telephone: "+6287721916495",
+        telephone: siteConfig.phone.replace(/[^\d+]/g, ""),
         contactType: "Customer Service",
-        email: "info@sayba.web.id",
+        email: siteConfig.email,
         areaServed: "ID",
         availableLanguage: ["id", "en"],
       },
@@ -110,16 +110,17 @@ export function generateLocalBusinessSchema() {
     name: "SAYBA ARC",
     image: "https://sayba.web.id/logo.png",
     url: "https://sayba.web.id",
-    telephone: "+6287721916495",
-    email: "info@sayba.web.id",
+    telephone: siteConfig.phone.replace(/[^\d+]/g, ""),
+    email: siteConfig.email,
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Your Address Here",
-      addressLocality: "Jakarta",
-      addressRegion: "DKI Jakarta",
-      postalCode: "12345",
+      addressLocality: "Pontianak",
+      addressRegion: "Kalimantan Barat",
       addressCountry: "ID",
+      // TODO: add streetAddress / postalCode here if this schema gets wired up
     },
+    // TODO: confirm real operating hours before using this — 09:00–17:00
+    // Mon–Fri is a placeholder and may not reflect how the team actually works
     openingHours: [
       {
         "@type": "OpeningHoursSpecification",

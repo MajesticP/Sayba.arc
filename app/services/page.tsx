@@ -11,7 +11,7 @@ import ServicesClient from "./services-client"
 
 export const metadata: Metadata = {
   title: `Layanan — ${siteConfig.name}`,
-  description: "Layanan ArcGIS dan IT end-to-end dari SAYBA ARC.",
+  description: "Layanan Geospasial & Lingkungan, Digital & Perangkat Lunak, dan Kelautan & Perkapalan dari SAYBA ARC.",
 }
 
 export default async function ServicesPage() {
@@ -34,7 +34,7 @@ export default async function ServicesPage() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <Header navItems={navItems} ctaText="Hubungi Kami" />
+      <Header />
 
       {/* Hero */}
       <section className="bg-black py-12 md:py-20">
@@ -42,7 +42,7 @@ export default async function ServicesPage() {
           <span className="inline-block text-xs font-bold text-[#ff914d] uppercase tracking-widest mb-3 md:mb-4">Yang Kami Tawarkan</span>
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4">Layanan Kami</h1>
           <p className="text-white/45 text-base md:text-lg max-w-2xl mx-auto">
-            Departemen spesialis siap memberikan solusi terbaik untuk kebutuhan organisasi Anda.
+            Tiga lini layanan — Geospasial & Lingkungan, Digital & Perangkat Lunak, dan Kelautan & Perkapalan — siap menangani proyek dari awal sampai selesai.
           </p>
         </div>
       </section>
