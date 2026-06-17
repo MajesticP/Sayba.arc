@@ -12,7 +12,7 @@
 
 "use client"
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useState, type ReactNode, type ReactElement } from "react"
 import * as ID from "@/lib/data"
 import * as EN from "@/lib/data.en"
 
@@ -37,7 +37,7 @@ const I18nContext = createContext<I18nCtx>({
 
 // ── Provider ───────────────────────────────────────────────
 
-export function I18nProvider({ children }: { children: ReactNode }): JSX.Element {
+export function I18nProvider({ children }: { children: ReactNode }): ReactElement {
   const [lang, setLangState] = useState<Lang>("id")
 
   // Hydrate from localStorage (client-only)
