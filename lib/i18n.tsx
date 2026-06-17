@@ -37,7 +37,7 @@ const I18nContext = createContext<I18nCtx>({
 
 // ── Provider ───────────────────────────────────────────────
 
-export function I18nProvider({ children }: { children: ReactNode }) {
+export function I18nProvider({ children }: { children: ReactNode }): JSX.Element {
   const [lang, setLangState] = useState<Lang>("id")
 
   // Hydrate from localStorage (client-only)
