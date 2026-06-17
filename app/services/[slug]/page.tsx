@@ -39,6 +39,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   const accent = deptCfg.color
 
   return (
+    <main>
       <Header />
 
       {/* Hero */}
