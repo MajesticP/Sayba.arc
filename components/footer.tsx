@@ -118,9 +118,9 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
           </div>
         </div>
 
-        <div className="border-t border-white/[0.08] pt-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-white/20">
+        <div className="border-t border-white/[0.08] pt-5 flex flex-col gap-1.5 sm:flex-row sm:justify-between sm:items-center text-xs text-white/20">
           <span>{copyrightLabel}</span>
-          <span>{depts.map(d => d.label).join(" · ")} — {siteConfig.address}</span>
+          <span className="hidden sm:inline">{depts.map(d => d.label).join(" · ")} — {siteConfig.address}</span>
         </div>
       </div>
     </footer>

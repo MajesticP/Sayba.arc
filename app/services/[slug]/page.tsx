@@ -113,13 +113,13 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
             </div>
 
             {/* Mobile: horizontal scroll; Desktop: 3-col grid */}
-            <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 scrollbar-hide">
+            <div className="-mx-4 px-4 sm:mx-0 sm:px-0 flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 scrollbar-hide">
               {prices.map((tier, i) => {
                 const isMiddle = i === 1
                 return (
                   <div
                     key={i}
-                    className={`relative rounded-2xl p-5 md:p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 flex-shrink-0 w-[72vw] sm:w-[55vw] md:w-auto snap-center ${
+                    className={`relative rounded-2xl p-5 md:p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 flex-shrink-0 w-[80vw] sm:w-[60vw] md:w-auto snap-center ${
                       isMiddle
                         ? "bg-black text-white shadow-2xl shadow-black/20 md:scale-105"
                         : "bg-white border border-black/10 hover:border-black/20 hover:shadow-xl"
