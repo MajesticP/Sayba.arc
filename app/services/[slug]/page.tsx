@@ -51,7 +51,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
   return (
     <main className="min-h-screen flex flex-col">
-      <Header navItems={navItems} ctaText="Hubungi Kami" />
+      <Header navItems={navItems} />
 
       {/* Hero */}
       <section

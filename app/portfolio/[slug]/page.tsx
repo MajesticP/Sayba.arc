@@ -56,7 +56,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
 
   return (
     <main className="min-h-screen flex flex-col bg-white">
-      <Header navItems={navItems} ctaText="Hubungi Kami" />
+      <Header navItems={navItems} />
 
       <div className="flex-1">
         {/* Breadcrumb */}

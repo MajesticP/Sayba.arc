@@ -34,7 +34,7 @@ export default async function ServicesPage() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <Header navItems={navItems} ctaText="Hubungi Kami" />
+      <Header navItems={navItems} />
 
       {/* Hero */}
       <section className="bg-black py-12 md:py-20">

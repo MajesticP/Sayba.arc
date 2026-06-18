@@ -74,7 +74,7 @@ export default async function PortfolioPage() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <Header navItems={navItems} ctaText="Hubungi Kami" />
+      <Header navItems={navItems} />
 
       <section className="bg-black py-12 md:py-20">
         <PageTransition>
