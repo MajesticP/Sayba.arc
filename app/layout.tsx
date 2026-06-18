@@ -33,7 +33,10 @@ export const metadata: Metadata = {
   authors: [{ name: "SAYBA ARC", url: "https://sayba.web.id" }],
   metadataBase: new URL("https://sayba.web.id"),
   icons: {
-    icon: "/logo-circle.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/logo-circle.png", type: "image/png" },
+    ],
     apple: "/logo-circle.png",
   },
   openGraph: {
