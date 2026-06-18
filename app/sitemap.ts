@@ -18,7 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select("slug")
     .eq("status", "active")
 
-  const servicePages = (layananItems ?? []).map((s) => ({
+  const servicePages = (layananItems ?? []).map((s: { slug: string }) => ({
     url: `${base}/services/${s.slug}`,
     changeFrequency: "monthly" as const,
     priority: 0.7,
