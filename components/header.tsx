@@ -12,10 +12,14 @@ interface NavItem {
 
 interface HeaderProps {
   navItems: NavItem[]
+  ctaText?: string
+  ctaHref?: string
 }
 
 export default function Header({
   navItems,
+  ctaText,
+  ctaHref,
 }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
@@ -57,6 +61,16 @@ export default function Header({
             ))}
           </nav>
 
+          {/* Desktop CTA */}
+          {ctaText && ctaHref && (
+            <Link
+              href={ctaHref}
+              className="hidden md:inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#ff914d] hover:bg-[#e8823e] transition-colors duration-200"
+            >
+              {ctaText}
+            </Link>
+          )}
+
           {/* Mobile toggle */}
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -93,6 +107,15 @@ export default function Header({
                   {item.label}
                 </Link>
               ))}
+              {ctaText && ctaHref && (
+                <Link
+                  href={ctaHref}
+                  onClick={() => setIsOpen(false)}
+                  className="mt-2 py-2.5 px-3 rounded-lg text-sm font-semibold text-white bg-[#ff914d] hover:bg-[#e8823e] transition-colors text-center"
+                >
+                  {ctaText}
+                </Link>
+              )}
             </div>
           </div>
         )}
