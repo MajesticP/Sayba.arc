@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef, useMemo } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import type { Portfolio, PortfolioInsert, Layanan, LayananInsert, PriceTier } from "@/lib/database.types"
 import { LAYANAN_DEPTS as DEFAULT_DEPTS, type LayananDept, getDept as getDefaultDept } from "@/lib/layanan-config"
 import {
@@ -47,14 +47,7 @@ type Status = "active" | "draft" | "archived"
 type Toast = { id: number; msg: string; type: "success" | "error" }
 
 function slugify(s: string) {
-  return s
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim()
+  return s.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").trim()
 }
 
 const STATUS_LABEL: Record<Status, string> = { active: "Active", draft: "Draft", archived: "Archived" }
@@ -196,8 +189,7 @@ export default function AdminDashboard() {
         showToast(errMsg, "error"); return
       }
       showToast("Data berhasil dihapus")
-      deleteRef.current = null
-      setDeleteTarget(null)
+      setDeleteTarget(null); deleteRef.current = null
       if (target.table === "portfolio") fetchPortfolio()
       else if (target.table === "layanan") fetchLayanan()
       else fetchTim()
@@ -705,8 +697,8 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
   open: boolean; initial: Portfolio | null; depts: LayananDept[]
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
-  type PF = Omit<PortfolioInsert, "id" | "created_at" | "features" | "tech_stack"> & { features: string; tech_stack: string; title_en: string; description_en: string }
-  const blank = useMemo<PF>(() => ({ title: "", title_en: "", slug: "", dept: (depts[0]?.value ?? "arcgis") as PF["dept"], category: "", description: "", description_en: "", image_url: "", result_url: "", features: "", tech_stack: "", status: "active" }), [depts])
+  type PF = Omit<PortfolioInsert, "id" | "created_at" | "features" | "tech_stack"> & { features: string; tech_stack: string }
+  const blank: PF = { title: "", slug: "", dept: (depts[0]?.value ?? "arcgis") as PF["dept"], category: "", description: "", image_url: "", result_url: "", features: "", tech_stack: "", status: "active" }
   const [form, setForm] = useState<PF>(blank)
   const [saving, setSaving] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
@@ -714,7 +706,7 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
   useEffect(() => {
     if (!open) return
     if (initial) {
-      setForm({ title: initial.title, title_en: initial.title_en ?? "", slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", description_en: initial.description_en ?? "", image_url: initial.image_url ?? "", result_url: initial.result_url ?? "", features: Array.isArray(initial.features) ? initial.features.join("\n") : "", tech_stack: Array.isArray(initial.tech_stack) ? initial.tech_stack.join("\n") : "", status: initial.status })
+      setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", image_url: initial.image_url ?? "", result_url: initial.result_url ?? "", features: Array.isArray(initial.features) ? initial.features.join("\n") : "", tech_stack: Array.isArray(initial.tech_stack) ? initial.tech_stack.join("\n") : "", status: initial.status })
       setSlugManual(true)
     } else { setForm(blank); setSlugManual(false) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -726,7 +718,7 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
   const handleSubmit = async () => {
     if (!form.title || !form.slug) { onError("Judul dan slug wajib diisi", "error"); return }
     setSaving(true)
-    const payload = { ...form, title_en: form.title_en || null, description_en: form.description_en || null, category: form.category || null, description: form.description || null, image_url: form.image_url || null, result_url: form.result_url || null, features: form.features ? form.features.split("\n").map(s => s.trim()).filter(Boolean) : null, tech_stack: form.tech_stack ? form.tech_stack.split("\n").map(s => s.trim()).filter(Boolean) : null }
+    const payload = { ...form, category: form.category || null, description: form.description || null, image_url: form.image_url || null, result_url: form.result_url || null, features: form.features ? form.features.split("\n").map(s => s.trim()).filter(Boolean) : null, tech_stack: form.tech_stack ? form.tech_stack.split("\n").map(s => s.trim()).filter(Boolean) : null }
     const res = initial
       ? await fetch(`/api/admin/portfolio?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
       : await fetch("/api/admin/portfolio", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
@@ -739,10 +731,7 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
     <Modal open={open} onClose={onClose}>
       <ModalHeader icon={<LayoutGrid size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Portofolio" : "Tambah Portofolio"} onClose={onClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
-        <Field label="Judul Proyek (ID)" required><Input value={form.title} onChange={handleTitle} placeholder="Sistem Pemetaan Tata Ruang" /></Field>
-        <Field label="Project Title (EN)" hint="Left empty → falls back to ID title">
-          <Input value={form.title_en} onChange={v => set("title_en", v)} placeholder="Land Use Mapping System" />
-        </Field>
+        <Field label="Judul Proyek" required><Input value={form.title} onChange={handleTitle} placeholder="Sistem Pemetaan Tata Ruang" /></Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Slug" required><Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="sistem-pemetaan" /></Field>
           <Field label="Departemen" required><Select value={form.dept} onChange={v => set("dept", v)} options={depts.map(d => ({ value: d.value, label: d.label }))} /></Field>
@@ -751,10 +740,7 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
           <Field label="Kategori"><Input value={form.category ?? ""} onChange={v => set("category", v)} placeholder="Web GIS…" /></Field>
           <Field label="Status"><Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
         </div>
-        <Field label="Deskripsi (ID)"><Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi singkat proyek dalam Bahasa Indonesia…" /></Field>
-        <Field label="Description (EN)" hint="Left empty → falls back to ID description">
-          <Textarea value={form.description_en} onChange={v => set("description_en", v)} placeholder="Short English project description…" />
-        </Field>
+        <Field label="Deskripsi"><Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi singkat proyek…" /></Field>
         <Field label="URL Gambar">
           <Input value={form.image_url ?? ""} onChange={v => set("image_url", v)} placeholder="https://…" />
           {form.image_url && (
@@ -828,7 +814,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
   open: boolean; initial: Layanan | null; depts: LayananDept[]; allLayanan: Layanan[]
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
-  const blank = useMemo(() => ({ title: "", title_en: "", slug: "", dept: depts[0]?.value ?? "arcgis", category: "", description: "", description_en: "", icon: "map", image_url: "", status: "active" as Status, prices: DEFAULT_TIERS, featured_order: null as number | null }), [depts])
+  const blank = { title: "", slug: "", dept: depts[0]?.value ?? "arcgis", category: "", description: "", icon: "map", image_url: "", status: "active" as Status, prices: DEFAULT_TIERS, featured_order: null as number | null }
   const [form, setForm] = useState(blank)
   const [saving, setSaving] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
@@ -839,7 +825,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
   useEffect(() => {
     if (!open) return
     if (initial) {
-      setForm({ title: initial.title, title_en: initial.title_en ?? "", slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", description_en: initial.description_en ?? "", icon: initial.icon ?? "map", image_url: (initial as any).image_url ?? "", status: initial.status, prices: (initial.prices as PriceTier[]) ?? DEFAULT_TIERS, featured_order: initial.featured_order ?? null })
+      setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", icon: initial.icon ?? "map", image_url: (initial as any).image_url ?? "", status: initial.status, prices: (initial.prices as PriceTier[]) ?? DEFAULT_TIERS, featured_order: initial.featured_order ?? null })
       setSlugManual(true)
     } else { setForm(blank); setSlugManual(false) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -853,7 +839,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
   const handleSubmit = async () => {
     if (!form.title || !form.slug) { onError("Nama dan slug wajib diisi", "error"); return }
     setSaving(true)
-    const payload = { title: form.title, title_en: form.title_en || null, slug: form.slug, dept: form.dept, category: form.category || null, description: form.description || null, description_en: form.description_en || null, icon: form.icon || "map", image_url: (form as any).image_url || null, prices: form.prices.map(t => ({ ...t, features: t.features.filter(f => f.trim()) })), status: form.status, featured_order: form.featured_order }
+    const payload = { title: form.title, slug: form.slug, dept: form.dept, category: form.category || null, description: form.description || null, icon: form.icon || "map", image_url: (form as any).image_url || null, prices: form.prices, status: form.status, featured_order: form.featured_order }
     const res = initial
       ? await fetch(`/api/admin/layanan?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
       : await fetch("/api/admin/layanan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
@@ -868,10 +854,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
     <Modal open={open} onClose={onClose} maxW="max-w-2xl">
       <ModalHeader icon={<Layers size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Layanan" : "Tambah Layanan"} onClose={onClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[70vh]">
-        <Field label="Nama Layanan (ID)" required><Input value={form.title} onChange={handleTitle} placeholder="Pengembangan ArcGIS" /></Field>
-        <Field label="Service Name (EN)" hint="Left empty → falls back to ID title on English site">
-          <Input value={form.title_en ?? ""} onChange={v => set("title_en", v)} placeholder="ArcGIS Development" />
-        </Field>
+        <Field label="Nama Layanan" required><Input value={form.title} onChange={handleTitle} placeholder="Pengembangan ArcGIS" /></Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Slug / Href" required hint={`URL: /services/${form.slug || "slug"}`}>
             <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="arcgis-development" />
@@ -1000,10 +983,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
             ))}
           </div>
         </Field>
-        <Field label="Deskripsi (ID)"><Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi layanan dalam Bahasa Indonesia…" /></Field>
-        <Field label="Description (EN)" hint="Left empty → falls back to ID description">
-          <Textarea value={form.description_en ?? ""} onChange={v => set("description_en", v)} placeholder="Service description in English…" />
-        </Field>
+        <Field label="Deskripsi"><Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi layanan…" /></Field>
         <div className="pt-1">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex-1 h-px bg-white/[0.06]" />
@@ -1355,7 +1335,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
     if (!form.name.trim()) { onError("Nama wajib diisi", "error"); return }
     if (!form.role.trim()) { onError("Jabatan wajib diisi", "error"); return }
     setSaving(true)
-    const payload = { name: form.name, role: form.role, bio: form.bio || null, photo_url: form.photo_url || null, github_url: form.github_url || null, linkedin_url: form.linkedin_url || null, instagram_url: form.instagram_url || null, order_num: Number(form.order_num), status: form.status }
+    const payload = { name: form.name, role: form.role, bio: form.bio || null, photo_url: form.photo_url || null, github_url: form.github_url || null, linkedin_url: form.linkedin_url || null, instagram_url: form.instagram_url || null, order_num: form.order_num, status: form.status }
     const res = initial
       ? await fetch(`/api/admin/tim?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
       : await fetch("/api/admin/tim", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
@@ -1397,7 +1377,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Hierarki / Urutan Tampil" hint="Angka 1 = posisi teratas (pemimpin), angka lebih besar di bawahnya">
-            <input type="number" value={form.order_num} onChange={e => set("order_num", parseInt(e.target.value, 10) || 0)}
+            <input type="number" value={form.order_num} onChange={e => set("order_num", Number(e.target.value))}
               className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
           </Field>
           <Field label="Status">

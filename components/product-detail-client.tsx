@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Header from "@/components/header"
-import { footerLinks, socialLinks } from "@/lib/data"
+import { navItems, footerLinks, socialLinks } from "@/lib/data"
 import Footer from "@/components/footer"
 import Link from "next/link"
 import Image from "next/image"
@@ -158,7 +158,11 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   if (!productData) {
     return (
       <main className="min-h-screen flex flex-col">
-        <Header />
+        <Header
+          navItems={navItems}
+          ctaText="Hubungi Kami"
+          ctaHref="/contact"
+        />
         <div className="flex-1 flex items-center justify-center bg-gray-50">
           <PageTransition>
             <div className="text-center p-8">
@@ -200,7 +204,11 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <Header />
+      <Header
+          navItems={navItems}
+          ctaText="Hubungi Kami"
+          ctaHref="/contact"
+        />
 
       <section style={{ backgroundColor: bgColor }} className="pt-28 pb-4">
         <PageTransition>

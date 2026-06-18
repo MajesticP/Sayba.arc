@@ -7,9 +7,9 @@ const db = supabaseAdmin as any
 
 // Default seed data — mirrors layanan-config.ts
 const DEFAULT_SEED = [
-  { value: "arcgis", label: "ArcGIS", description: "Departemen Teknik Lingkungan & Pemetaan", badge_class: "bg-[#ff914d]/10 text-[#ff914d] ring-[#ff914d]/20", color: "#ff914d", sub_categories: ["Web GIS","Desktop GIS","3D Mapping","Spatial Analysis","Training & Workshop","Data Processing"], sort_order: 0 },
+  { value: "arcgis", label: "ArcGIS", description: "Departemen GIS & Pemetaan", badge_class: "bg-[#ff914d]/10 text-[#ff914d] ring-[#ff914d]/20", color: "#ff914d", sub_categories: ["Web GIS","Desktop GIS","3D Mapping","Spatial Analysis","Training & Workshop","Data Processing"], sort_order: 0 },
   { value: "it", label: "IT", description: "Departemen Teknologi Informasi & Digital", badge_class: "bg-blue-400/10 text-blue-400 ring-blue-400/20", color: "#60a5fa", sub_categories: ["Web Development","Mobile App","Backend & API","UI/UX Design","Cloud & DevOps","Cybersecurity"], sort_order: 1 },
-  { value: "kelautan", label: "Kelautan", description: "Departemen Teknik Kelautan & Perkapalan", badge_class: "bg-[#0a6e8a]/10 text-[#0a6e8a] ring-[#0a6e8a]/20", color: "#0a6e8a", sub_categories: ["Desain Kapal","Analisis Hidrodinamika","Survey Batimetri","Manajemen Pelabuhan","Konsultasi Kelautan"], sort_order: 2 },
+  { value: "kelautan", label: "Kelautan", description: "Departemen Desain & Perkapalan", badge_class: "bg-[#0a6e8a]/10 text-[#0a6e8a] ring-[#0a6e8a]/20", color: "#0a6e8a", sub_categories: ["Desain Kapal","Analisis Hidrodinamika","Survey Batimetri","Manajemen Pelabuhan","Konsultasi Kelautan"], sort_order: 2 },
   { value: "softwarejailbreak", label: "Software Jailbreak", description: "Departemen Software & Jailbreak", badge_class: "bg-purple-400/10 text-purple-400 ring-purple-400/20", color: "#a78bfa", sub_categories: ["Oprek HP","Custom ROM","Unlock Bootloader","Firmware Flash"], sort_order: 3 },
 ]
 

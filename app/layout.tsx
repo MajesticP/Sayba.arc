@@ -2,8 +2,6 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Geist } from "next/font/google"
 import { headers } from "next/headers"
-import { siteConfig } from "@/lib/data"
-import { I18nProvider } from "@/lib/i18n"
 import "./globals.css"
 
 export const viewport: Viewport = {
@@ -16,32 +14,35 @@ export const viewport: Viewport = {
 const geist = Geist({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: `${siteConfig.name} — ${siteConfig.tagline}`,
-  description: siteConfig.description,
+  title: "SAYBA ARC — ART YOU BELIEVE",
+  description:
+    "SAYBA ARC adalah agensi digital dan engineering dari Pontianak yang menghadirkan solusi teknis, rekayasa, dan pengembangan untuk bisnis dan instansi di Indonesia.",
   applicationName: "SAYBA ARC",
   keywords: [
-    "ArcGIS",
+    "agensi digital",
+    "engineering",
+    "GIS",
     "Web GIS",
-    "analisis spasial lingkungan",
-    "penginderaan jauh",
-    "machine learning",
-    "data science",
     "pengembangan web",
-    "pengembangan aplikasi mobile",
-    "desain kapal AutoCAD",
-    "gambar teknik kapal",
+    "solusi IT",
     "SAYBA ARC",
-    "agensi multidisiplin Pontianak",
+    "Pontianak",
+    "Kalimantan Barat",
+    "Art You Believe"
   ],
   authors: [{ name: "SAYBA ARC", url: "https://sayba.web.id" }],
   metadataBase: new URL("https://sayba.web.id"),
+  icons: {
+    icon: "/logo-circle.png",
+    apple: "/logo-circle.png",
+  },
   openGraph: {
     type: "website",
     url: "https://sayba.web.id",
     siteName: "SAYBA ARC",
-    title: `${siteConfig.name} — ${siteConfig.tagline}`,
-    description: siteConfig.description,
-    images: [{ url: "https://sayba.web.id/logo.png", width: 1200, height: 630, alt: "SAYBA ARC" }],
+    title: "SAYBA ARC — ART YOU BELIEVE",
+    description: "Agensi digital & engineering dari Pontianak. Solusi teknis nyata untuk bisnis dan instansi di Indonesia.",
+    images: [{ url: "https://sayba.web.id/logo.png", width: 1200, height: 630, alt: "SAYBA ARC — Art You Believe" }],
   },
 }
 
@@ -52,7 +53,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const nonce = (await headers()).get("x-nonce") ?? undefined
 
   return (
-    <html lang="id">
+    <html lang="en">
       <head>
         {/* Exposes nonce to Next.js runtime so it stamps all its inline scripts */}
         {nonce && <meta property="csp-nonce" content={nonce} />}
@@ -61,9 +62,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className={`${geist.className} antialiased bg-white text-gray-900`}>
-        <I18nProvider>
-          {children}
-        </I18nProvider>
+        {children}
       </body>
     </html>
   )

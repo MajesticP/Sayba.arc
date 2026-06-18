@@ -1,12 +1,21 @@
 import { notFound } from "next/navigation"
-import { footerLinks, socialLinks } from "@/lib/data"
+import { navItems, footerLinks, socialLinks } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import Link from "next/link"
 import { DynamicIcon } from "@/lib/dynamic-icon"
 import { supabase } from "@/lib/supabase"
 import type { PriceTier } from "@/lib/database.types"
-import { LAYANAN_DEPTS } from "@/lib/layanan-config"
+
+function gdriveToImg(url: string): string {
+  if (!url) return url
+  if (url.startsWith("/api/gdrive-img")) return url
+  const fileMatch = url.match(/\/d\/([\w-]+)/)
+  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
+  const idMatch = url.match(/[?&]id=([\w-]+)/)
+  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
+  return url
+}
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -31,20 +40,46 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
   const prices: PriceTier[] = service.prices ?? []
 
-  // Pull dept config from LAYANAN_DEPTS so labels stay in sync with layanan-config.ts
-  const deptCfg = LAYANAN_DEPTS.find(d => d.value === service.dept) ?? {
-    label: service.dept,
-    color: "#888888",
+  // Dynamic dept styling
+  const DEPT_MAP: Record<string, { label: string; color: string }> = {
+    arcgis: { label: "Departemen ArcGIS", color: "#ff914d" },
+    it: { label: "Departemen IT", color: "#111111" },
+    kelautan: { label: "Departemen Kelautan", color: "#0a6e8a" },
   }
+  const deptCfg = DEPT_MAP[service.dept] ?? { label: `Departemen ${service.dept}`, color: "#888" }
   const accent = deptCfg.color
 
   return (
-    <main>
-      <Header />
+    <main className="min-h-screen flex flex-col">
+      <Header navItems={navItems} ctaText="Hubungi Kami" />
 
       {/* Hero */}
-      <section className="bg-black py-8 md:py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section
+        className="relative py-8 md:py-20 overflow-hidden bg-black min-h-[280px] md:min-h-[380px] flex items-center"
+        style={service.image_url ? {
+          backgroundImage: `url(${gdriveToImg(service.image_url)})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        } : undefined}
+      >
+        {/* Dark gradient overlay — only when image is set */}
+        {service.image_url && (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
+          </>
+        )}
+
+        {/* Fallback subtle glow when no image */}
+        {!service.image_url && (
+          <div
+            className="absolute inset-0 opacity-10"
+            style={{ background: `radial-gradient(ellipse at 70% 50%, ${accent} 0%, transparent 70%)` }}
+          />
+        )}
+
+        <div className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
             href="/services"
             className="text-white/30 hover:text-[#ff914d] text-xs flex items-center gap-1.5 mb-5 md:mb-8 transition-colors"
@@ -57,16 +92,16 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
           <div className="flex items-center gap-3 md:gap-5 mb-4 md:mb-6">
             <div
-              className="w-11 h-11 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${accent}26` }}
+              className="w-11 h-11 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm"
+              style={{ backgroundColor: accent === "#111111" ? "rgba(255,255,255,0.10)" : `${accent}30` }}
             >
-              <DynamicIcon name={service.icon ?? "layers"} color={accent} size={24} />
+              <DynamicIcon name={service.icon ?? "layers"} color={accent === "#111111" ? "#fff" : accent} size={24} />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-0.5 md:mb-1 flex-wrap">
                 <span
                   className="text-xs font-bold uppercase tracking-widest"
-                  style={{ color: accent }}
+                  style={{ color: accent === "#111111" ? "rgba(255,255,255,0.4)" : accent }}
                 >
                   {deptCfg.label}
                 </span>
@@ -74,10 +109,10 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                   <>
                     <span className="text-white/20 text-xs">›</span>
                     <span
-                      className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                      className="text-xs font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm"
                       style={{
-                        backgroundColor: `${accent}22`,
-                        color: accent,
+                        backgroundColor: accent === "#111111" ? "rgba(255,255,255,0.10)" : `${accent}28`,
+                        color: accent === "#111111" ? "rgba(255,255,255,0.5)" : accent,
                       }}
                     >
                       {service.category}
@@ -85,12 +120,12 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                   </>
                 )}
               </div>
-              <h1 className="text-xl md:text-4xl font-bold text-white leading-tight">{service.title}</h1>
+              <h1 className="text-xl md:text-4xl font-bold text-white leading-tight drop-shadow-md">{service.title}</h1>
             </div>
           </div>
 
           {service.description && (
-            <p className="text-white/45 text-sm md:text-lg leading-relaxed max-w-2xl">{service.description}</p>
+            <p className="text-white/60 text-sm md:text-lg leading-relaxed max-w-2xl drop-shadow-sm">{service.description}</p>
           )}
         </div>
       </section>
@@ -102,7 +137,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
             <div className="text-center mb-6 md:mb-12">
               <span
                 className="inline-block text-xs font-bold uppercase tracking-widest mb-2 md:mb-3"
-                style={{ color: accent }}
+                style={{ color: service.dept === "arcgis" ? "#ff914d" : "#111" }}
               >
                 Pilih Paket
               </span>
@@ -113,13 +148,13 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
             </div>
 
             {/* Mobile: horizontal scroll; Desktop: 3-col grid */}
-            <div className="-mx-4 px-4 sm:mx-0 sm:px-0 flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 scrollbar-hide">
+            <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 scrollbar-hide">
               {prices.map((tier, i) => {
                 const isMiddle = i === 1
                 return (
                   <div
                     key={i}
-                    className={`relative rounded-2xl p-5 md:p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 flex-shrink-0 w-[80vw] sm:w-[60vw] md:w-auto snap-center ${
+                    className={`relative rounded-2xl p-5 md:p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 flex-shrink-0 w-[72vw] sm:w-[55vw] md:w-auto snap-center ${
                       isMiddle
                         ? "bg-black text-white shadow-2xl shadow-black/20 md:scale-105"
                         : "bg-white border border-black/10 hover:border-black/20 hover:shadow-xl"
@@ -175,7 +210,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
-                            style={{ color: isMiddle ? accent : accent }}
+                            style={{ color: isMiddle ? (service.dept === "arcgis" ? "#ff914d" : "#60a5fa") : accent }}
                           >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                           </svg>

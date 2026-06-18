@@ -93,7 +93,7 @@ export default function ServicesClient({ allLayanan, allDepts }: Props) {
 
           {/* Dept filter */}
           <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-black/30 mr-1">Lini Layanan</span>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-black/30 mr-1">Departemen</span>
             <FilterChip
               label="Semua"
               active={activeDept === "semua"}
@@ -203,8 +203,8 @@ export default function ServicesClient({ allLayanan, allDepts }: Props) {
         <div className="text-center bg-black rounded-3xl p-7 md:p-10 relative overflow-hidden mt-10 md:mt-16">
           <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#ff914d] opacity-[0.08] blur-3xl" />
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#ff914d] rounded-full" />
-          <h2 className="text-xl md:text-3xl font-bold text-white mb-2 md:mb-3 relative z-10">Tidak menemukan yang Anda cari?</h2>
-          <p className="text-white/40 text-sm mb-5 md:mb-6 relative z-10">Kebutuhan Anda mungkin lintas lini layanan, atau butuh pendekatan yang lebih spesifik. Ceritakan proyeknya dan kami tentukan solusinya bersama.</p>
+          <h2 className="text-xl md:text-3xl font-bold text-white mb-2 md:mb-3 relative z-10">Butuh solusi kustom?</h2>
+          <p className="text-white/40 text-sm mb-5 md:mb-6 relative z-10">Setiap organisasi memiliki tantangan unik. Mari diskusikan solusi yang tepat untuk Anda.</p>
           <Link href="/contact" className="inline-block px-8 py-3 rounded-xl font-semibold bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:scale-105 relative z-10">
             Diskusikan Proyek Anda
           </Link>

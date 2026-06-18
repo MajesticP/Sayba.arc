@@ -3,17 +3,22 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useI18n, useContent } from "@/lib/i18n"
-import LangToggle from "@/components/lang-toggle"
+import { siteConfig } from "@/lib/data"
 
-export default function Header() {
+interface NavItem {
+  label: string
+  href: string
+}
+
+interface HeaderProps {
+  navItems: NavItem[]
+}
+
+export default function Header({
+  navItems,
+}: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
-  const { lang } = useI18n()
-  const { siteConfig, navItems } = useContent()
-
-  const ctaText = lang === "en" ? "Contact Us" : "Hubungi Kami"
-  const ctaHref = "/contact"
 
   return (
     <header className="bg-white border-b border-black/8 sticky top-0 z-50">
@@ -21,11 +26,12 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-[#ff914d] flex items-center justify-center">
-              <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
-              </svg>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-circle.png"
+              alt={siteConfig.name}
+              className="h-9 w-9 rounded-full object-cover transition-opacity duration-200 group-hover:opacity-80"
+            />
             <span className="font-bold text-lg text-black tracking-tight group-hover:text-[#ff914d] transition-colors duration-200">
               {siteConfig.name}
             </span>
@@ -51,18 +57,7 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Desktop right side — lang toggle + CTA */}
-          <div className="hidden md:flex items-center gap-3">
-            <LangToggle />
-            <Link
-              href={ctaHref}
-              className="px-5 py-2 rounded-lg text-sm font-semibold bg-black text-white hover:bg-[#ff914d] transition-all duration-200"
-            >
-              {ctaText}
-            </Link>
-          </div>
-
-          {/* Mobile hamburger */}
+          {/* Mobile toggle */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden text-black/60 hover:text-black transition-colors"
@@ -98,16 +93,6 @@ export default function Header() {
                   {item.label}
                 </Link>
               ))}
-              <div className="flex items-center justify-between mt-3 px-3">
-                <LangToggle />
-                <Link
-                  href={ctaHref}
-                  onClick={() => setIsOpen(false)}
-                  className="py-2.5 px-5 rounded-lg text-sm font-semibold bg-black text-white hover:bg-[#ff914d] transition-colors"
-                >
-                  {ctaText}
-                </Link>
-              </div>
             </div>
           </div>
         )}

@@ -62,7 +62,7 @@ export default function Services({ allLayanan, depts }: ServicesProps) {
                 <span className="text-[#ff914d]"> untuk Anda</span>
               </h2>
               <p className="text-black/50 text-sm md:text-base mt-3 max-w-md">
-                Tiga layanan unggulan kami — dipilih langsung dari portofolio aktif.
+                Layanan paling diminati klien kami — dipilih langsung dari portofolio aktif.
               </p>
             </div>
             <Link
@@ -97,8 +97,8 @@ export default function Services({ allLayanan, depts }: ServicesProps) {
                   animationDelay: `${i * 120}ms`,
                 } as React.CSSProperties}
               >
-                {/* Image area */}
-                <div className="relative w-full h-44 md:h-52 overflow-hidden bg-black/5">
+                {/* Image area — 600x260 aspect ratio */}
+                <div className="relative w-full overflow-hidden bg-black/5" style={{ aspectRatio: "600/260" }}>
                   {imgSrc ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img

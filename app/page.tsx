@@ -46,15 +46,15 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <Header />
-      <Hero />
+      <Header navItems={navItems} />
+      <Hero data={hero} />
       <Services allLayanan={allLayanan} depts={depts} />
       <Features
         title="Mengapa Memilih SAYBA ARC"
-        subtitle="Yang membedakan kami dari agensi lain"
+        subtitle="Yang membedakan kami dari agensi biasa"
         items={features}
       />
-      <About />
+      <About data={about} />
       <CTA data={cta} />
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />
     </main>

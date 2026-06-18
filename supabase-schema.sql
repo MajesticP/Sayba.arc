@@ -5,39 +5,32 @@
 
 -- Tabel Portfolio
 create table if not exists portfolio (
-  id             uuid        default gen_random_uuid() primary key,
-  title          text        not null,                        -- Indonesian title
-  title_en       text,                                        -- English title (null = fall back to ID)
-  slug           text        unique not null,
-  category       text,
-  dept           text        not null default 'arcgis',       -- open string, validated against LAYANAN_DEPTS in app code
-  description    text,                                        -- Indonesian description
-  description_en text,                                        -- English description (null = fall back to ID)
-  image_url      text,
-  result_url     text,
-  features       text[],
-  tech_stack     text[],
-  status         text        not null default 'active' check (status in ('active', 'draft', 'archived')),
-  created_at     timestamptz default now()
+  id          uuid        default gen_random_uuid() primary key,
+  title       text        not null,
+  slug        text        unique not null,
+  category    text,
+  dept        text        not null default 'arcgis' check (dept in ('arcgis', 'it')),
+  description text,
+  image_url   text,
+  status      text        not null default 'active' check (status in ('active', 'draft', 'archived')),
+  created_at  timestamptz default now()
 );
 
 -- Tabel Layanan
 create table if not exists layanan (
-  id             uuid        default gen_random_uuid() primary key,
-  title          text        not null,                        -- Indonesian title
-  title_en       text,                                        -- English title (null = fall back to ID)
-  slug           text        unique not null,
-  dept           text        not null default 'arcgis',       -- open string, validated against LAYANAN_DEPTS in app code
-  category       text,
-  description    text,                                        -- Indonesian description
-  description_en text,                                        -- English description (null = fall back to ID)
-  icon           text        default 'map',
-  image_url      text,
-  prices         jsonb,
-  featured_order int,
-  status         text        not null default 'active' check (status in ('active', 'draft', 'archived')),
-  created_at     timestamptz default now()
+  id          uuid        default gen_random_uuid() primary key,
+  title       text        not null,
+  slug        text        unique not null,
+  dept        text        not null default 'arcgis' check (dept in ('arcgis', 'it', 'kelautan')),
+  description text,
+  icon        text        default 'map',
+  status      text        not null default 'active' check (status in ('active', 'draft', 'archived')),
+  created_at  timestamptz default now()
 );
+
+-- Run this in Supabase SQL Editor if the table already exists:
+-- ALTER TABLE layanan DROP CONSTRAINT IF EXISTS layanan_dept_check;
+-- ALTER TABLE layanan ADD CONSTRAINT layanan_dept_check CHECK (dept IN ('arcgis', 'it', 'kelautan'));
 
 -- Enable RLS (Row Level Security)
 alter table portfolio enable row level security;

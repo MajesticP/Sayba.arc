@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next"
-import { siteConfig, services } from "@/lib/data"
+import { siteConfig } from "@/lib/data"
+import { supabase } from "@/lib/supabase"
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteConfig.url
 
   const staticPages = [
@@ -12,8 +13,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/contact`, changeFrequency: "yearly" as const, priority: 0.7 },
   ]
 
-  const servicePages = services.map((s) => ({
-    url: `${base}${s.href}`,
+  const { data: layananItems } = await supabase
+    .from("layanan")
+    .select("slug")
+    .eq("status", "active")
+
+  const servicePages = (layananItems ?? []).map((s) => ({
+    url: `${base}/services/${s.slug}`,
     changeFrequency: "monthly" as const,
     priority: 0.7,
   }))
