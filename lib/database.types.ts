@@ -20,7 +20,7 @@ export type Database = {
           title: string
           slug: string
           category: string | null
-          dept: "arcgis" | "it"
+          dept: string                  // open string — driven by LAYANAN_DEPTS config (same as layanan)
           description: string | null
           image_url: string | null
           result_url: string | null

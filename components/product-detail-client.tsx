@@ -249,7 +249,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                   className="relative aspect-video rounded-xl md:rounded-2xl overflow-hidden p-1 group order-first lg:order-last animate-in fade-in slide-in-from-top-8 lg:slide-in-from-right-8 duration-700 hover:shadow-2xl transition-all"
                   style={{ backgroundColor: buttonColor }}
                 >
-                  <div className="relative w-full h-full rounded-lg md:rounded-xl overflow-hidden">
+                  <div className="absolute inset-1 rounded-lg md:rounded-xl overflow-hidden">
                     <Image
                       src={imageUrl || "/placeholder.svg"}
                       alt={title}

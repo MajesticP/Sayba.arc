@@ -37,11 +37,11 @@ export default async function ServicesPage() {
       <Header navItems={navItems} />
 
       {/* Hero */}
-      <section className="bg-black py-12 md:py-20">
+      <section className="bg-black py-8 md:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="inline-block text-xs font-bold text-[#ff914d] uppercase tracking-widest mb-3 md:mb-4">Yang Kami Tawarkan</span>
-          <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4">Layanan Kami</h1>
-          <p className="text-white/45 text-base md:text-lg max-w-2xl mx-auto">
+          <span className="inline-block text-[10px] font-bold text-[#ff914d] uppercase tracking-widest mb-2">Yang Kami Tawarkan</span>
+          <h1 className="text-[22px] md:text-5xl font-bold text-white mb-2">Layanan Kami</h1>
+          <p className="text-white/45 text-[13px] md:text-lg max-w-2xl mx-auto">
             Semua layanan kami dikerjakan langsung oleh tim — tidak ada subkontrak, tidak ada hand-off ke pihak ketiga yang tidak Anda kenal.
           </p>
         </div>
