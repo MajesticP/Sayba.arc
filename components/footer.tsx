@@ -54,7 +54,7 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
           <div>
             <h4 className="text-white font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Kontak</h4>
             <div className="space-y-1.5 mb-3">
-              <a href={`mailto:${siteConfig.email}`} className="flex items-center gap-1.5 text-[12px] hover:text-[#ff914d] transition-colors break-all">
+              <a href={`mailto:${siteConfig.email}`} className="inline-flex items-center gap-1.5 text-[12px] hover:text-[#ff914d] transition-colors break-all">
                 <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 {siteConfig.email}
               </a>
@@ -66,7 +66,7 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
             <div className="flex gap-2">
               {socialLinks.map((social) => (
                 <a key={social.name} href={social.href} target="_blank" rel="noopener noreferrer" title={social.name}
-                  className="w-8 h-8 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center hover:bg-[#ff914d]/20 hover:border-[#ff914d]/40 hover:text-[#ff914d] transition-all duration-200">
+                  className="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-white/5 border border-white/[0.08] hover:bg-[#ff914d]/20 hover:border-[#ff914d]/40 hover:text-[#ff914d] transition-all duration-200">
                   <SocialIcon icon={social.icon} className="w-3.5 h-3.5" />
                 </a>
               ))}
@@ -74,7 +74,7 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
           </div>
         </div>
 
-        <div className="border-t border-white/8 pt-4 flex flex-col sm:flex-row justify-between items-center gap-1 text-[11px] text-white/20">
+        <div className="border-t border-white/[0.08] pt-4 flex flex-col sm:flex-row justify-between items-center gap-1 text-[11px] text-white/20">
           <span>© {new Date().getFullYear()} {siteConfig.name}. Hak cipta dilindungi.</span>
           <span className="hidden sm:block">Kecerdasan Digital & Rekayasa Teknis · Pontianak</span>
         </div>
