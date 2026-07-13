@@ -1,20 +1,20 @@
 "use client"
 
 import { useEffect, useState, useCallback, useRef } from "react"
-import type { Portfolio, PortfolioInsert, Layanan, LayananInsert, PriceTier } from "@/lib/database.types"
+import type { Portfolio, PortfolioInsert, Layanan, LayananInsert, Produk, PriceTier } from "@/lib/database.types"
 import { LAYANAN_DEPTS as DEFAULT_DEPTS, type LayananDept, getDept as getDefaultDept } from "@/lib/layanan-config"
 import {
   LayoutGrid, Layers, Settings, Plus, Pencil, Trash2,
   RefreshCw, Search, X, Save, ChevronDown, ExternalLink,
   Map, CheckCircle, AlertCircle, Loader2, Tag, Users, ImageIcon,
-  Menu,
+  Menu, Package,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // Dept config is now persisted in Supabase via /api/admin/tipe
 
 // ── Types ──────────────────────────────────────────────────────────────────
-type Tab = "portfolio" | "layanan" | "tipe" | "tim"
+type Tab = "portfolio" | "layanan" | "produk" | "tipe" | "tim"
 
 interface TimMember {
   id: string
@@ -78,12 +78,14 @@ function DeptBadge({ dept, depts }: { dept: string; depts: LayananDept[] }) {
 function tabIcon(t: Tab, size = 14) {
   if (t === "portfolio") return <LayoutGrid size={size} />
   if (t === "layanan") return <Layers size={size} />
+  if (t === "produk") return <Package size={size} />
   if (t === "tim") return <Users size={size} />
   return <Settings size={size} />
 }
 function tabLabel(t: Tab) {
   if (t === "portfolio") return "Portofolio"
   if (t === "layanan") return "Layanan"
+  if (t === "produk") return "Produk"
   if (t === "tim") return "Tim"
   return "Tipe"
 }
@@ -114,9 +116,11 @@ export default function AdminDashboard() {
 
   const [portfolioData, setPortfolioData] = useState<Portfolio[]>([])
   const [layananData, setLayananData] = useState<Layanan[]>([])
+  const [produkData, setProdukData] = useState<Produk[]>([])
   const [timData, setTimData] = useState<TimMember[]>([])
   const [loadingP, setLoadingP] = useState(true)
   const [loadingL, setLoadingL] = useState(true)
+  const [loadingPr, setLoadingPr] = useState(true)
   const [loadingT, setLoadingT] = useState(true)
 
   const [toasts, setToasts] = useState<Toast[]>([])
@@ -126,6 +130,8 @@ export default function AdminDashboard() {
   const [pfEdit, setPfEdit] = useState<Portfolio | null>(null)
   const [lvModal, setLvModal] = useState(false)
   const [lvEdit, setLvEdit] = useState<Layanan | null>(null)
+  const [pdModal, setPdModal] = useState(false)
+  const [pdEdit, setPdEdit] = useState<Produk | null>(null)
   const [timModal, setTimModal] = useState(false)
   const [timEdit, setTimEdit] = useState<TimMember | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<{ table: Tab; id: string; name: string } | null>(null)
@@ -161,7 +167,15 @@ export default function AdminDashboard() {
     setLoadingT(false)
   }, [showToast])
 
-  useEffect(() => { fetchDepts(); fetchPortfolio(); fetchLayanan(); fetchTim() }, [fetchDepts, fetchPortfolio, fetchLayanan, fetchTim])
+  const fetchProduk = useCallback(async () => {
+    setLoadingPr(true)
+    const res = await fetch("/api/admin/produk")
+    if (!res.ok) showToast("Gagal memuat produk", "error")
+    else setProdukData(await res.json())
+    setLoadingPr(false)
+  }, [showToast])
+
+  useEffect(() => { fetchDepts(); fetchPortfolio(); fetchLayanan(); fetchProduk(); fetchTim() }, [fetchDepts, fetchPortfolio, fetchLayanan, fetchProduk, fetchTim])
 
   const filteredPortfolio = portfolioData.filter(p => {
     const matchDept = deptFilter === "semua" || p.dept === deptFilter
@@ -172,6 +186,12 @@ export default function AdminDashboard() {
   const filteredLayanan = layananData.filter(l => {
     const matchDept = deptFilter === "semua" || l.dept === deptFilter
     const matchSearch = !search || l.title.toLowerCase().includes(search.toLowerCase()) || l.description?.toLowerCase().includes(search.toLowerCase())
+    return matchDept && matchSearch
+  })
+
+  const filteredProduk = produkData.filter(p => {
+    const matchDept = deptFilter === "semua" || p.dept === deptFilter
+    const matchSearch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.description?.toLowerCase().includes(search.toLowerCase())
     return matchDept && matchSearch
   })
 
@@ -192,6 +212,7 @@ export default function AdminDashboard() {
       setDeleteTarget(null); deleteRef.current = null
       if (target.table === "portfolio") fetchPortfolio()
       else if (target.table === "layanan") fetchLayanan()
+      else if (target.table === "produk") fetchProduk()
       else fetchTim()
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Delete gagal", "error")
@@ -206,11 +227,12 @@ export default function AdminDashboard() {
   const handleAdd = () => {
     if (tab === "portfolio") { setPfEdit(null); setPfModal(true) }
     else if (tab === "layanan") { setLvEdit(null); setLvModal(true) }
+    else if (tab === "produk") { setPdEdit(null); setPdModal(true) }
     else if (tab === "tim") { setTimEdit(null); setTimModal(true) }
     else { setTipeEdit(null); setTipeModal(true) }
   }
 
-  const isLoading = (tab === "portfolio" && loadingP) || (tab === "layanan" && loadingL) || (tab === "tim" && loadingT)
+  const isLoading = (tab === "portfolio" && loadingP) || (tab === "layanan" && loadingL) || (tab === "produk" && loadingPr) || (tab === "tim" && loadingT)
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans">
@@ -243,7 +265,7 @@ export default function AdminDashboard() {
         {/* Nav */}
         <nav className="flex-1 py-3 px-2.5 space-y-0.5 overflow-y-auto">
           <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 px-2 mb-2">Menu</p>
-          {(["portfolio", "layanan", "tim", "tipe"] as Tab[]).map(t => (
+          {(["portfolio", "layanan", "produk", "tim", "tipe"] as Tab[]).map(t => (
             <button
               key={t}
               onClick={() => switchTab(t)}
@@ -255,19 +277,19 @@ export default function AdminDashboard() {
               {tabIcon(t, 13)}
               {tabLabel(t)}
               <span className={cn("ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-md", tab === t ? "bg-[#ff914d]/20 text-[#ff914d]" : "bg-white/[0.06] text-white/30")}>
-                {t === "portfolio" ? portfolioData.length : t === "layanan" ? layananData.length : t === "tim" ? timData.length : depts.length}
+                {t === "portfolio" ? portfolioData.length : t === "layanan" ? layananData.length : t === "produk" ? produkData.length : t === "tim" ? timData.length : depts.length}
               </span>
             </button>
           ))}
 
-          {tab === "layanan" && (
+          {(tab === "layanan" || tab === "produk") && (
             <div className="pt-2 border-t border-white/[0.05] mt-2">
               <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 px-2 mb-1.5 mt-2">Per Tipe</p>
               {depts.map(d => (
                 <div key={d.value} className="flex items-center justify-between px-2.5 py-0.5">
                   <span className="text-[11px] text-white/30 truncate">{d.label}</span>
                   <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/25 ml-2 flex-shrink-0">
-                    {layananData.filter(l => l.dept === d.value).length}
+                    {(tab === "layanan" ? layananData : produkData).filter(l => l.dept === d.value).length}
                   </span>
                 </div>
               ))}
@@ -313,7 +335,7 @@ export default function AdminDashboard() {
 
           <h1 className="font-bold text-[14px] flex-1 truncate">{tabLabel(tab)}</h1>
 
-          {(tab === "portfolio" || tab === "layanan") && (
+          {(tab === "portfolio" || tab === "layanan" || tab === "produk") && (
             <button
               onClick={() => setShowSearch(v => !v)}
               className={cn("p-1.5 rounded-lg transition-all", showSearch ? "text-[#ff914d] bg-[#ff914d]/10" : "text-white/40 hover:text-white/70 hover:bg-white/[0.05]")}
@@ -323,7 +345,7 @@ export default function AdminDashboard() {
           )}
 
           <button
-            onClick={() => { if (tab === "portfolio") fetchPortfolio(); else if (tab === "layanan") fetchLayanan(); else fetchTim() }}
+            onClick={() => { if (tab === "portfolio") fetchPortfolio(); else if (tab === "layanan") fetchLayanan(); else if (tab === "produk") fetchProduk(); else fetchTim() }}
             className="p-1.5 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-all"
           >
             <RefreshCw size={14} className={cn(isLoading ? "animate-spin" : "")} />
@@ -339,7 +361,7 @@ export default function AdminDashboard() {
         </header>
 
         {/* Search bar (expandable) */}
-        {showSearch && (tab === "portfolio" || tab === "layanan") && (
+        {showSearch && (tab === "portfolio" || tab === "layanan" || tab === "produk") && (
           <div className="bg-[#111] border-b border-white/[0.07] px-3 py-2 flex items-center gap-2">
             <Search size={12} className="text-white/25 flex-shrink-0" />
             <input
@@ -354,7 +376,7 @@ export default function AdminDashboard() {
         )}
 
         {/* Dept filter pills */}
-        {(tab === "portfolio" || tab === "layanan") && (
+        {(tab === "portfolio" || tab === "layanan" || tab === "produk") && (
           <div className="bg-[#111] border-b border-white/[0.07] px-3 py-2 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
             {(["semua", ...depts.map(d => d.value)] as DeptFilter[]).map(d => (
               <button
@@ -380,6 +402,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-3.5">
               <StatCard label="Total Portofolio" value={portfolioData.length} color="#ff914d" />
               <StatCard label="Total Layanan" value={layananData.length} color="#34d399" />
+              <StatCard label="Total Produk" value={produkData.length} color="#60a5fa" />
               {depts.map(d => (
                 <StatCard key={d.value} label={`Layanan ${d.label}`} value={layananData.filter(l => l.dept === d.value).length} color={d.color} />
               ))}
@@ -392,10 +415,10 @@ export default function AdminDashboard() {
           <div className="bg-[#111] border border-white/[0.07] rounded-xl overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.07]">
               <p className="font-bold text-[13px] flex-1 truncate">
-                {tab === "portfolio" ? "Daftar Portofolio" : tab === "layanan" ? "Daftar Layanan" : tab === "tim" ? "Daftar Anggota Tim" : "Kelola Tipe Layanan"}
+                {tab === "portfolio" ? "Daftar Portofolio" : tab === "layanan" ? "Daftar Layanan" : tab === "produk" ? "Daftar Produk" : tab === "tim" ? "Daftar Anggota Tim" : "Kelola Tipe Layanan"}
               </p>
               <span className="text-[10.5px] text-white/25 flex-shrink-0">
-                {tab === "portfolio" ? filteredPortfolio.length : tab === "layanan" ? filteredLayanan.length : tab === "tim" ? timData.length : depts.length} item
+                {tab === "portfolio" ? filteredPortfolio.length : tab === "layanan" ? filteredLayanan.length : tab === "produk" ? filteredProduk.length : tab === "tim" ? timData.length : depts.length} item
               </span>
             </div>
 
@@ -410,6 +433,12 @@ export default function AdminDashboard() {
                 data={filteredLayanan} loading={loadingL} depts={depts}
                 onEdit={l => { setLvEdit(l); setLvModal(true) }}
                 onDelete={l => { const t = { table: "layanan" as Tab, id: l.id, name: l.title }; deleteRef.current = t; setDeleteTarget(t) }}
+              />
+            ) : tab === "produk" ? (
+              <ProdukTable
+                data={filteredProduk} loading={loadingPr} depts={depts}
+                onEdit={p => { setPdEdit(p); setPdModal(true) }}
+                onDelete={p => { const t = { table: "produk" as Tab, id: p.id, name: p.title }; deleteRef.current = t; setDeleteTarget(t) }}
               />
             ) : tab === "tim" ? (
               <TimTable
@@ -430,7 +459,7 @@ export default function AdminDashboard() {
 
       {/* ── MOBILE BOTTOM NAV ──────────────────────────────────── */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#111] border-t border-white/[0.07] flex z-30 safe-area-pb">
-        {(["portfolio", "layanan", "tim", "tipe"] as Tab[]).map(t => (
+        {(["portfolio", "layanan", "produk", "tim", "tipe"] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => switchTab(t)}
@@ -454,6 +483,9 @@ export default function AdminDashboard() {
         onError={showToast} />
       <LayananModal open={lvModal} initial={lvEdit} depts={depts} allLayanan={layananData} onClose={() => setLvModal(false)}
         onSaved={() => { setLvModal(false); fetchLayanan(); showToast(lvEdit ? "Layanan diperbarui" : "Layanan ditambahkan") }}
+        onError={showToast} />
+      <ProdukModal open={pdModal} initial={pdEdit} depts={depts} onClose={() => setPdModal(false)}
+        onSaved={() => { setPdModal(false); fetchProduk(); showToast(pdEdit ? "Produk diperbarui" : "Produk ditambahkan") }}
         onError={showToast} />
       <TipeModal open={tipeModal} initial={tipeEdit} onClose={() => setTipeModal(false)}
         onSaved={async (dept) => {
@@ -994,6 +1026,192 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
             {form.prices.map((tier, i) => <PriceTierEditor key={i} tier={tier} index={i} onChange={t => updateTier(i, t)} />)}
           </div>
         </div>
+      </div>
+      <ModalFooter>
+        <button onClick={onClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
+        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all disabled:opacity-50">
+          {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+          {saving ? "Menyimpan…" : "Simpan"}
+        </button>
+      </ModalFooter>
+    </Modal>
+  )
+}
+
+// ── Produk Table ───────────────────────────────────────────────────────────
+function formatIDR(price: number) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(price)
+}
+
+function ProdukTable({ data, loading, onEdit, onDelete, depts }: {
+  data: Produk[]; loading: boolean; depts: LayananDept[]
+  onEdit: (p: Produk) => void; onDelete: (p: Produk) => void
+}) {
+  if (loading) return <TableLoading />
+  if (!data.length) return <TableEmpty label="produk" />
+  return (
+    <>
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-white/[0.05]">
+              {["Judul & Deskripsi", "Tipe / Sub-Kategori", "Slug", "Gambar", "Harga", "Status", "Aksi"].map(h => (
+                <th key={h} className="text-left text-[9.5px] font-bold uppercase tracking-widest text-white/20 px-4 py-2.5">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.map(p => (
+              <tr key={p.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+                <td className="px-4 py-3">
+                  <p className="text-[13px] font-medium text-white">{p.title}</p>
+                  {p.description && <p className="text-[11px] text-white/30 mt-0.5 max-w-[200px] truncate">{p.description}</p>}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-col gap-1">
+                    <DeptBadge dept={p.dept} depts={depts} />
+                    {p.category && <span className="inline-flex items-center gap-1 text-[10px] text-white/35"><Tag size={8} />{p.category}</span>}
+                  </div>
+                </td>
+                <td className="px-4 py-3"><code className="text-[10px] bg-[#181818] text-white/40 px-1.5 py-0.5 rounded-md">/products/{p.slug}</code></td>
+                <td className="px-4 py-3">
+                  {p.image_url ? (
+                    <div className="w-14 h-10 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] flex-shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={gdriveToImg(p.image_url)} alt={p.title} className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
+                    </div>
+                  ) : <span className="text-[10px] text-white/20 italic">—</span>}
+                </td>
+                <td className="px-4 py-3"><span className="text-[12px] text-white/70 font-medium">{formatIDR(p.price)}</span></td>
+                <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => onEdit(p)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={12} /></button>
+                    <button onClick={() => onDelete(p)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={12} /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="md:hidden">
+        {data.map(p => (
+          <CardRow key={p.id} actions={<><button onClick={() => onEdit(p)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={13} /></button><button onClick={() => onDelete(p)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={13} /></button></>}>
+            <p className="text-[13px] font-medium text-white truncate">{p.title}</p>
+            {p.description && <p className="text-[11px] text-white/30 mt-0.5 line-clamp-1">{p.description}</p>}
+            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+              <DeptBadge dept={p.dept} depts={depts} />
+              <StatusBadge status={p.status} />
+              <span className="text-[10px] text-white/40 font-medium">{formatIDR(p.price)}</span>
+            </div>
+          </CardRow>
+        ))}
+      </div>
+    </>
+  )
+}
+
+// ── Produk Modal ───────────────────────────────────────────────────────────
+function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
+  open: boolean; initial: Produk | null; depts: LayananDept[]
+  onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
+}) {
+  const blank = { title: "", slug: "", dept: depts[0]?.value ?? "arcgis", category: "", description: "", image_url: "", file_url: "", price: 0, status: "active" as Status }
+  const [form, setForm] = useState(blank)
+  const [saving, setSaving] = useState(false)
+  const [slugManual, setSlugManual] = useState(false)
+
+  const selectedDept = depts.find(d => d.value === form.dept) ?? depts[0]
+
+  useEffect(() => {
+    if (!open) return
+    if (initial) {
+      setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", image_url: initial.image_url ?? "", file_url: initial.file_url ?? "", price: initial.price, status: initial.status })
+      setSlugManual(true)
+    } else { setForm(blank); setSlugManual(false) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initial])
+
+  const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }))
+  const handleTitle = (v: string) => { set("title", v); if (!slugManual) set("slug", slugify(v)) }
+  const handleDeptChange = (v: string) => { set("dept", v); set("category", "") }
+
+  const handleSubmit = async () => {
+    if (!form.title || !form.slug) { onError("Nama dan slug wajib diisi", "error"); return }
+    setSaving(true)
+    const payload = { title: form.title, slug: form.slug, dept: form.dept, category: form.category || null, description: form.description || null, image_url: form.image_url || null, file_url: form.file_url || null, price: Number(form.price) || 0, status: form.status }
+    const res = initial
+      ? await fetch(`/api/admin/produk?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      : await fetch("/api/admin/produk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+    setSaving(false)
+    if (!res.ok) { onError((await res.json()).error ?? "Save failed", "error"); return }
+    onSaved()
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} maxW="max-w-2xl">
+      <ModalHeader icon={<Package size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Produk" : "Tambah Produk"} onClose={onClose} />
+      <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
+        <Field label="Nama Produk" required><Input value={form.title} onChange={handleTitle} placeholder="Paket Gambar Teknis Kapal (AutoCAD)" /></Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Slug / Href" required hint={`URL: /products/${form.slug || "slug"}`}>
+            <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="paket-gambar-teknis-kapal" />
+          </Field>
+          <Field label="Tipe Produk" required>
+            <Select value={form.dept} onChange={handleDeptChange} options={depts.map(d => ({ value: d.value, label: d.label }))} />
+          </Field>
+        </div>
+        <Field label="Sub-Kategori" hint="Pilih cepat atau ketik sendiri">
+          <Input value={form.category} onChange={v => set("category", v)} placeholder={selectedDept?.subCategories[0] ?? "Contoh: Desain Kapal…"} />
+          {selectedDept?.subCategories.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {selectedDept.subCategories.map(sc => (
+                <button key={sc} type="button" onClick={() => set("category", sc)}
+                  className={cn("px-2 py-0.5 rounded-lg text-[10.5px] font-medium border transition-all",
+                    form.category === sc ? "border-[#ff914d]/40 text-[#ff914d] bg-[#ff914d]/10" : "border-white/[0.07] text-white/30 bg-[#181818] hover:text-white/60")}>
+                  {sc}
+                </button>
+              ))}
+              {form.category && <button onClick={() => set("category", "")} className="text-white/20 hover:text-white/50"><X size={11} /></button>}
+            </div>
+          )}
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Harga (IDR)" required>
+            <input type="number" value={form.price} onChange={e => set("price", e.target.value)} placeholder="1500000"
+              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors" />
+          </Field>
+          <Field label="Status"><Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
+        </div>
+
+        <Field label="URL Gambar Preview (Google Drive)" hint="Paste link share Drive — otomatis dikonversi">
+          <Input value={form.image_url} onChange={v => set("image_url", v)} placeholder="https://drive.google.com/file/d/…/view" />
+          {form.image_url && (
+            <div className="mt-2 h-28 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={gdriveToImg(form.image_url)}
+                alt="preview"
+                className="w-full h-full object-cover"
+                onError={e => {
+                  (e.target as HTMLImageElement).style.display = "none"
+                  const fb = (e.target as HTMLImageElement).nextElementSibling as HTMLElement | null
+                  if (fb) fb.style.display = "flex"
+                }}
+              />
+              <div className="absolute inset-0 hidden items-center justify-center text-[11px] text-white/30">
+                <ImageIcon size={16} className="mr-1.5 opacity-50" /> Gambar tidak dapat dimuat
+              </div>
+            </div>
+          )}
+        </Field>
+
+        <Field label="URL Dokumen / File Produk" hint="Link file yang diterima customer (Google Drive, dsb.) — dikirim manual setelah pembelian">
+          <Input value={form.file_url} onChange={v => set("file_url", v)} placeholder="https://drive.google.com/file/d/…/view" />
+        </Field>
+
+        <Field label="Deskripsi"><Textarea value={form.description} onChange={v => set("description", v)} placeholder="Deskripsi produk…" /></Field>
       </div>
       <ModalFooter>
         <button onClick={onClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>

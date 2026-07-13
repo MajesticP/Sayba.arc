@@ -7,7 +7,7 @@ export function generateOrganizationSchema() {
     name: "SAYBA ARC",
     alternateName: "Sayba Architecture",
     url: "https://sayba.web.id",
-    logo: "https://sayba.web.id/logo.png",
+    logo: "https://sayba.web.id/logo-square.png",
     description:
       "SAYBA ARC adalah perusahaan digital solutions yang menyediakan layanan web development, mobile app development, UI/UX design, dan software testing profesional.",
     sameAs: [

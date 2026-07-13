@@ -1,6 +1,14 @@
 "use client"
 
 import Link from "next/link"
+import { Code2, MapPin as MapPinIcon, BrainCircuit, Ruler } from "lucide-react"
+
+const serviceNodes = [
+  { Icon: Code2, label: "Web & App", top: 56, left: 298, accent: true },
+  { Icon: MapPinIcon, label: "GIS", top: 56, left: 86, accent: false },
+  { Icon: BrainCircuit, label: "Data & ML", top: 268, left: 86, accent: false },
+  { Icon: Ruler, label: "Dokumen", top: 268, left: 298, accent: true },
+]
 
 interface HeroData {
   title: string
@@ -81,28 +89,47 @@ export default function Hero({ data }: { data: HeroData }) {
               <div className="relative w-[440px] h-[380px]">
                 <div className="w-full h-full rounded-2xl bg-white/[0.04] border border-white/10 overflow-hidden relative shadow-2xl">
                   <div className="absolute inset-0 opacity-15" style={{ backgroundImage: "linear-gradient(rgba(255,145,77,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,145,77,0.5) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-                  <svg className="absolute inset-0 w-full h-full opacity-70" viewBox="0 0 440 380">
-                    <polygon points="80,60 200,40 280,100 240,200 100,180" fill="rgba(255,145,77,0.15)" stroke="rgba(255,145,77,0.5)" strokeWidth="1.5" />
-                    <polygon points="200,160 320,140 380,220 340,310 180,290" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
-                    <circle cx="160" cy="120" r="6" fill="#ff914d" opacity="0.9" />
-                    <circle cx="160" cy="120" r="14" fill="#ff914d" opacity="0.2"><animate attributeName="r" values="10;22;10" dur="2.5s" repeatCount="indefinite" /><animate attributeName="opacity" values="0.3;0;0.3" dur="2.5s" repeatCount="indefinite" /></circle>
-                    <circle cx="290" cy="200" r="5" fill="white" opacity="0.6" />
+
+                  {/* Orbit rings around the logo */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full border border-dashed border-[#ff914d]/25 animate-spin-slow" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] h-[220px] rounded-full border border-[#ff914d]/10" />
+
+                  {/* Spokes connecting logo to service nodes */}
+                  <svg className="absolute inset-0 w-full h-full opacity-50" viewBox="0 0 440 380">
+                    {serviceNodes.map((n, i) => (
+                      <line key={i} x1="220" y1="190" x2={n.left + 28} y2={n.top + 28}
+                        stroke={n.accent ? "rgba(255,145,77,0.4)" : "rgba(255,255,255,0.15)"}
+                        strokeWidth="1.5" strokeDasharray="4 5" />
+                    ))}
                   </svg>
-                  <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-sm rounded-xl p-3 border border-white/10">
-                    <div className="text-xs text-white/40 mb-2 font-medium">Lapisan Analisis Spasial</div>
-                    <div className="flex gap-4 text-xs">
-                      <span className="flex items-center gap-1.5 text-white/60"><span className="w-3 h-3 rounded-full bg-[#ff914d] animate-pulse" />Zona A</span>
-                      <span className="flex items-center gap-1.5 text-white/60"><span className="w-3 h-3 rounded-full bg-white/50" />Zona B</span>
-                    </div>
+
+                  {/* Neon logo centerpiece */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-neon-flicker">
+                    <img
+                      src="/logo-square.png"
+                      alt="SAYBA ARC"
+                      className="w-28 h-28 rounded-2xl object-cover"
+                      style={{ filter: "drop-shadow(0 0 10px rgba(255,145,77,0.9)) drop-shadow(0 0 28px rgba(255,145,77,0.6)) drop-shadow(0 0 55px rgba(255,145,77,0.35))" }}
+                    />
                   </div>
+
+                  {/* Orbiting service nodes */}
+                  {serviceNodes.map(({ Icon, label, top, left, accent }, i) => (
+                    <div key={i} className="absolute flex flex-col items-center gap-1.5" style={{ top, left }}>
+                      <div className={`w-14 h-14 rounded-full flex items-center justify-center border ${accent ? "bg-[#ff914d]/15 border-[#ff914d]/35" : "bg-white/8 border-white/15"}`}>
+                        <Icon className={`w-5 h-5 ${accent ? "text-[#ff914d]" : "text-white/75"}`} strokeWidth={1.75} />
+                      </div>
+                      <span className="text-[10px] font-semibold text-white/70 text-center whitespace-nowrap">{label}</span>
+                    </div>
+                  ))}
                 </div>
                 <div className="animate-scale-in stagger-5 absolute -top-4 -right-6 bg-white/8 backdrop-blur-md border border-white/15 rounded-xl px-4 py-3 text-white shadow-xl">
                   <div className="text-2xl font-bold text-[#ff914d]">50+</div>
                   <div className="text-xs text-white/40">Proyek Selesai</div>
                 </div>
                 <div className="animate-scale-in stagger-6 absolute -bottom-4 -left-6 bg-white/8 backdrop-blur-md border border-white/15 rounded-xl px-4 py-3 text-white shadow-xl">
-                  <div className="text-2xl font-bold text-[#ff914d]">GIS</div>
-                  <div className="text-xs text-white/40">Spesialis GIS</div>
+                  <div className="text-2xl font-bold text-[#ff914d]">4+</div>
+                  <div className="text-xs text-white/40">Bidang Keahlian</div>
                 </div>
               </div>
             </div>

@@ -18,6 +18,7 @@ export const siteConfig = {
 export const navItems = [
   { label: "Beranda", href: "/" },
   { label: "Layanan", href: "/services" },
+  { label: "Produk", href: "/products" },
   { label: "Portofolio", href: "/portfolio" },
   { label: "Tentang Kami", href: "/about" },
   { label: "Kontak", href: "/contact" },
@@ -26,7 +27,7 @@ export const navItems = [
 export const hero = {
   title: "Solusi Digital & Engineering oleh SAYBA ARC",
   subtitle:
-    "Dari pemetaan GIS dan analisis data hingga aplikasi web dan machine learning — SAYBA ARC hadir sebagai mitra teknis yang membantu klien menyelesaikan masalah nyata dengan pendekatan berbasis teknologi.",
+    "Web & aplikasi, GIS & pemetaan, data & machine learning, hingga rancang teknik — SAYBA ARC adalah mitra satu atap untuk beragam kebutuhan digital dan engineering Anda, dikerjakan dalam satu tim.",
   primaryButton: { text: "Jelajahi Layanan Kami", href: "/services" },
   secondaryButton: { text: "Lihat Portofolio", href: "/portfolio" },
   badge: "Multidisiplin · Berbasis di Pontianak",
@@ -74,7 +75,7 @@ export const features = [
 export const about = {
   title: "Satu Tim. Banyak Keahlian.",
   description:
-    "SAYBA ARC adalah agensi dari Pontianak yang lahir dari keyakinan bahwa masalah nyata butuh orang yang mau turun tangan langsung. Kami tidak mengunci diri di satu bidang — kami mengerjakan apa yang klien butuhkan, dari peta GIS sampai model machine learning, dari sistem informasi sampai desain kapal.",
+    "SAYBA ARC adalah agensi dari Pontianak yang lahir dari keyakinan bahwa masalah nyata butuh orang yang mau turun tangan langsung. Kami tidak mengunci diri di satu bidang — kami mengerjakan apa yang klien butuhkan, dari pemetaan, sistem informasi dan rancangan perkapalan hingga kebutuhan engineer lainnya.",
   stats: [
     { value: "50+", label: "Proyek Selesai" },
     { value: "2025", label: "Tahun Berdiri" },
@@ -96,6 +97,7 @@ export const cta = {
 export const footerLinks = [
   { label: "Beranda", href: "/" },
   { label: "Layanan", href: "/services" },
+  { label: "Produk", href: "/products" },
   { label: "Portofolio", href: "/portfolio" },
   { label: "Tentang Kami", href: "/about" },
   { label: "Kontak", href: "/contact" },
@@ -104,7 +106,7 @@ export const footerLinks = [
 export const socialLinks = [
   { name: "Instagram", icon: "instagram", href: "https://instagram.com/sayba.arc" },
   { name: "LinkedIn", icon: "linkedin", href: "https://linkedin.com/company/sayba-arc" },
-  { name: "WhatsApp", icon: "whatsapp", href: "https://wa.me/6281234567890" },
+  { name: "WhatsApp", icon: "whatsapp", href: "https://wa.me/6287721916495" },
   { name: "GitHub", icon: "github", href: "https://github.com/sayba-arc" },
 ]
 
@@ -131,7 +133,9 @@ export const contactPage = {
     "Punya proyek yang ingin dikerjakan atau sekadar ingin mengeksplorasi kemungkinan? Kami senang mendengar dari Anda.",
   info: [
     { icon: "mail", label: "Email", value: siteConfig.email, href: `mailto:${siteConfig.email}` },
-    { icon: "phone", label: "Telepon / WhatsApp", value: siteConfig.phone, href: `https://wa.me/6281234567890` },
+    { icon: "phone", label: "Telepon / WhatsApp", value: siteConfig.phone, href: `https://wa.me/6287721916495` },
     { icon: "map-pin", label: "Lokasi", value: siteConfig.address, href: "#" },
   ],
+  whatsappLink:
+    "https://wa.me/6287721916495?text=Halo%20Saya%20Tertarik%20Pada%20%5Bjenis%20produk/jasa%5D%20%5BJasa%20nya%20mis%20:%20Autocad%203D%5D%20%0A%3E%20Sayba%20Arc",
 }
