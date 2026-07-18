@@ -19,7 +19,7 @@ export default function Header({ navItems, ctaText, ctaHref }: HeaderProps) {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-square.png" alt={siteConfig.name} className="h-8 w-8 rounded-md object-cover transition-opacity group-hover:opacity-80" />
+            <img src="/Sayba%20Arc.png" alt={siteConfig.name} className="h-8 w-8 rounded-md object-contain transition-opacity group-hover:opacity-80" />
             <span className="font-bold text-base text-black tracking-tight group-hover:text-[#ff914d] transition-colors">{siteConfig.name}</span>
           </Link>
 

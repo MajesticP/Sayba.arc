@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     siteName: "SAYBA ARC",
     title: "SAYBA ARC — ART YOU BELIEVE",
     description: "Agensi digital & engineering dari Pontianak. Solusi teknis nyata untuk bisnis dan instansi di Indonesia.",
-    images: [{ url: "https://sayba.web.id/logo.png", width: 1200, height: 630, alt: "SAYBA ARC — Art You Believe" }],
+    images: [{ url: "https://sayba.web.id/Sayba%20Arc.png", width: 1024, height: 1024, alt: "SAYBA ARC — Art You Believe" }],
   },
 }
 

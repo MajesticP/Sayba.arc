@@ -7,7 +7,7 @@ export function generateOrganizationSchema() {
     name: "SAYBA ARC",
     alternateName: "Sayba Architecture",
     url: "https://sayba.web.id",
-    logo: "https://sayba.web.id/logo-square.png",
+    logo: "https://sayba.web.id/Sayba%20Arc.png",
     description:
       "SAYBA ARC adalah perusahaan digital solutions yang menyediakan layanan web development, mobile app development, UI/UX design, dan software testing profesional.",
     sameAs: [
@@ -66,7 +66,7 @@ export function generateServiceSchema(service: {
       url: "https://sayba.web.id",
     },
     url: service.url,
-    image: service.image || "https://sayba.web.id/logo.png",
+    image: service.image || "https://sayba.web.id/Sayba%20Arc.png",
     areaServed: {
       "@type": "Country",
       name: "ID",
@@ -88,7 +88,7 @@ export function generateProductSchema(product: {
     name: product.name,
     description: product.description,
     url: product.url,
-    image: product.image || "https://sayba.web.id/logo.png",
+    image: product.image || "https://sayba.web.id/Sayba%20Arc.png",
     offers: {
       "@type": "Offer",
       priceCurrency: product.currency || "IDR",
@@ -108,7 +108,7 @@ export function generateLocalBusinessSchema() {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     name: "SAYBA ARC",
-    image: "https://sayba.web.id/logo.png",
+    image: "https://sayba.web.id/Sayba%20Arc.png",
     url: "https://sayba.web.id",
     telephone: "+6287721916495",
     email: "info@sayba.web.id",
@@ -171,9 +171,9 @@ export function generateServiceDetailMetadata(options: {
       type: "website" as const,
       images: [
         {
-          url: "https://sayba.web.id/logo.png",
-          width: 1200,
-          height: 630,
+          url: "https://sayba.web.id/Sayba%20Arc.png",
+          width: 1024,
+          height: 1024,
           alt: options.serviceTitle,
         },
       ],
@@ -182,7 +182,7 @@ export function generateServiceDetailMetadata(options: {
       card: "summary_large_image" as const,
       title: options.title,
       description: options.description,
-      images: ["https://sayba.web.id/logo.png"],
+      images: ["https://sayba.web.id/Sayba%20Arc.png"],
     },
   }
 }
@@ -211,9 +211,9 @@ export function generateProductDetailMetadata(options: {
       type: "website" as const,
       images: [
         {
-          url: "https://sayba.web.id/logo.png",
-          width: 1200,
-          height: 630,
+          url: "https://sayba.web.id/Sayba%20Arc.png",
+          width: 1024,
+          height: 1024,
           alt: options.productTitle,
         },
       ],
@@ -222,7 +222,7 @@ export function generateProductDetailMetadata(options: {
       card: "summary_large_image" as const,
       title: options.title,
       description: options.description,
-      images: ["https://sayba.web.id/logo.png"],
+      images: ["https://sayba.web.id/Sayba%20Arc.png"],
     },
   }
 }
@@ -252,9 +252,9 @@ export function generateApplicationDetailMetadata(options: {
       type: "website" as const,
       images: [
         {
-          url: "https://sayba.web.id/logo.png",
-          width: 1200,
-          height: 630,
+          url: "https://sayba.web.id/Sayba%20Arc.png",
+          width: 1024,
+          height: 1024,
           alt: options.appTitle,
         },
       ],
@@ -263,7 +263,7 @@ export function generateApplicationDetailMetadata(options: {
       card: "summary_large_image" as const,
       title: options.title,
       description: options.description,
-      images: ["https://sayba.web.id/logo.png"],
+      images: ["https://sayba.web.id/Sayba%20Arc.png"],
     },
   }
 }
@@ -280,7 +280,7 @@ export function generateSoftwareApplicationSchema(app: {
     name: app.name,
     description: app.description,
     url: app.url,
-    image: app.image || "https://sayba.web.id/logo.png",
+    image: app.image || "https://sayba.web.id/Sayba%20Arc.png",
     operatingSystem: ["Web", "Windows", "macOS", "Linux", "iOS", "Android"],
     offers: {
       "@type": "Offer",
@@ -321,9 +321,9 @@ export function generatePortfolioDetailMetadata(options: {
       type: "website" as const,
       images: [
         {
-          url: "https://sayba.web.id/logo.png",
-          width: 1200,
-          height: 630,
+          url: "https://sayba.web.id/Sayba%20Arc.png",
+          width: 1024,
+          height: 1024,
           alt: options.portfolioTitle,
         },
       ],
@@ -332,7 +332,7 @@ export function generatePortfolioDetailMetadata(options: {
       card: "summary_large_image" as const,
       title: options.title,
       description: options.description,
-      images: ["https://sayba.web.id/logo.png"],
+      images: ["https://sayba.web.id/Sayba%20Arc.png"],
     },
   }
 }
