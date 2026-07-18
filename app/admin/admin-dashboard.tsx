@@ -399,7 +399,7 @@ export default function AdminDashboard() {
         <main className="p-3 sm:p-5 flex-1">
           {/* Stats */}
           {tab !== "tipe" && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-3.5">
+            <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-3 overflow-x-auto sm:overflow-visible scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0">
               <StatCard label="Total Portofolio" value={portfolioData.length} color="#ff914d" />
               <StatCard label="Total Layanan" value={layananData.length} color="#34d399" />
               <StatCard label="Total Produk" value={produkData.length} color="#60a5fa" />
@@ -540,10 +540,10 @@ export default function AdminDashboard() {
 // ── Stat Card ──────────────────────────────────────────────────────────────
 function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="bg-[#111] border border-white/[0.07] rounded-xl p-3 relative overflow-hidden hover:border-white/10 transition-colors">
+    <div className="bg-[#111] border border-white/[0.07] rounded-xl p-2.5 sm:p-3 relative overflow-hidden hover:border-white/10 transition-colors min-w-[122px] flex-shrink-0 sm:min-w-0 sm:flex-shrink">
       <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: color }} />
-      <p className="text-[9px] font-bold uppercase tracking-wider text-white/25 mb-1.5 leading-tight">{label}</p>
-      <p className="text-[26px] font-extrabold leading-none tracking-tight" style={{ color }}>{value}</p>
+      <p className="text-[9px] font-bold uppercase tracking-wider text-white/25 mb-1 sm:mb-1.5 leading-tight truncate">{label}</p>
+      <p className="text-[21px] sm:text-[26px] font-extrabold leading-none tracking-tight" style={{ color }}>{value}</p>
     </div>
   )
 }
@@ -567,7 +567,7 @@ function PortfolioTable({ data, loading, onEdit, onDelete, depts }: {
   if (!data.length) return <TableEmpty label="portofolio" />
   return (
     <>
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden lg:block overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/[0.05]">
@@ -597,7 +597,7 @@ function PortfolioTable({ data, loading, onEdit, onDelete, depts }: {
           </tbody>
         </table>
       </div>
-      <div className="md:hidden">
+      <div className="lg:hidden">
         {data.map(p => (
           <CardRow key={p.id} actions={<><button onClick={() => onEdit(p)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={13} /></button><button onClick={() => onDelete(p)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={13} /></button></>}>
             <p className="text-[13px] font-medium text-white truncate">{p.title}</p>
@@ -623,7 +623,7 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
   if (!data.length) return <TableEmpty label="layanan" />
   return (
     <>
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden lg:block overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/[0.05]">
@@ -689,7 +689,7 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
           </tbody>
         </table>
       </div>
-      <div className="md:hidden">
+      <div className="lg:hidden">
         {data.map(l => (
           <CardRow key={l.id} actions={<><button onClick={() => onEdit(l)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={13} /></button><button onClick={() => onDelete(l)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={13} /></button></>}>
             <div className="flex items-center gap-1.5 truncate">
@@ -1051,7 +1051,7 @@ function ProdukTable({ data, loading, onEdit, onDelete, depts }: {
   if (!data.length) return <TableEmpty label="produk" />
   return (
     <>
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden lg:block overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/[0.05]">
@@ -1095,7 +1095,7 @@ function ProdukTable({ data, loading, onEdit, onDelete, depts }: {
           </tbody>
         </table>
       </div>
-      <div className="md:hidden">
+      <div className="lg:hidden">
         {data.map(p => (
           <CardRow key={p.id} actions={<><button onClick={() => onEdit(p)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={13} /></button><button onClick={() => onDelete(p)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={13} /></button></>}>
             <p className="text-[13px] font-medium text-white truncate">{p.title}</p>
@@ -1290,7 +1290,7 @@ function TipeTable({ depts, onEdit, onDelete }: { depts: LayananDept[]; onEdit: 
   if (!depts.length) return <TableEmpty label="tipe layanan" />
   return (
     <>
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden lg:block overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/[0.05]">
@@ -1327,7 +1327,7 @@ function TipeTable({ depts, onEdit, onDelete }: { depts: LayananDept[]; onEdit: 
           </tbody>
         </table>
       </div>
-      <div className="md:hidden">
+      <div className="lg:hidden">
         {depts.map(d => (
           <CardRow key={d.value} actions={<><button onClick={() => onEdit(d)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={13} /></button><button onClick={() => onDelete(d)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={13} /></button></>}>
             <div className="flex items-center gap-2 mb-1">
@@ -1450,7 +1450,7 @@ function TimTable({ data, loading, onEdit, onDelete }: {
   if (!data.length) return <TableEmpty label="anggota tim" />
   return (
     <>
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden lg:block overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/[0.05]">
@@ -1495,7 +1495,7 @@ function TimTable({ data, loading, onEdit, onDelete }: {
           </tbody>
         </table>
       </div>
-      <div className="md:hidden">
+      <div className="lg:hidden">
         {data.map(m => {
           const photoSrc = m.photo_url ? gdriveToImg(m.photo_url) : null
           return (
