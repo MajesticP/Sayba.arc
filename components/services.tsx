@@ -76,7 +76,7 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
                 } as React.CSSProperties}>
 
                 {/* Image — hard-capped height, disamakan dengan halaman Layanan (160px) */}
-                <div className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "160px" }}>
+                <div className="relative w-full aspect-[12/5] bg-black/5 overflow-hidden leading-[0]">
                   {imgSrc ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={imgSrc} alt={service.title} className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-105 block"
