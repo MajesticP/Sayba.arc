@@ -169,10 +169,20 @@ export default function ServicesClient({ allLayanan, allDepts }: Props) {
                     <span className="text-[10px] font-bold text-black/25 tabular-nums">{services.length} layanan</span>
                   </div>
 
-                  {/* Cards grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
-                    {services.map(service => <ServiceCard key={service.id} service={service} cfg={cfg} />)}
-                  </div>
+                  {/* Cards — mobile: carousel per departemen (jika >1 layanan, 2 card per baris), desktop: grid */}
+                  {services.length > 1 ? (
+                    <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-1 -mb-1 sm:grid sm:grid-cols-2 xl:grid-cols-3 sm:gap-4 md:gap-5 sm:overflow-visible sm:pb-0 sm:mb-0 scrollbar-hide">
+                      {services.map(service => (
+                        <div key={service.id} className="flex-shrink-0 w-[44vw] sm:w-auto snap-start">
+                          <ServiceCard service={service} cfg={cfg} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
+                      {services.map(service => <ServiceCard key={service.id} service={service} cfg={cfg} />)}
+                    </div>
+                  )}
                 </div>
               </PageTransition>
             )
