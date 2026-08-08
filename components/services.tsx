@@ -59,7 +59,7 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
 
             return (
               <Link key={service.id} href={service.slug ? `/services/${service.slug}` : "#"}
-                className={`group relative transition-all duration-400 hover:-translate-y-1 hover:shadow-2xl overflow-hidden rounded-2xl border border-black/10 flex-shrink-0 w-[86vw] sm:w-auto snap-center flex flex-col ${cards.inView ? "animate-card-reveal" : "opacity-0"}`}
+                className={`group relative transition-all duration-400 hover:-translate-y-1 hover:shadow-2xl overflow-hidden rounded-2xl border border-black/10 flex-shrink-0 w-[86vw] max-w-[360px] sm:w-full sm:max-w-[360px] mx-auto snap-center flex flex-col ${cards.inView ? "animate-card-reveal" : "opacity-0"}`}
                 style={{
                   "--card-color": color,
                   animationDelay: `${i * 120}ms`,

@@ -33,7 +33,7 @@ export default function ServiceThumbnail({ imgSrc, alt, color, icon, badgeNumber
         <img
           src={imgSrc}
           alt={alt}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
+          className="w-full h-full object-cover object-[center_32%] transition-transform duration-500 group-hover:scale-105 block"
           onError={e => {
             const el = e.currentTarget
             el.style.display = "none"
