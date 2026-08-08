@@ -234,7 +234,7 @@ function ServiceCard({ service, cfg }: { service: Layanan; cfg: { label: string;
 
     >
       {/* Image area — hard-capped height */}
-      <div className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "160px" }}>
+      <div className="relative w-full aspect-[12/5] bg-black/5 overflow-hidden leading-[0]">
         {imgSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={imgSrc} alt={service.title} className="w-full object-cover transition-transform duration-500 group-hover:scale-105 block"
