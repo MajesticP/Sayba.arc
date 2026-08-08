@@ -2,19 +2,9 @@
 
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
-import { DynamicIcon } from "@/lib/dynamic-icon"
+import ServiceThumbnail, { gdriveToImg } from "@/components/service-thumbnail"
 import type { Layanan } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
-
-function gdriveToImg(url: string): string {
-  if (!url) return url
-  if (url.startsWith("/api/gdrive-img")) return url
-  const fileMatch = url.match(/\/d\/([\w-]+)/)
-  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
-  const idMatch = url.match(/[?&]id=([\w-]+)/)
-  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
-  return url
-}
 
 function useInView(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null)
@@ -75,22 +65,8 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
                   animationDelay: `${i * 120}ms`,
                 } as React.CSSProperties}>
 
-                {/* Image — hard-capped height, disamakan dengan halaman Layanan (160px) */}
-                <div className="relative w-full aspect-[12/5] bg-black/5 overflow-hidden leading-[0]">
-                  {imgSrc ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={imgSrc} alt={service.title} className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-105 block"
-                      onError={e => { const el = e.currentTarget; el.style.display = "none"; const fb = el.nextElementSibling as HTMLElement | null; if (fb) fb.style.display = "flex" }} />
-                  ) : null}
-                  <div className="absolute inset-0 flex items-center justify-center transition-transform group-hover:scale-110 duration-300"
-                    style={{ backgroundColor: `${color}18`, display: imgSrc ? "none" : "flex" }}>
-                    <DynamicIcon name={service.icon ?? "map"} color={color} size={30} />
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 group-hover:h-1 transition-all duration-300" style={{ backgroundColor: color }} />
-                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/80 backdrop-blur-sm border border-black/8 flex items-center justify-center shadow-sm">
-                    <span className="text-[8px] font-black text-black/40">0{i + 1}</span>
-                  </div>
-                </div>
+                {/* Image — komponen bersama, dijamin identik dengan halaman Layanan */}
+                <ServiceThumbnail imgSrc={imgSrc} alt={service.title} color={color} icon={service.icon} badgeNumber={i + 1} />
 
                 {/* Content — hard-capped at remaining space */}
                 <div
