@@ -4,6 +4,7 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
+import ProductFeatureTabs from "@/components/product-feature-tabs"
 
 function gdriveToImg(url: string): string {
   if (!url) return url
@@ -34,6 +35,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   }
   const deptCfg = DEPT_MAP[product.dept] ?? { label: `Departemen ${product.dept}`, color: "#888" }
   const accent = deptCfg.color
+
+  const technologies: string[] = (product as any).technologies ?? []
+  const process: string[] = (product as any).process ?? []
+  const specifications: string[] = (product as any).specifications ?? []
 
   const waLink = `https://wa.me/6287721916495?text=${encodeURIComponent(`Halo, saya tertarik dengan produk "${product.title}"\n> Sayba Arc`)}`
 
@@ -117,6 +122,15 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </p>
         </div>
       </section>
+
+      {/* Teknologi / Proses / Spesifikasi */}
+      {(technologies.length > 0 || process.length > 0 || specifications.length > 0) && (
+        <section className="pb-10 md:pb-20 bg-white">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <ProductFeatureTabs technologies={technologies} process={process} specifications={specifications} accent={accent} />
+          </div>
+        </section>
+      )}
 
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />
     </main>
