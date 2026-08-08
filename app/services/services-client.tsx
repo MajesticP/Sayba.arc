@@ -172,7 +172,7 @@ export default function ServicesClient({ allLayanan, allDepts }: Props) {
                   {/* Cards — mobile: carousel geser 1 card penuh, desktop: grid */}
                   <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-1 -mb-1 sm:grid sm:grid-cols-2 xl:grid-cols-3 sm:gap-4 md:gap-5 sm:overflow-visible sm:pb-0 sm:mb-0 scrollbar-hide">
                     {services.map(service => (
-                      <div key={service.id} className="flex-shrink-0 w-[86vw] sm:w-auto snap-center">
+                      <div key={service.id} className="flex-shrink-0 w-[86vw] max-w-[360px] sm:w-full sm:max-w-[360px] mx-auto snap-center">
                         <ServiceCard service={service} cfg={cfg} />
                       </div>
                     ))}
