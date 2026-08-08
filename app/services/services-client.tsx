@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import Link from "next/link"
 import PageTransition from "@/components/page-transition"
-import ServiceThumbnail, { gdriveToImg } from "@/components/service-thumbnail"
+import { DynamicIcon } from "@/lib/dynamic-icon"
 import type { Layanan } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
 
@@ -172,7 +172,7 @@ export default function ServicesClient({ allLayanan, allDepts }: Props) {
                   {/* Cards — mobile: carousel geser 1 card penuh, desktop: grid */}
                   <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-1 -mb-1 sm:grid sm:grid-cols-2 xl:grid-cols-3 sm:gap-4 md:gap-5 sm:overflow-visible sm:pb-0 sm:mb-0 scrollbar-hide">
                     {services.map(service => (
-                      <div key={service.id} className="flex-shrink-0 w-[86vw] max-w-[360px] sm:w-full sm:max-w-[360px] mx-auto snap-center">
+                      <div key={service.id} className="flex-shrink-0 w-[86vw] sm:w-auto snap-center">
                         <ServiceCard service={service} cfg={cfg} />
                       </div>
                     ))}
@@ -205,6 +205,16 @@ export default function ServicesClient({ allLayanan, allDepts }: Props) {
   )
 }
 
+function gdriveToImg(url: string): string {
+  if (!url) return url
+  if (url.startsWith("/api/gdrive-img")) return url
+  const fileMatch = url.match(/\/d\/([\w-]+)/)
+  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
+  const idMatch = url.match(/[?&]id=([\w-]+)/)
+  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
+  return url
+}
+
 function FilterChip({ label, active, color, onClick, small }: { label: string; active: boolean; color: string; onClick: () => void; small?: boolean }) {
   return (
     <button onClick={onClick}
@@ -223,8 +233,19 @@ function ServiceCard({ service, cfg }: { service: Layanan; cfg: { label: string;
       className={`group bg-white ${cfg.border} ${cfg.shadow} transition-all duration-300 hover:-translate-y-1 relative overflow-hidden rounded-xl border border-black/8 w-full flex flex-col`}
 
     >
-      {/* Image area — komponen bersama, dijamin identik dengan Home */}
-      <ServiceThumbnail imgSrc={imgSrc} alt={service.title} color={cfg.color} icon={service.icon} />
+      {/* Image area — hard-capped height */}
+      <div className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "160px" }}>
+        {imgSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={imgSrc} alt={service.title} className="w-full object-cover transition-transform duration-500 group-hover:scale-105 block"
+            style={{ height: "100%" }}
+            onError={e => { const el = e.currentTarget; el.style.display = "none"; const fb = el.nextElementSibling as HTMLElement | null; if (fb) fb.style.display = "flex" }} />
+        ) : null}
+        <div className={`absolute inset-0 items-center justify-center ${cfg.iconBg} transition-colors duration-300`} style={{ display: imgSrc ? "none" : "flex" }}>
+          <DynamicIcon name={service.icon ?? "map"} color={cfg.color} size={24} />
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: cfg.color }} />
+      </div>
 
       {/* Content — hard-capped at remaining 130px */}
       <div className="flex flex-col p-4 flex-1">
