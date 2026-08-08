@@ -2,9 +2,19 @@
 
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
-import ServiceThumbnail, { gdriveToImg } from "@/components/service-thumbnail"
+import { DynamicIcon } from "@/lib/dynamic-icon"
 import type { Layanan } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
+
+function gdriveToImg(url: string): string {
+  if (!url) return url
+  if (url.startsWith("/api/gdrive-img")) return url
+  const fileMatch = url.match(/\/d\/([\w-]+)/)
+  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
+  const idMatch = url.match(/[?&]id=([\w-]+)/)
+  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
+  return url
+}
 
 function useInView(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null)
@@ -59,14 +69,28 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
 
             return (
               <Link key={service.id} href={service.slug ? `/services/${service.slug}` : "#"}
-                className={`group relative transition-all duration-400 hover:-translate-y-1 hover:shadow-2xl overflow-hidden rounded-2xl border border-black/10 flex-shrink-0 w-[86vw] max-w-[360px] sm:w-full sm:max-w-[360px] mx-auto snap-center flex flex-col ${cards.inView ? "animate-card-reveal" : "opacity-0"}`}
+                className={`group relative transition-all duration-400 hover:-translate-y-1 hover:shadow-2xl overflow-hidden rounded-2xl border border-black/10 flex-shrink-0 w-[86vw] sm:w-auto snap-center flex flex-col ${cards.inView ? "animate-card-reveal" : "opacity-0"}`}
                 style={{
                   "--card-color": color,
                   animationDelay: `${i * 120}ms`,
                 } as React.CSSProperties}>
 
-                {/* Image — komponen bersama, dijamin identik dengan halaman Layanan */}
-                <ServiceThumbnail imgSrc={imgSrc} alt={service.title} color={color} icon={service.icon} badgeNumber={i + 1} />
+                {/* Image — hard-capped height, disamakan dengan halaman Layanan (160px) */}
+                <div className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "160px" }}>
+                  {imgSrc ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={imgSrc} alt={service.title} className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-105 block"
+                      onError={e => { const el = e.currentTarget; el.style.display = "none"; const fb = el.nextElementSibling as HTMLElement | null; if (fb) fb.style.display = "flex" }} />
+                  ) : null}
+                  <div className="absolute inset-0 flex items-center justify-center transition-transform group-hover:scale-110 duration-300"
+                    style={{ backgroundColor: `${color}18`, display: imgSrc ? "none" : "flex" }}>
+                    <DynamicIcon name={service.icon ?? "map"} color={color} size={30} />
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 group-hover:h-1 transition-all duration-300" style={{ backgroundColor: color }} />
+                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/80 backdrop-blur-sm border border-black/8 flex items-center justify-center shadow-sm">
+                    <span className="text-[8px] font-black text-black/40">0{i + 1}</span>
+                  </div>
+                </div>
 
                 {/* Content — hard-capped at remaining space */}
                 <div
