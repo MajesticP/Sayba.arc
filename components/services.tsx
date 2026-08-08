@@ -59,8 +59,8 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
           </div>
         </div>
 
-        {/* Cards */}
-        <div ref={cards.ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        {/* Cards — mobile: swipeable carousel, desktop: grid */}
+        <div ref={cards.ref} className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mb-2 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 md:mb-0 scrollbar-hide">
           {allLayanan.slice(0, 3).map((service, i) => {
             const deptCfg = depts.find(d => d.value === service.dept)
             const color = deptCfg?.color ?? "#888"
@@ -69,14 +69,14 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
 
             return (
               <Link key={service.id} href={service.slug ? `/services/${service.slug}` : "#"}
-                className={`group relative transition-all duration-400 hover:-translate-y-1 hover:shadow-2xl overflow-hidden rounded-2xl border border-black/10 w-full flex flex-col ${cards.inView ? "animate-card-reveal" : "opacity-0"}`}
+                className={`group relative transition-all duration-400 hover:-translate-y-1 hover:shadow-2xl overflow-hidden rounded-2xl border border-black/10 flex-shrink-0 w-[72vw] sm:w-[52vw] md:w-auto snap-center flex flex-col ${cards.inView ? "animate-card-reveal" : "opacity-0"}`}
                 style={{
                   "--card-color": color,
                   animationDelay: `${i * 120}ms`,
                 } as React.CSSProperties}>
 
-                {/* Image — hard-capped height */}
-                <div className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "180px" }}>
+                {/* Image — hard-capped height, disamakan dengan halaman Layanan (160px) */}
+                <div className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "160px" }}>
                   {imgSrc ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={imgSrc} alt={service.title} className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-105 align-top block"
@@ -92,7 +92,7 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
                   </div>
                 </div>
 
-                {/* Content — hard-capped at remaining 130px */}
+                {/* Content — hard-capped at remaining space */}
                 <div
                   className="flex flex-col p-4 bg-white group-hover:bg-black/[0.01] transition-colors duration-300 flex-1"
                 >
@@ -113,6 +113,14 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
               </Link>
             )
           })}
+        </div>
+
+        {/* Swipe hint — mobile only */}
+        <div className="flex items-center justify-center gap-1.5 mt-3 md:hidden">
+          {allLayanan.slice(0, 3).map((_, i) => (
+            <span key={i} className="w-1.5 h-1.5 rounded-full bg-black/15" />
+          ))}
+          <span className="text-[10px] text-black/25 ml-1.5">Geser untuk lihat lainnya</span>
         </div>
 
         {/* Bottom strip */}
