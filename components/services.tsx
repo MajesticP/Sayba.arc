@@ -60,7 +60,7 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
         </div>
 
         {/* Cards — mobile: swipeable carousel, desktop: grid */}
-        <div ref={cards.ref} className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mb-2 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 md:mb-0 scrollbar-hide">
+        <div ref={cards.ref} className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mb-2 sm:grid sm:grid-cols-2 xl:grid-cols-3 sm:gap-4 md:gap-5 sm:overflow-visible sm:pb-0 sm:mb-0 scrollbar-hide">
           {allLayanan.slice(0, 3).map((service, i) => {
             const deptCfg = depts.find(d => d.value === service.dept)
             const color = deptCfg?.color ?? "#888"
@@ -69,7 +69,7 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
 
             return (
               <Link key={service.id} href={service.slug ? `/services/${service.slug}` : "#"}
-                className={`group relative transition-all duration-400 hover:-translate-y-1 hover:shadow-2xl overflow-hidden rounded-2xl border border-black/10 flex-shrink-0 w-[72vw] sm:w-[52vw] md:w-auto snap-center flex flex-col ${cards.inView ? "animate-card-reveal" : "opacity-0"}`}
+                className={`group relative transition-all duration-400 hover:-translate-y-1 hover:shadow-2xl overflow-hidden rounded-2xl border border-black/10 flex-shrink-0 w-[72vw] sm:w-auto snap-center flex flex-col ${cards.inView ? "animate-card-reveal" : "opacity-0"}`}
                 style={{
                   "--card-color": color,
                   animationDelay: `${i * 120}ms`,
@@ -116,7 +116,7 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
         </div>
 
         {/* Swipe hint — mobile only */}
-        <div className="flex items-center justify-center gap-1.5 mt-3 md:hidden">
+        <div className="flex items-center justify-center gap-1.5 mt-3 sm:hidden">
           {allLayanan.slice(0, 3).map((_, i) => (
             <span key={i} className="w-1.5 h-1.5 rounded-full bg-black/15" />
           ))}
