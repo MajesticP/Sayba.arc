@@ -25,6 +25,7 @@ interface Props { allLayanan: Layanan[]; allDepts: LayananDept[] }
 export default function ServicesClient({ allLayanan, allDepts }: Props) {
   const [activeDept, setActiveDept] = useState<string>("semua")
   const [activeCategory, setActiveCategory] = useState<string>("semua")
+  const [searchQuery, setSearchQuery] = useState<string>("")
 
   const depts = useMemo(() => {
     const seen = new Set<string>(); const result: string[] = []
@@ -42,12 +43,17 @@ export default function ServicesClient({ allLayanan, allDepts }: Props) {
   const handleDeptChange = (dept: string) => { setActiveDept(dept); setActiveCategory("semua") }
 
   const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
     return allLayanan.filter(l => {
       const matchDept = activeDept === "semua" || l.dept === activeDept
       const matchCat = activeCategory === "semua" || l.category === activeCategory
-      return matchDept && matchCat
+      const matchSearch = q === "" ||
+        l.title.toLowerCase().includes(q) ||
+        (l.description ?? "").toLowerCase().includes(q) ||
+        (l.category ?? "").toLowerCase().includes(q)
+      return matchDept && matchCat && matchSearch
     })
-  }, [allLayanan, activeDept, activeCategory])
+  }, [allLayanan, activeDept, activeCategory, searchQuery])
 
   const grouped = useMemo(() => {
     const map = new Map<string, Layanan[]>()
@@ -68,8 +74,55 @@ export default function ServicesClient({ allLayanan, allDepts }: Props) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Filter bar */}
-        <div className="mb-5 md:mb-10 space-y-1.5 md:space-y-3">
-          <div className="flex flex-wrap gap-1.5 items-center">
+        <div className="mb-5 md:mb-10 space-y-2 md:space-y-3">
+
+          {/* Search */}
+          <div className="relative">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Cari layanan..."
+              className="w-full pl-9 pr-8 py-2 rounded-lg border border-black/10 bg-white text-[12.5px] text-black placeholder:text-black/30 focus:outline-none focus:ring-2 focus:ring-[#ff914d]/25 focus:border-[#ff914d]/40 transition-all"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-black/25 hover:text-black/50 transition-colors" aria-label="Hapus pencarian">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            )}
+          </div>
+
+          {/* Mobile: dropdown filters */}
+          <div className="flex gap-2 md:hidden">
+            <select
+              value={activeDept}
+              onChange={e => handleDeptChange(e.target.value)}
+              className="flex-1 min-w-0 text-[12px] font-semibold rounded-lg border border-black/12 bg-white px-2.5 py-1.5 text-black/70 focus:outline-none focus:ring-2 focus:ring-[#ff914d]/25"
+            >
+              <option value="semua">Semua Dept</option>
+              {depts.map(dept => (
+                <option key={dept} value={dept}>{getDeptCfg(dept, allDepts).label}</option>
+              ))}
+            </select>
+            {categories.length > 0 && (
+              <select
+                value={activeCategory}
+                onChange={e => setActiveCategory(e.target.value)}
+                className="flex-1 min-w-0 text-[12px] font-semibold rounded-lg border border-black/12 bg-white px-2.5 py-1.5 text-black/70 focus:outline-none focus:ring-2 focus:ring-[#ff914d]/25"
+              >
+                <option value="semua">Semua Kategori</option>
+                {categories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {/* Desktop: chip filters */}
+          <div className="hidden md:flex flex-wrap gap-1.5 items-center">
             <span className="text-[10px] font-bold uppercase tracking-widest text-black/30 mr-1">Dept</span>
             <FilterChip label="Semua" active={activeDept === "semua"} color="#ff914d" onClick={() => handleDeptChange("semua")} />
             {depts.map(dept => {
@@ -79,7 +132,7 @@ export default function ServicesClient({ allLayanan, allDepts }: Props) {
           </div>
 
           {categories.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 items-center">
+            <div className="hidden md:flex flex-wrap gap-1.5 items-center">
               <span className="text-[10px] font-bold uppercase tracking-widest text-black/30 mr-1">Kategori</span>
               <FilterChip label="Semua" active={activeCategory === "semua"} color="#888" onClick={() => setActiveCategory("semua")} small />
               {categories.map(cat => (
@@ -129,7 +182,7 @@ export default function ServicesClient({ allLayanan, allDepts }: Props) {
         {filtered.length === 0 && (
           <div className="text-center py-20">
             <p className="text-black/25 text-base">Tidak ada layanan untuk filter ini.</p>
-            <button onClick={() => { setActiveDept("semua"); setActiveCategory("semua") }} className="mt-3 text-sm text-[#ff914d] underline hover:text-[#e07b3a] transition-colors">Reset filter</button>
+            <button onClick={() => { setActiveDept("semua"); setActiveCategory("semua"); setSearchQuery("") }} className="mt-3 text-sm text-[#ff914d] underline hover:text-[#e07b3a] transition-colors">Reset filter</button>
           </div>
         )}
 
