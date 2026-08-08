@@ -36,7 +36,7 @@ export default function ContactPage() {
                 <h2 className="text-[16px] md:text-2xl font-bold text-black mb-3 md:mb-6">Informasi Kontak</h2>
                 {contactPage.info.map((item, index) => (
                   <a key={index} href={item.href}
-                    className="flex items-center gap-3 p-3.5 md:p-5 bg-white rounded-xl border border-black/8 hover:border-[#ff914d]/30 hover:shadow-lg hover:shadow-orange-50 transition-all duration-300 group">
+                    className="flex items-center justify-start gap-3 p-3.5 md:p-5 bg-white rounded-xl border border-black/8 hover:border-[#ff914d]/30 hover:shadow-lg hover:shadow-orange-50 transition-all duration-300 group">
                     <div className="w-8 h-8 md:w-11 md:h-11 rounded-lg md:rounded-xl bg-[#ff914d]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#ff914d]/20 transition-colors">
                       <DynamicIcon name={item.icon} color="#ff914d" size={16} />
                     </div>
