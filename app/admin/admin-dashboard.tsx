@@ -1117,7 +1117,7 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
   open: boolean; initial: Produk | null; depts: LayananDept[]
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
-  const blank = { title: "", slug: "", dept: depts[0]?.value ?? "arcgis", category: "", description: "", image_url: "", file_url: "", price: 0, status: "active" as Status }
+  const blank = { title: "", slug: "", dept: depts[0]?.value ?? "arcgis", category: "", description: "", image_url: "", file_url: "", price: 0, status: "active" as Status, technologies: "", process: "", specifications: "" }
   const [form, setForm] = useState(blank)
   const [saving, setSaving] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
@@ -1127,7 +1127,10 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
   useEffect(() => {
     if (!open) return
     if (initial) {
-      setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", image_url: initial.image_url ?? "", file_url: initial.file_url ?? "", price: initial.price, status: initial.status })
+      setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", image_url: initial.image_url ?? "", file_url: initial.file_url ?? "", price: initial.price, status: initial.status,
+        technologies: Array.isArray((initial as any).technologies) ? (initial as any).technologies.join("\n") : "",
+        process: Array.isArray((initial as any).process) ? (initial as any).process.join("\n") : "",
+        specifications: Array.isArray((initial as any).specifications) ? (initial as any).specifications.join("\n") : "" })
       setSlugManual(true)
     } else { setForm(blank); setSlugManual(false) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1140,7 +1143,10 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
   const handleSubmit = async () => {
     if (!form.title || !form.slug) { onError("Nama dan slug wajib diisi", "error"); return }
     setSaving(true)
-    const payload = { title: form.title, slug: form.slug, dept: form.dept, category: form.category || null, description: form.description || null, image_url: form.image_url || null, file_url: form.file_url || null, price: Number(form.price) || 0, status: form.status }
+    const payload = { title: form.title, slug: form.slug, dept: form.dept, category: form.category || null, description: form.description || null, image_url: form.image_url || null, file_url: form.file_url || null, price: Number(form.price) || 0, status: form.status,
+      technologies: form.technologies ? form.technologies.split("\n").map(s => s.trim()).filter(Boolean) : [],
+      process: form.process ? form.process.split("\n").map(s => s.trim()).filter(Boolean) : [],
+      specifications: form.specifications ? form.specifications.split("\n").map(s => s.trim()).filter(Boolean) : [] }
     const res = initial
       ? await fetch(`/api/admin/produk?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
       : await fetch("/api/admin/produk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
@@ -1212,6 +1218,18 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
         </Field>
 
         <Field label="Deskripsi"><Textarea value={form.description} onChange={v => set("description", v)} placeholder="Deskripsi produk…" /></Field>
+
+        <div className="h-px bg-white/[0.07] my-1" />
+        <p className="text-[9.5px] font-bold uppercase tracking-widest text-white/25">Detail Tab Produk (opsional)</p>
+        <Field label="Teknologi (1 per baris)" hint="Muncul sebagai tag di tab Teknologi">
+          <Textarea value={form.technologies} onChange={v => set("technologies", v)} placeholder={"AutoCAD 2024\nSolidWorks\nRhino 3D"} />
+        </Field>
+        <Field label="Proses Pengerjaan (1 per baris)" hint="Ditampilkan berurutan sebagai langkah 1, 2, 3, dst di tab Proses">
+          <Textarea value={form.process} onChange={v => set("process", v)} placeholder={"Survey & pengukuran lokasi\nDesain awal (draft)\nRevisi & finalisasi\nPengiriman file"} />
+        </Field>
+        <Field label="Spesifikasi (1 per baris)" hint={'Format "Label: Value" — contoh: Format File: DWG, PDF'}>
+          <Textarea value={form.specifications} onChange={v => set("specifications", v)} placeholder={"Format File: DWG, PDF\nSkala: 1:50\nSatuan: Metrik"} />
+        </Field>
       </div>
       <ModalFooter>
         <button onClick={onClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
