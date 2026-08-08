@@ -238,7 +238,8 @@
 @layer base {
   * { @apply border-border outline-ring/50; }
   body { @apply bg-background text-foreground; }
-  html, body { overflow-x: hidden; }
+  html { overflow-x: hidden; }
+  body { overflow-x: clip; }
 }
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }
