@@ -263,48 +263,15 @@ function OrgCard({
   )
 }
 
-// ── DESKTOP hierarchy org chart ────────────────────────────────────────────
-// order_num 1 (or lowest) = leader at top; rest below in rows
-function HierarchyChart({ members, onSelect }: { members: TimMember[]; onSelect: (m: TimMember) => void }) {
-  const sorted = [...members].sort((a, b) => a.order_num - b.order_num)
-  const LINE_COLOR = `${BRAND_COLOR}50`
-
-  // Group into tiers: first member alone, then rest split into rows of max 4
-  const [leader, ...rest] = sorted
-  const ROW_SIZE = 4
-  const rows: TimMember[][] = []
-  for (let i = 0; i < rest.length; i += ROW_SIZE) rows.push(rest.slice(i, i + ROW_SIZE))
-
+// ── DESKTOP grid — urut 1,2,3,... sejajar, wrap ke bawah kalau penuh ────────
+function TeamGrid({ members, onSelect }: { members: TimMember[]; onSelect: (m: TimMember) => void }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      {/* Leader */}
-      {leader && <OrgCard member={leader} size="lg" onClick={() => onSelect(leader)} />}
-
-      {rows.map((row, ri) => (
-        <div key={ri} style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
-          {/* Vertical line down from above */}
-          <div style={{ width: 2, height: 32, background: LINE_COLOR, flexShrink: 0 }} />
-          {/* Horizontal connector for multi-card rows */}
-          {row.length > 1 && (
-            <div style={{ position: "relative", width: "100%", display: "flex", justifyContent: "center" }}>
-              <div style={{
-                position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)",
-                width: `${(row.length - 1) * 192}px`, maxWidth: "calc(100% - 80px)",
-                height: 2, background: LINE_COLOR, zIndex: 0,
-              }} />
-            </div>
-          )}
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const, justifyContent: "center", position: "relative" }}>
-            {row.map(m => (
-              <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                {row.length > 1 && <div style={{ width: 2, height: 24, background: LINE_COLOR }} />}
-                <OrgCard member={m} size="md" onClick={() => onSelect(m)} />
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-
+      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 16, justifyContent: "center" }}>
+        {members.map(m => (
+          <OrgCard key={m.id} member={m} size="md" onClick={() => onSelect(m)} />
+        ))}
+      </div>
       <div style={{ marginTop: 20, fontSize: 11, fontWeight: 600, color: "#aaa", padding: "3px 10px", borderRadius: 50, background: "#f5f5f5" }}>
         {members.length} anggota tim
       </div>
@@ -344,8 +311,8 @@ export default function TeamSection({ team }: { team: TimMember[] }) {
           {sorted.map(m => <MobileCard key={m.id} member={m} onClick={() => setSelected(m)} />)}
         </div>
       ) : (
-        /* DESKTOP — hierarchy org chart */
-        <HierarchyChart members={sorted} onSelect={setSelected} />
+        /* DESKTOP — grid urut, sejajar, wrap ke bawah */
+        <TeamGrid members={sorted} onSelect={setSelected} />
       )}
 
       {selected && (
