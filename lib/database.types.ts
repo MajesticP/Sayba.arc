@@ -48,6 +48,11 @@ export type Database = {
           prices: PriceTier[] | null
           status: "active" | "draft" | "archived"
           featured_order: number | null   // 1, 2, or 3 = shown on homepage; null = not featured
+          meta_title: string | null
+          meta_description: string | null
+          meta_keywords: string[] | null
+          og_image: string | null
+          canonical_url: string | null
           created_at: string
         }
         Insert: Omit<Database["public"]["Tables"]["layanan"]["Row"], "id" | "created_at"> & {
@@ -68,6 +73,11 @@ export type Database = {
           file_url: string | null        // link to the actual document/file the customer receives
           price: number
           status: "active" | "draft" | "archived"
+          meta_title: string | null
+          meta_description: string | null
+          meta_keywords: string[] | null
+          og_image: string | null
+          canonical_url: string | null
           created_at: string
         }
         Insert: Omit<Database["public"]["Tables"]["produk"]["Row"], "id" | "created_at"> & {

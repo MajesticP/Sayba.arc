@@ -151,11 +151,15 @@ export function generateServiceDetailMetadata(options: {
   description: string
   slug: string
   serviceTitle: string
+  keywords?: string[]
+  ogImage?: string
+  canonicalUrl?: string
 }) {
+  const image = options.ogImage || "https://sayba.web.id/Sayba%20Arc.png"
   return {
     title: options.title,
     description: options.description,
-    keywords: [
+    keywords: options.keywords && options.keywords.length > 0 ? options.keywords : [
       options.serviceTitle,
       `jasa ${options.serviceTitle.toLowerCase()}`,
       `layanan ${options.serviceTitle.toLowerCase()}`,
@@ -163,7 +167,7 @@ export function generateServiceDetailMetadata(options: {
       "digital solutions",
       "indonesia",
     ],
-    canonical: `https://sayba.web.id/services/${options.slug}`,
+    canonical: options.canonicalUrl || `https://sayba.web.id/services/${options.slug}`,
     openGraph: {
       title: options.title,
       description: options.description,
@@ -171,7 +175,7 @@ export function generateServiceDetailMetadata(options: {
       type: "website" as const,
       images: [
         {
-          url: "https://sayba.web.id/Sayba%20Arc.png",
+          url: image,
           width: 1024,
           height: 1024,
           alt: options.serviceTitle,
@@ -182,7 +186,7 @@ export function generateServiceDetailMetadata(options: {
       card: "summary_large_image" as const,
       title: options.title,
       description: options.description,
-      images: ["https://sayba.web.id/Sayba%20Arc.png"],
+      images: [image],
     },
   }
 }
@@ -192,18 +196,22 @@ export function generateProductDetailMetadata(options: {
   description: string
   slug: string
   productTitle: string
+  keywords?: string[]
+  ogImage?: string
+  canonicalUrl?: string
 }) {
+  const image = options.ogImage || "https://sayba.web.id/Sayba%20Arc.png"
   return {
     title: options.title,
     description: options.description,
-    keywords: [
+    keywords: options.keywords && options.keywords.length > 0 ? options.keywords : [
       options.productTitle,
       `produk ${options.productTitle.toLowerCase()}`,
       "SAYBA ARC",
       "digital solutions",
       "indonesia",
     ],
-    canonical: `https://sayba.web.id/products/${options.slug}`,
+    canonical: options.canonicalUrl || `https://sayba.web.id/products/${options.slug}`,
     openGraph: {
       title: options.title,
       description: options.description,
@@ -211,7 +219,7 @@ export function generateProductDetailMetadata(options: {
       type: "website" as const,
       images: [
         {
-          url: "https://sayba.web.id/Sayba%20Arc.png",
+          url: image,
           width: 1024,
           height: 1024,
           alt: options.productTitle,
@@ -222,7 +230,7 @@ export function generateProductDetailMetadata(options: {
       card: "summary_large_image" as const,
       title: options.title,
       description: options.description,
-      images: ["https://sayba.web.id/Sayba%20Arc.png"],
+      images: [image],
     },
   }
 }
