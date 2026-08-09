@@ -2,6 +2,11 @@ import type { MetadataRoute } from "next"
 import { siteConfig } from "@/lib/data"
 import { supabase } from "@/lib/supabase"
 
+// Always fetch fresh from the database — a cached sitemap would keep
+// pointing at stale slugs/images after admins add or edit records.
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteConfig.url
   const now = new Date()
