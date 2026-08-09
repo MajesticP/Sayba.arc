@@ -9,6 +9,7 @@ import Footer from "@/components/footer"
 import PageTransition from "@/components/page-transition"
 import FeatureTabs from "@/components/portfolio-feature-tabs"
 import { ArrowLeft, ExternalLink, Globe, Map, ChevronRight } from "lucide-react"
+import { generatePortfolioDetailMetadata, generatePortfolioSchema } from "@/lib/structured-data"
 
 function convertDriveUrl(url: string | null): string | null {
   if (!url || url === "-") return null
@@ -27,13 +28,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const { data } = await supabase
     .from("portfolio")
-    .select("title, description")
+    .select("title, description, meta_title, meta_description, meta_keywords, image_url, og_image, canonical_url")
     .eq("slug", slug)
     .single()
+
   if (!data) return { title: `Portofolio — ${siteConfig.name}` }
+
+  const meta = generatePortfolioDetailMetadata({
+    title: data.meta_title || `${data.title} — ${siteConfig.name}`,
+    description: data.meta_description || data.description || siteConfig.description,
+    slug,
+    portfolioTitle: data.title,
+    keywords: data.meta_keywords ?? undefined,
+    ogImage: data.og_image || data.image_url || undefined,
+    canonicalUrl: data.canonical_url || undefined,
+  })
+
   return {
-    title: `${data.title} — ${siteConfig.name}`,
-    description: data.description ?? undefined,
+    title: meta.title,
+    description: meta.description,
+    keywords: meta.keywords,
+    alternates: { canonical: meta.canonical },
+    openGraph: meta.openGraph,
+    twitter: meta.twitter,
   }
 }
 
@@ -48,6 +65,13 @@ export default async function PortfolioSlugPage({ params }: Props) {
 
   if (error || !item) notFound()
 
+  const portfolioSchema = generatePortfolioSchema({
+    name: item.title,
+    description: item.description ?? siteConfig.description,
+    url: `${siteConfig.url}/portfolio/${slug}`,
+    image: (item as any).og_image || item.image_url || undefined,
+  })
+
   const thumbnail = convertDriveUrl(item.image_url)
   const isArcgis = item.dept === "arcgis"
   const accent = isArcgis ? "#ff914d" : "#1a1a1a"
@@ -56,6 +80,10 @@ export default async function PortfolioSlugPage({ params }: Props) {
 
   return (
     <main className="min-h-screen flex flex-col bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(portfolioSchema) }}
+      />
       <Header navItems={navItems} />
 
       <div className="flex-1">
