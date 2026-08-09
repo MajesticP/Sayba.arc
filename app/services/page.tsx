@@ -12,6 +12,7 @@ import ServicesClient from "./services-client"
 export const metadata: Metadata = {
   title: `Layanan — ${siteConfig.name}`,
   description: "Layanan digital dan engineering end-to-end dari SAYBA ARC — GIS, web, ML, desain kapal, dan lebih.",
+  alternates: { canonical: `${siteConfig.url}/services` },
 }
 
 export default async function ServicesPage() {
