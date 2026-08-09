@@ -30,8 +30,8 @@ export const metadata: Metadata = {
     "Kalimantan Barat",
     "Art You Believe"
   ],
-  authors: [{ name: "SAYBA ARC", url: "https://sayba.web.id" }],
-  metadataBase: new URL("https://sayba.web.id"),
+  authors: [{ name: "SAYBA ARC", url: "https://www.sayba.web.id" }],
+  metadataBase: new URL("https://www.sayba.web.id"),
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -41,11 +41,11 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: "https://sayba.web.id",
+    url: "https://www.sayba.web.id",
     siteName: "SAYBA ARC",
     title: "SAYBA ARC — ART YOU BELIEVE",
     description: "Agensi digital & engineering dari Pontianak. Solusi teknis nyata untuk bisnis dan instansi di Indonesia.",
-    images: [{ url: "https://sayba.web.id/Sayba%20Arc.png", width: 1024, height: 1024, alt: "SAYBA ARC — Art You Believe" }],
+    images: [{ url: "https://www.sayba.web.id/Sayba%20Arc.png", width: 1024, height: 1024, alt: "SAYBA ARC — Art You Believe" }],
   },
 }
 
