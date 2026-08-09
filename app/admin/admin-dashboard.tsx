@@ -658,7 +658,8 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
                       <img
                         src={gdriveToImg((l as any).image_url)}
                         alt={l.title}
-                        className="w-full h-full object-cover"
+                        className="w-full object-cover"
+                        style={{ height: "100%" }}
                         onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
                       />
                     </div>
@@ -706,7 +707,7 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
               {(l as any).image_url && (
                 <div className="w-10 h-7 rounded-md overflow-hidden border border-white/[0.07] bg-[#181818] flex-shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={gdriveToImg((l as any).image_url)} alt={l.title} className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
+                  <img src={gdriveToImg((l as any).image_url)} alt={l.title} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
                 </div>
               )}
             </div>
@@ -1152,7 +1153,7 @@ function ProdukTable({ data, loading, onEdit, onDelete, depts }: {
                   {p.image_url ? (
                     <div className="w-14 h-10 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] flex-shrink-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={gdriveToImg(p.image_url)} alt={p.title} className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
+                      <img src={gdriveToImg(p.image_url)} alt={p.title} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
                     </div>
                   ) : <span className="text-[10px] text-white/20 italic">—</span>}
                 </td>
@@ -1471,7 +1472,7 @@ function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG/PNG/WebP
       {value && (
         <div className="mt-2 h-24 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={value} alt="preview" className="w-full h-full object-contain" onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
+          <img src={value} alt="preview" className="w-full object-contain" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
         </div>
       )}
     </Field>
@@ -1670,7 +1671,7 @@ function TimTable({ data, loading, onEdit, onDelete }: {
                       <div className="w-8 h-8 rounded-xl overflow-hidden bg-[#1a1a1a] border border-white/[0.07] flex-shrink-0 flex items-center justify-center">
                         {photoSrc
                           // eslint-disable-next-line @next/next/no-img-element
-                          ? <img src={photoSrc} alt={m.name} className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
+                          ? <img src={photoSrc} alt={m.name} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
                           : <span className="text-sm font-bold text-[#ff914d]">{m.name.charAt(0)}</span>}
                       </div>
                       <p className="text-[13px] font-medium text-white">{m.name}</p>
@@ -1705,7 +1706,7 @@ function TimTable({ data, loading, onEdit, onDelete }: {
                 <div className="w-9 h-9 rounded-xl overflow-hidden bg-[#1a1a1a] border border-white/[0.07] flex-shrink-0 flex items-center justify-center">
                   {photoSrc
                     // eslint-disable-next-line @next/next/no-img-element
-                    ? <img src={photoSrc} alt={m.name} className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
+                    ? <img src={photoSrc} alt={m.name} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
                     : <span className="font-bold text-[#ff914d]">{m.name.charAt(0)}</span>}
                 </div>
                 <div className="min-w-0">
