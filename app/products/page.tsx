@@ -12,6 +12,7 @@ import ProductsClient from "./products-client"
 export const metadata: Metadata = {
   title: `Produk — ${siteConfig.name}`,
   description: "Dokumen dan produk siap pakai dari SAYBA ARC — gambar teknis, template, dan deliverable digital lainnya.",
+  alternates: { canonical: `${siteConfig.url}/products` },
 }
 
 export default async function ProductsPage() {
