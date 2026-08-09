@@ -80,7 +80,7 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
                   {imgSrc ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={imgSrc} alt={service.title} className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-105 block"
-                      style={{ objectPosition: "center 70%" }}
+                      style={{ objectPosition: "center 100%" }}
                       onError={e => { const el = e.currentTarget; el.style.display = "none"; const fb = el.nextElementSibling as HTMLElement | null; if (fb) fb.style.display = "flex" }} />
                   ) : null}
                   <div className="absolute inset-0 flex items-center justify-center transition-transform group-hover:scale-110 duration-300"
