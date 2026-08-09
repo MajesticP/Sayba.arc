@@ -1,10 +1,12 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { navItems, footerLinks, socialLinks } from "@/lib/data"
+import { navItems, footerLinks, socialLinks, siteConfig } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import ProductFeatureTabs from "@/components/product-feature-tabs"
+import { generateProductDetailMetadata, generateProductSchema } from "@/lib/structured-data"
 
 function gdriveToImg(url: string): string {
   if (!url) return url
@@ -20,13 +22,54 @@ function formatPrice(price: number) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(price)
 }
 
-export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+type Props = { params: Promise<{ slug: string }> }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+  const { data } = await supabase
+    .from("produk")
+    .select("title, description, meta_title, meta_description, meta_keywords, image_url, og_image, canonical_url")
+    .eq("slug", slug)
+    .eq("status", "active")
+    .single()
+
+  if (!data) return { title: `Produk — ${siteConfig.name}` }
+
+  const meta = generateProductDetailMetadata({
+    title: data.meta_title || `${data.title} — ${siteConfig.name}`,
+    description: data.meta_description || data.description || siteConfig.description,
+    slug,
+    productTitle: data.title,
+    keywords: data.meta_keywords ?? undefined,
+    ogImage: data.og_image || data.image_url || undefined,
+    canonicalUrl: data.canonical_url || undefined,
+  })
+
+  return {
+    title: meta.title,
+    description: meta.description,
+    keywords: meta.keywords,
+    alternates: { canonical: meta.canonical },
+    openGraph: meta.openGraph,
+    twitter: meta.twitter,
+  }
+}
+
+export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params
 
   const { data: product, error } = await supabase
     .from("produk").select("*").eq("slug", slug).eq("status", "active").single()
 
   if (error || !product) notFound()
+
+  const productSchema = generateProductSchema({
+    name: product.title,
+    description: product.description ?? siteConfig.description,
+    url: `${siteConfig.url}/products/${slug}`,
+    image: (product as any).og_image || product.image_url || undefined,
+    price: String(product.price),
+  })
 
   const DEPT_MAP: Record<string, { label: string; color: string }> = {
     arcgis: { label: "Departemen ArcGIS", color: "#ff914d" },
@@ -45,6 +88,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   return (
     <main className="min-h-screen flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
       <Header navItems={navItems} />
 
       {/* Hero */}
