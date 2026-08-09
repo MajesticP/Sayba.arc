@@ -11,6 +11,7 @@ import { ArrowRight } from "lucide-react"
 export const metadata: Metadata = {
   title: `Portofolio — ${siteConfig.name}`,
   description: "Portofolio proyek GIS dan IT dari SAYBA ARC.",
+  alternates: { canonical: `${siteConfig.url}/portfolio` },
 }
 
 interface DeptConfig { value: string; label: string; color: string }
