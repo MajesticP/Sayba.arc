@@ -27,6 +27,11 @@ export type Database = {
           features: string[] | null
           tech_stack: string[] | null
           status: "active" | "draft" | "archived"
+          meta_title: string | null
+          meta_description: string | null
+          meta_keywords: string[] | null
+          og_image: string | null
+          canonical_url: string | null
           created_at: string
         }
         Insert: Omit<Database["public"]["Tables"]["portfolio"]["Row"], "id" | "created_at"> & {

@@ -308,12 +308,15 @@ export function generatePortfolioDetailMetadata(options: {
   slug: string
   portfolioTitle: string
   keywords?: string[]
+  ogImage?: string
+  canonicalUrl?: string
 }) {
+  const image = options.ogImage || "https://www.sayba.web.id/Sayba%20Arc.png"
   return {
     title: options.title,
     description: options.description,
-    keywords: options.keywords && options.keywords.length > 0 
-      ? options.keywords 
+    keywords: options.keywords && options.keywords.length > 0
+      ? options.keywords
       : [
           options.portfolioTitle,
           `portfolio ${options.portfolioTitle.toLowerCase()}`,
@@ -321,7 +324,7 @@ export function generatePortfolioDetailMetadata(options: {
           "digital solutions",
           "indonesia",
         ],
-    canonical: `https://www.sayba.web.id/portfolio/${options.slug}`,
+    canonical: options.canonicalUrl || `https://www.sayba.web.id/portfolio/${options.slug}`,
     openGraph: {
       title: options.title,
       description: options.description,
@@ -329,7 +332,7 @@ export function generatePortfolioDetailMetadata(options: {
       type: "website" as const,
       images: [
         {
-          url: "https://www.sayba.web.id/Sayba%20Arc.png",
+          url: image,
           width: 1024,
           height: 1024,
           alt: options.portfolioTitle,
@@ -340,7 +343,28 @@ export function generatePortfolioDetailMetadata(options: {
       card: "summary_large_image" as const,
       title: options.title,
       description: options.description,
-      images: ["https://www.sayba.web.id/Sayba%20Arc.png"],
+      images: [image],
+    },
+  }
+}
+
+export function generatePortfolioSchema(item: {
+  name: string
+  description: string
+  url: string
+  image?: string
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: item.name,
+    description: item.description,
+    url: item.url,
+    image: item.image || "https://www.sayba.web.id/Sayba%20Arc.png",
+    creator: {
+      "@type": "Organization",
+      name: "SAYBA ARC",
+      url: "https://www.sayba.web.id",
     },
   }
 }
