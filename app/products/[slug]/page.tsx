@@ -93,7 +93,8 @@ export default async function ProductDetailPage({ params }: Props) {
             <img
               src={product.image_url}
               alt={product.title}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full object-cover"
+              style={{ height: "100%" }}
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
