@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createHash } from "crypto"
 import sharp from "sharp"
 import { supabaseAdmin } from "@/lib/supabase-admin"
 import { requireAdmin } from "@/lib/admin-auth"
@@ -9,6 +10,8 @@ const MAX_INPUT_SIZE = 4 * 1024 * 1024 // 4 MB
 // What we try to compress embedded raster images down to before storing.
 const TARGET_SIZE = 2 * 1024 * 1024 // 2 MB
 const ALLOWED_FOLDERS = ["produk", "layanan"]
+// path = "<folder>/<sha256-of-contents>.svg" — matches what POST generates below.
+const MEDIA_PATH_RE = /^(produk|layanan)\/[a-f0-9]{64}\.svg$/
 
 const DATA_URI_RE = /data:image\/(png|jpe?g|webp);base64,([A-Za-z0-9+/=]+)/g
 
@@ -89,15 +92,36 @@ export async function POST(req: NextRequest) {
   const compressed = await compressEmbeddedImages(svgText, TARGET_SIZE)
   const buffer = Buffer.from(compressed, "utf8")
 
-  const path = `${folder}/${crypto.randomUUID()}.svg`
+  // Content-hash filename: re-uploading identical bytes lands on the same
+  // path instead of creating a new duplicate object every time.
+  const hash = createHash("sha256").update(buffer).digest("hex")
+  const path = `${folder}/${hash}.svg`
 
   const { error } = await supabaseAdmin.storage
     .from("media")
-    .upload(path, buffer, { contentType: "image/svg+xml", upsert: false })
+    .upload(path, buffer, { contentType: "image/svg+xml", upsert: true })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const { data } = supabaseAdmin.storage.from("media").getPublicUrl(path)
 
   return NextResponse.json({ url: data.publicUrl, path }, { status: 201 })
+}
+
+// DELETE /api/admin/upload?path=<folder>/<hash>.svg
+// Removes an orphaned upload — called when the admin panel replaces or
+// clears an image so old files don't pile up in the bucket.
+export async function DELETE(req: NextRequest) {
+  const { user, unauthorized } = await requireAdmin()
+  if (!user) return unauthorized()
+
+  const path = req.nextUrl.searchParams.get("path") ?? ""
+  if (!MEDIA_PATH_RE.test(path)) {
+    return NextResponse.json({ error: "Invalid path" }, { status: 400 })
+  }
+
+  const { error } = await supabaseAdmin.storage.from("media").remove([path])
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return new NextResponse(null, { status: 204 })
 }
