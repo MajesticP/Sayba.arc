@@ -8,6 +8,7 @@ import { DynamicIcon } from "@/lib/dynamic-icon"
 export const metadata: Metadata = {
   title: `Kontak — ${siteConfig.name}`,
   description: contactPage.subtitle,
+  alternates: { canonical: `${siteConfig.url}/contact` },
 }
 
 export default function ContactPage() {
