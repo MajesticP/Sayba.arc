@@ -99,7 +99,10 @@ export async function POST(req: NextRequest) {
 
   const { error } = await supabaseAdmin.storage
     .from("media")
-    .upload(path, buffer, { contentType: "image/svg+xml", upsert: true })
+    // Supabase defaults new objects to "x-robots-tag: none", which tells
+    // Google not to index them at all — override to "all" since the whole
+    // point of this upload is to get these images into Google Images.
+    .upload(path, buffer, { contentType: "image/svg+xml", upsert: true, headers: { "x-robots-tag": "all" } })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
