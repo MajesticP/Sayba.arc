@@ -79,8 +79,8 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
                 <div className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "160px" }}>
                   {imgSrc ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={imgSrc} alt={service.title} className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-105 block"
-                      style={{ objectPosition: "center 100%" }}
+                    <img src={imgSrc} alt={service.title} className="w-full object-cover transition-transform duration-600 group-hover:scale-105 block"
+                      style={{ height: "100%" }}
                       onError={e => { const el = e.currentTarget; el.style.display = "none"; const fb = el.nextElementSibling as HTMLElement | null; if (fb) fb.style.display = "flex" }} />
                   ) : null}
                   <div className="absolute inset-0 flex items-center justify-center transition-transform group-hover:scale-110 duration-300"
