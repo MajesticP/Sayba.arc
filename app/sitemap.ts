@@ -16,22 +16,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   const [{ data: layananItems }, { data: produkItems }, { data: portfolioItems }] = await Promise.all([
-    supabase.from("layanan").select("slug, created_at").eq("status", "active"),
-    supabase.from("produk").select("slug, created_at").eq("status", "active"),
-    supabase.from("portfolio").select("slug, created_at").eq("status", "active"),
+    supabase.from("layanan").select("slug, created_at, image_url, og_image").eq("status", "active"),
+    supabase.from("produk").select("slug, created_at, image_url, og_image").eq("status", "active"),
+    supabase.from("portfolio").select("slug, created_at, image_url, og_image").eq("status", "active"),
   ])
 
-  const toPages = (
-    items: { slug: string; created_at: string }[] | null,
-    segment: string,
-    priority: number,
-  ) =>
-    (items ?? []).map((item) => ({
-      url: `${base}/${segment}/${item.slug}`,
-      lastModified: new Date(item.created_at),
-      changeFrequency: "monthly" as const,
-      priority,
-    }))
+  type ItemRow = { slug: string; created_at: string; image_url: string | null; og_image: string | null }
+
+  const toPages = (items: ItemRow[] | null, segment: string, priority: number) =>
+    (items ?? []).map((item) => {
+      const images = [...new Set([item.image_url, item.og_image].filter((u): u is string => !!u))]
+      return {
+        url: `${base}/${segment}/${item.slug}`,
+        lastModified: new Date(item.created_at),
+        changeFrequency: "monthly" as const,
+        priority,
+        ...(images.length > 0 ? { images } : {}),
+      }
+    })
 
   return [
     ...staticPages,
