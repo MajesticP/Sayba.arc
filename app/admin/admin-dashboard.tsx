@@ -729,16 +729,28 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
   open: boolean; initial: Portfolio | null; depts: LayananDept[]
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
-  type PF = Omit<PortfolioInsert, "id" | "created_at" | "features" | "tech_stack"> & { features: string; tech_stack: string }
-  const blank: PF = { title: "", slug: "", dept: (depts[0]?.value ?? "arcgis") as PF["dept"], category: "", description: "", image_url: "", result_url: "", features: "", tech_stack: "", status: "active" }
+  type PF = Omit<PortfolioInsert, "id" | "created_at" | "features" | "tech_stack" | "meta_keywords"> & { features: string; tech_stack: string; meta_keywords: string }
+  const blank: PF = { title: "", slug: "", dept: (depts[0]?.value ?? "arcgis") as PF["dept"], category: "", description: "", image_url: "", result_url: "", features: "", tech_stack: "", status: "active", meta_title: "", meta_description: "", meta_keywords: "", og_image: "", canonical_url: "" }
   const [form, setForm] = useState<PF>(blank)
   const [saving, setSaving] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
+  // Files uploaded (or replaced) during this modal session. Only actually
+  // deleted from Storage once we know the outcome — see handleSubmit/handleClose.
+  const stagedUploads = useRef<Set<string>>(new Set())
+  const replacedUrls = useRef<Set<string>>(new Set())
+  const trackImageChange = (oldUrl: string, newUrl: string) => {
+    if (oldUrl) replacedUrls.current.add(oldUrl)
+    if (newUrl) stagedUploads.current.add(newUrl)
+  }
 
   useEffect(() => {
     if (!open) return
+    stagedUploads.current.clear()
+    replacedUrls.current.clear()
     if (initial) {
-      setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", image_url: initial.image_url ?? "", result_url: initial.result_url ?? "", features: Array.isArray(initial.features) ? initial.features.join("\n") : "", tech_stack: Array.isArray(initial.tech_stack) ? initial.tech_stack.join("\n") : "", status: initial.status })
+      const i = initial as any
+      setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", image_url: initial.image_url ?? "", result_url: initial.result_url ?? "", features: Array.isArray(initial.features) ? initial.features.join("\n") : "", tech_stack: Array.isArray(initial.tech_stack) ? initial.tech_stack.join("\n") : "", status: initial.status,
+        meta_title: i.meta_title ?? "", meta_description: i.meta_description ?? "", meta_keywords: Array.isArray(i.meta_keywords) ? i.meta_keywords.join("\n") : "", og_image: i.og_image ?? "", canonical_url: i.canonical_url ?? "" })
       setSlugManual(true)
     } else { setForm(blank); setSlugManual(false) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -747,21 +759,36 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
   const handleTitle = (v: string) => { set("title", v); if (!slugManual) set("slug", slugify(v)) }
 
+  const handleClose = () => {
+    stagedUploads.current.forEach(deleteMediaFile)
+    stagedUploads.current.clear()
+    replacedUrls.current.clear()
+    onClose()
+  }
+
   const handleSubmit = async () => {
     if (!form.title || !form.slug) { onError("Judul dan slug wajib diisi", "error"); return }
     setSaving(true)
-    const payload = { ...form, category: form.category || null, description: form.description || null, image_url: form.image_url || null, result_url: form.result_url || null, features: form.features ? form.features.split("\n").map(s => s.trim()).filter(Boolean) : null, tech_stack: form.tech_stack ? form.tech_stack.split("\n").map(s => s.trim()).filter(Boolean) : null }
+    const payload = { ...form, category: form.category || null, description: form.description || null, image_url: form.image_url || null, result_url: form.result_url || null, features: form.features ? form.features.split("\n").map(s => s.trim()).filter(Boolean) : null, tech_stack: form.tech_stack ? form.tech_stack.split("\n").map(s => s.trim()).filter(Boolean) : null,
+      meta_title: form.meta_title || null, meta_description: form.meta_description || null,
+      meta_keywords: form.meta_keywords ? form.meta_keywords.split("\n").map(s => s.trim()).filter(Boolean) : null,
+      og_image: form.og_image || null, canonical_url: form.canonical_url || null }
     const res = initial
       ? await fetch(`/api/admin/portfolio?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
       : await fetch("/api/admin/portfolio", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
     setSaving(false)
     if (!res.ok) { onError((await res.json()).error ?? "Save failed", "error"); return }
+    const finalUrls = new Set([payload.image_url, payload.og_image].filter(Boolean) as string[])
+    const toDelete = [...replacedUrls.current, ...stagedUploads.current].filter(u => !finalUrls.has(u))
+    toDelete.forEach(deleteMediaFile)
+    stagedUploads.current.clear()
+    replacedUrls.current.clear()
     onSaved()
   }
 
   return (
-    <Modal open={open} onClose={onClose}>
-      <ModalHeader icon={<LayoutGrid size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Portofolio" : "Tambah Portofolio"} onClose={onClose} />
+    <Modal open={open} onClose={handleClose}>
+      <ModalHeader icon={<LayoutGrid size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Portofolio" : "Tambah Portofolio"} onClose={handleClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
         <Field label="Judul Proyek" required><Input value={form.title} onChange={handleTitle} placeholder="Sistem Pemetaan Tata Ruang" /></Field>
         <div className="grid grid-cols-2 gap-3">
@@ -773,15 +800,30 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
           <Field label="Status"><Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
         </div>
         <Field label="Deskripsi"><Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi singkat proyek…" /></Field>
-        <Field label="URL Gambar">
-          <Input value={form.image_url ?? ""} onChange={v => set("image_url", v)} placeholder="https://…" />
-          {form.image_url && (
-            <div className="mt-2 h-24 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={form.image_url} alt="preview" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
-            </div>
-          )}
-        </Field>
+
+        <SvgUploadField value={form.image_url ?? ""} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="portfolio" />
+
+        {/* ── SEO & Meta Tag ─────────────────────────── */}
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">SEO & Meta Tag</span>
+            <span className="text-[10px] text-white/25">— untuk targeting pencarian Google</span>
+          </div>
+          <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Judul + SAYBA ARC. Ideal 50–60 karakter.">
+            <Input value={form.meta_title ?? ""} onChange={v => set("meta_title", v)} placeholder="Sistem Pemetaan Tata Ruang — SAYBA ARC" />
+          </Field>
+          <Field label="Meta Description" hint="Kosongkan untuk otomatis pakai Deskripsi. Ideal 150–160 karakter.">
+            <Textarea value={form.meta_description ?? ""} onChange={v => set("meta_description", v)} placeholder="Pengembangan sistem web GIS untuk visualisasi tata ruang kota…" />
+          </Field>
+          <Field label="Meta Keywords (1 per baris)">
+            <Textarea value={form.meta_keywords} onChange={v => set("meta_keywords", v)} placeholder={"pemetaan tata ruang\nweb gis pontianak\nportofolio arcgis"} />
+          </Field>
+          <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
+            <Input value={form.canonical_url ?? ""} onChange={v => set("canonical_url", v)} placeholder="https://www.sayba.web.id/portfolio/slug-lain" />
+          </Field>
+          <SvgUploadField value={form.og_image ?? ""} onChange={v => set("og_image", v)} onTrackChange={trackImageChange} folder="portfolio" label="OG Image (share sosial media)" />
+        </div>
+
         <Field label="URL Hasil Proyek"><Input value={form.result_url ?? ""} onChange={v => set("result_url", v)} placeholder="https://link-hasil.com" /></Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Fitur (1 per baris)"><Textarea value={form.features} onChange={v => set("features", v)} placeholder={"Login\nDashboard\nExport PDF"} /></Field>
@@ -789,7 +831,7 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
         </div>
       </div>
       <ModalFooter>
-        <button onClick={onClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
+        <button onClick={handleClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
         <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all disabled:opacity-50">
           {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
           {saving ? "Menyimpan…" : "Simpan"}
@@ -1250,7 +1292,7 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
           <Field label="Status"><Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
         </div>
 
-        <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="produk" label="Gambar Preview (SVG)" />
+        <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="produk" label="Gambar Preview (SVG/PNG/WebP)" />
 
         <Field label="URL Dokumen / File Produk" hint="Link file yang diterima customer (Google Drive, dsb.) — dikirim manual setelah pembelian">
           <Input value={form.file_url} onChange={v => set("file_url", v)} placeholder="https://drive.google.com/file/d/…/view" />
@@ -1374,8 +1416,8 @@ async function deleteMediaFile(url: string) {
   }
 }
 
-function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG)", onTrackChange }: {
-  value: string; onChange: (v: string) => void; folder: "produk" | "layanan"; label?: string
+function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG/PNG/WebP)", onTrackChange }: {
+  value: string; onChange: (v: string) => void; folder: "produk" | "layanan" | "portfolio"; label?: string
   // Reports (oldUrl, newUrl) whenever the field's value changes, so the
   // parent modal can decide when it's actually safe to delete the old file
   // (only after the record is saved — never on a cancelled edit).
@@ -1388,8 +1430,10 @@ function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG)", onTra
   const handleFile = async (file: File | undefined) => {
     if (!file) return
     setErr("")
-    const isSvg = file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg")
-    if (!isSvg) { setErr("Hanya file SVG yang diizinkan"); return }
+    const name = file.name.toLowerCase()
+    const isAllowed = ["image/svg+xml", "image/png", "image/webp"].includes(file.type)
+      || name.endsWith(".svg") || name.endsWith(".png") || name.endsWith(".webp")
+    if (!isAllowed) { setErr("Hanya file SVG, PNG, atau WebP yang diizinkan"); return }
     if (file.size > 4 * 1024 * 1024) { setErr("Ukuran file maksimal 4MB"); return }
 
     setUploading(true)
@@ -1410,14 +1454,14 @@ function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG)", onTra
   }
 
   return (
-    <Field label={label} hint="Upload file .svg, maksimal 4MB — otomatis dikompres jika gambar di dalamnya besar">
-      <input id={inputId} type="file" accept=".svg,image/svg+xml" className="hidden"
+    <Field label={label} hint="SVG, PNG, atau WebP — maksimal 4MB, otomatis dikompres ke sekitar 50KB">
+      <input id={inputId} type="file" accept=".svg,.png,.webp,image/svg+xml,image/png,image/webp" className="hidden"
         onChange={e => { handleFile(e.target.files?.[0]); e.target.value = "" }} />
       <div className="flex items-center gap-2">
         <label htmlFor={inputId} aria-disabled={uploading}
           className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold bg-[#181818] border border-white/[0.07] text-white/60 hover:text-white hover:border-white/20 transition-all cursor-pointer aria-disabled:opacity-50 aria-disabled:pointer-events-none">
           {uploading ? <Loader2 size={13} className="animate-spin" /> : <ImageIcon size={13} />}
-          {uploading ? "Mengunggah…" : "Upload SVG"}
+          {uploading ? "Mengunggah…" : "Upload Gambar"}
         </label>
         {value && (
           <button type="button" onClick={handleClear} className="text-[11px] text-white/30 hover:text-red-400 transition-colors">Hapus</button>
