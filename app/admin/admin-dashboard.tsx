@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useState, useCallback, useRef, useId } from "react"
 import type { Portfolio, PortfolioInsert, Layanan, LayananInsert, Produk, PriceTier } from "@/lib/database.types"
 import { LAYANAN_DEPTS as DEFAULT_DEPTS, type LayananDept, getDept as getDefaultDept } from "@/lib/layanan-config"
 import {
@@ -1312,14 +1312,14 @@ function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG)" }: {
 }) {
   const [uploading, setUploading] = useState(false)
   const [err, setErr] = useState("")
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputId = useId()
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return
     setErr("")
     const isSvg = file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg")
     if (!isSvg) { setErr("Hanya file SVG yang diizinkan"); return }
-    if (file.size > 2 * 1024 * 1024) { setErr("Ukuran file maksimal 2MB"); return }
+    if (file.size > 4 * 1024 * 1024) { setErr("Ukuran file maksimal 4MB"); return }
 
     setUploading(true)
     const fd = new FormData()
@@ -1333,15 +1333,15 @@ function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG)" }: {
   }
 
   return (
-    <Field label={label} hint="Upload file .svg, maksimal 2MB">
-      <input ref={inputRef} type="file" accept=".svg,image/svg+xml" className="hidden"
-        onChange={e => handleFile(e.target.files?.[0])} />
+    <Field label={label} hint="Upload file .svg, maksimal 4MB — otomatis dikompres jika gambar di dalamnya besar">
+      <input id={inputId} type="file" accept=".svg,image/svg+xml" className="hidden"
+        onChange={e => { handleFile(e.target.files?.[0]); e.target.value = "" }} />
       <div className="flex items-center gap-2">
-        <button type="button" onClick={() => inputRef.current?.click()} disabled={uploading}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold bg-[#181818] border border-white/[0.07] text-white/60 hover:text-white hover:border-white/20 transition-all disabled:opacity-50">
+        <label htmlFor={inputId} aria-disabled={uploading}
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold bg-[#181818] border border-white/[0.07] text-white/60 hover:text-white hover:border-white/20 transition-all cursor-pointer aria-disabled:opacity-50 aria-disabled:pointer-events-none">
           {uploading ? <Loader2 size={13} className="animate-spin" /> : <ImageIcon size={13} />}
           {uploading ? "Mengunggah…" : "Upload SVG"}
-        </button>
+        </label>
         {value && (
           <button type="button" onClick={() => onChange("")} className="text-[11px] text-white/30 hover:text-red-400 transition-colors">Hapus</button>
         )}
