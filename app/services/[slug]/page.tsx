@@ -9,16 +9,6 @@ import { supabase } from "@/lib/supabase"
 import type { PriceTier } from "@/lib/database.types"
 import { generateServiceDetailMetadata, generateServiceSchema } from "@/lib/structured-data"
 
-function gdriveToImg(url: string): string {
-  if (!url) return url
-  if (url.startsWith("/api/gdrive-img")) return url
-  const fileMatch = url.match(/\/d\/([\w-]+)/)
-  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
-  const idMatch = url.match(/[?&]id=([\w-]+)/)
-  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
-  return url
-}
-
 function formatPrice(price: number) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(price)
 }
@@ -96,7 +86,7 @@ export default async function ServiceDetailPage({ params }: Props) {
             {/* Real <img> (not a CSS background) so Google Images can crawl and index it */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={gdriveToImg(service.image_url)}
+              src={service.image_url}
               alt={service.title}
               className="absolute inset-0 w-full h-full object-cover"
             />
