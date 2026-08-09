@@ -9,6 +9,7 @@ import TeamSection, { type TimMember } from "@/components/team-section"
 export const metadata: Metadata = {
   title: `Tentang Kami — ${siteConfig.name}`,
   description: aboutPage.hero.subtitle,
+  alternates: { canonical: `${siteConfig.url}/about` },
 }
 
 async function getTeam(): Promise<TimMember[]> {
