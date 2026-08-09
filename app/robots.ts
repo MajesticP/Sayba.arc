@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next"
+import { siteConfig } from "@/lib/data"
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -20,9 +21,6 @@ export default function robots(): MetadataRoute.Robots {
         crawlDelay: 1,
       },
     ],
-    sitemap: [
-      "https://sayba.web.id/sitemap.xml",
-      "https://sayba.web.id/sitemap.ts",
-    ],
+    sitemap: `${siteConfig.url}/sitemap.xml`,
   }
 }
