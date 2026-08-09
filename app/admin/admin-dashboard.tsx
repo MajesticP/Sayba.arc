@@ -1417,7 +1417,7 @@ async function deleteMediaFile(url: string) {
 }
 
 function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG/PNG/WebP)", onTrackChange }: {
-  value: string; onChange: (v: string) => void; folder: "produk" | "layanan" | "portfolio"; label?: string
+  value: string; onChange: (v: string) => void; folder: "produk" | "layanan" | "portfolio" | "tim"; label?: string
   // Reports (oldUrl, newUrl) whenever the field's value changes, so the
   // parent modal can decide when it's actually safe to delete the old file
   // (only after the record is saved — never on a cancelled edit).
@@ -1736,19 +1736,33 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
   const blank = { name: "", role: "", bio: "", photo_url: "", github_url: "", linkedin_url: "", instagram_url: "", order_num: 0, status: "active" as "active" | "draft" }
   const [form, setForm] = useState({ ...blank })
   const [saving, setSaving] = useState(false)
-  const [previewError, setPreviewError] = useState(false)
+  // Files uploaded (or replaced) during this modal session. Only actually
+  // deleted from Storage once we know the outcome — see handleSubmit/handleClose.
+  const stagedUploads = useRef<Set<string>>(new Set())
+  const replacedUrls = useRef<Set<string>>(new Set())
+  const trackImageChange = (oldUrl: string, newUrl: string) => {
+    if (oldUrl) replacedUrls.current.add(oldUrl)
+    if (newUrl) stagedUploads.current.add(newUrl)
+  }
 
   useEffect(() => {
     if (!open) return
+    stagedUploads.current.clear()
+    replacedUrls.current.clear()
     if (initial) {
       setForm({ name: initial.name, role: initial.role, bio: initial.bio ?? "", photo_url: initial.photo_url ?? "", github_url: initial.github_url ?? "", linkedin_url: initial.linkedin_url ?? "", instagram_url: initial.instagram_url ?? "", order_num: initial.order_num, status: initial.status })
     } else { setForm({ ...blank }) }
-    setPreviewError(false)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initial])
 
   const set = (k: keyof typeof form, v: string | number) => setForm(f => ({ ...f, [k]: v }))
-  const previewUrl = form.photo_url ? gdriveToImg(form.photo_url) : null
+
+  const handleClose = () => {
+    stagedUploads.current.forEach(deleteMediaFile)
+    stagedUploads.current.clear()
+    replacedUrls.current.clear()
+    onClose()
+  }
 
   const handleSubmit = async () => {
     if (!form.name.trim()) { onError("Nama wajib diisi", "error"); return }
@@ -1760,12 +1774,17 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
       : await fetch("/api/admin/tim", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
     setSaving(false)
     if (!res.ok) { onError((await res.json()).error ?? "Save failed", "error"); return }
+    const finalUrls = new Set([payload.photo_url].filter(Boolean) as string[])
+    const toDelete = [...replacedUrls.current, ...stagedUploads.current].filter(u => !finalUrls.has(u))
+    toDelete.forEach(deleteMediaFile)
+    stagedUploads.current.clear()
+    replacedUrls.current.clear()
     onSaved()
   }
 
   return (
-    <Modal open={open} onClose={onClose}>
-      <ModalHeader icon={<Users size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Anggota Tim" : "Tambah Anggota Tim"} onClose={onClose} />
+    <Modal open={open} onClose={handleClose}>
+      <ModalHeader icon={<Users size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Anggota Tim" : "Tambah Anggota Tim"} onClose={handleClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Nama Lengkap" required><Input value={form.name} onChange={v => set("name", v)} placeholder="Budi Santoso" /></Field>
@@ -1774,20 +1793,9 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
         <Field label="Bio / Deskripsi Singkat">
           <Textarea value={form.bio} onChange={v => set("bio", v)} placeholder="Menangani pengembangan web dan mobile…" />
         </Field>
-        <Field label="Google Drive Photo URL" hint="Paste link share Google Drive — otomatis dikonversi ke URL gambar">
-          <div className="flex items-center gap-2">
-            <ImageIcon size={13} className="text-white/30 flex-shrink-0" />
-            <Input value={form.photo_url} onChange={v => { set("photo_url", v); setPreviewError(false) }} placeholder="https://drive.google.com/file/d/…/view" />
-          </div>
-          {previewUrl && (
-            <div className="mt-2 h-24 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] flex items-center justify-center">
-              {!previewError
-                // eslint-disable-next-line @next/next/no-img-element
-                ? <img src={previewUrl} alt="preview" className="w-full h-full object-cover" onError={() => setPreviewError(true)} />
-                : <p className="text-[10.5px] text-white/30 px-4 text-center">Gambar tidak dapat dimuat — pastikan file Drive dibagikan secara publik</p>}
-            </div>
-          )}
-        </Field>
+
+        <SvgUploadField value={form.photo_url} onChange={v => set("photo_url", v)} onTrackChange={trackImageChange} folder="tim" label="Foto Profil (SVG/PNG/WebP)" />
+
         <div className="space-y-2.5">
           <p className="text-[9.5px] font-bold uppercase tracking-widest text-white/25">Social Links (opsional)</p>
           <Field label="GitHub URL"><Input value={form.github_url} onChange={v => set("github_url", v)} placeholder="https://github.com/username" /></Field>
@@ -1805,7 +1813,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
         </div>
       </div>
       <ModalFooter>
-        <button onClick={onClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
+        <button onClick={handleClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
         <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all disabled:opacity-50">
           {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
           {saving ? "Menyimpan…" : "Simpan"}
