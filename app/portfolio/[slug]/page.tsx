@@ -11,15 +11,8 @@ import FeatureTabs from "@/components/portfolio-feature-tabs"
 import { ArrowLeft, ExternalLink, Globe, Map, ChevronRight } from "lucide-react"
 import { generatePortfolioDetailMetadata, generatePortfolioSchema } from "@/lib/structured-data"
 
-function convertDriveUrl(url: string | null): string | null {
-  if (!url || url === "-") return null
-  if (url.includes("drive.google.com")) {
-    const match1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)
-    if (match1) return `https://lh3.googleusercontent.com/d/${match1[1]}`
-    const match2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/)
-    if (match2) return `https://lh3.googleusercontent.com/d/${match2[1]}`
-  }
-  return url
+function resolveThumbnail(url: string | null): string | null {
+  return !url || url === "-" ? null : url
 }
 
 type Props = { params: Promise<{ slug: string }> }
@@ -72,7 +65,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
     image: (item as any).og_image || item.image_url || undefined,
   })
 
-  const thumbnail = convertDriveUrl(item.image_url)
+  const thumbnail = resolveThumbnail(item.image_url)
   const isArcgis = item.dept === "arcgis"
   const accent = isArcgis ? "#ff914d" : "#1a1a1a"
   const features: string[] = item.features ?? []
