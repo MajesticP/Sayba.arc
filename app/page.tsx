@@ -16,6 +16,7 @@ import { LAYANAN_DEPTS } from "@/lib/layanan-config"
 export const metadata: Metadata = {
   title: `${siteConfig.name} — ${siteConfig.tagline}`,
   description: siteConfig.description,
+  alternates: { canonical: siteConfig.url },
   openGraph: {
     title: siteConfig.name,
     description: siteConfig.description,
