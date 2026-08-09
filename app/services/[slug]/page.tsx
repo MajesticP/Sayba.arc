@@ -90,15 +90,16 @@ export default async function ServiceDetailPage({ params }: Props) {
       <Header navItems={navItems} />
 
       {/* Hero */}
-      <section
-        className="relative py-7 md:py-20 overflow-hidden bg-black min-h-[220px] md:min-h-[380px] flex items-center"
-        style={service.image_url ? {
-          backgroundImage: `url(${gdriveToImg(service.image_url)})`,
-          backgroundSize: "cover", backgroundPosition: "center",
-        } : undefined}
-      >
+      <section className="relative py-7 md:py-20 overflow-hidden bg-black min-h-[220px] md:min-h-[380px] flex items-center">
         {service.image_url && (
           <>
+            {/* Real <img> (not a CSS background) so Google Images can crawl and index it */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={gdriveToImg(service.image_url)}
+              alt={service.title}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
           </>
