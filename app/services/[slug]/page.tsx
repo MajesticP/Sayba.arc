@@ -1,11 +1,13 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { navItems, footerLinks, socialLinks } from "@/lib/data"
+import { navItems, footerLinks, socialLinks, siteConfig } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import Link from "next/link"
 import { DynamicIcon } from "@/lib/dynamic-icon"
 import { supabase } from "@/lib/supabase"
 import type { PriceTier } from "@/lib/database.types"
+import { generateServiceDetailMetadata, generateServiceSchema } from "@/lib/structured-data"
 
 function gdriveToImg(url: string): string {
   if (!url) return url
@@ -21,13 +23,53 @@ function formatPrice(price: number) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(price)
 }
 
-export default async function ServiceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+type Props = { params: Promise<{ slug: string }> }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+  const { data } = await supabase
+    .from("layanan")
+    .select("title, description, meta_title, meta_description, meta_keywords, image_url, og_image, canonical_url")
+    .eq("slug", slug)
+    .eq("status", "active")
+    .single()
+
+  if (!data) return { title: `Layanan — ${siteConfig.name}` }
+
+  const meta = generateServiceDetailMetadata({
+    title: data.meta_title || `${data.title} — ${siteConfig.name}`,
+    description: data.meta_description || data.description || siteConfig.description,
+    slug,
+    serviceTitle: data.title,
+    keywords: data.meta_keywords ?? undefined,
+    ogImage: data.og_image || data.image_url || undefined,
+    canonicalUrl: data.canonical_url || undefined,
+  })
+
+  return {
+    title: meta.title,
+    description: meta.description,
+    keywords: meta.keywords,
+    alternates: { canonical: meta.canonical },
+    openGraph: meta.openGraph,
+    twitter: meta.twitter,
+  }
+}
+
+export default async function ServiceDetailPage({ params }: Props) {
   const { slug } = await params
 
   const { data: service, error } = await supabase
     .from("layanan").select("*").eq("slug", slug).eq("status", "active").single()
 
   if (error || !service) notFound()
+
+  const serviceSchema = generateServiceSchema({
+    name: service.title,
+    description: service.description ?? siteConfig.description,
+    url: `${siteConfig.url}/services/${slug}`,
+    image: (service as any).og_image || service.image_url || undefined,
+  })
 
   const prices: PriceTier[] = service.prices ?? []
 
@@ -41,6 +83,10 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
   return (
     <main className="min-h-screen flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+      />
       <Header navItems={navItems} />
 
       {/* Hero */}
