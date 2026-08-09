@@ -7,7 +7,7 @@ export const siteConfig = {
   tagline: "Art You Believe — Agensi Digital & Engineering dari Pontianak",
   description:
     "SAYBA ARC adalah agensi multidisiplin dari Pontianak yang menghadirkan solusi digital, rekayasa teknis, dan engineering untuk bisnis dan instansi di Indonesia.",
-  url: "https://sayba.web.id",
+  url: "https://www.sayba.web.id",
   logoText: "SAYBA ARC",
   logoLink: "/",
   email: "sayba.help@gmail.com",
