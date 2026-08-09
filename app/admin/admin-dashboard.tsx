@@ -964,7 +964,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
             <Textarea value={form.meta_keywords} onChange={v => set("meta_keywords", v)} placeholder={"jasa arcgis\npengembangan gis pontianak\nweb gis indonesia"} />
           </Field>
           <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
-            <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://sayba.web.id/services/slug-lain" />
+            <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://www.sayba.web.id/services/slug-lain" />
           </Field>
           <SvgUploadField value={form.og_image} onChange={v => set("og_image", v)} onTrackChange={trackImageChange} folder="layanan" label="OG Image (share sosial media)" />
         </div>
@@ -1274,7 +1274,7 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
             <Textarea value={form.meta_keywords} onChange={v => set("meta_keywords", v)} placeholder={"gambar teknis kapal\ndokumen autocad kapal\njasa desain kapal"} />
           </Field>
           <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
-            <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://sayba.web.id/products/slug-lain" />
+            <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://www.sayba.web.id/products/slug-lain" />
           </Field>
           <SvgUploadField value={form.og_image} onChange={v => set("og_image", v)} onTrackChange={trackImageChange} folder="produk" label="OG Image (share sosial media)" />
         </div>
