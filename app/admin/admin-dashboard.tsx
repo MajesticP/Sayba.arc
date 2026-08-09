@@ -846,7 +846,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
   open: boolean; initial: Layanan | null; depts: LayananDept[]; allLayanan: Layanan[]
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
-  const blank = { title: "", slug: "", dept: depts[0]?.value ?? "arcgis", category: "", description: "", icon: "map", image_url: "", status: "active" as Status, prices: DEFAULT_TIERS, featured_order: null as number | null }
+  const blank = { title: "", slug: "", dept: depts[0]?.value ?? "arcgis", category: "", description: "", icon: "map", image_url: "", status: "active" as Status, prices: DEFAULT_TIERS, featured_order: null as number | null, meta_title: "", meta_description: "", meta_keywords: "", og_image: "", canonical_url: "" }
   const [form, setForm] = useState(blank)
   const [saving, setSaving] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
@@ -857,7 +857,9 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
   useEffect(() => {
     if (!open) return
     if (initial) {
-      setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", icon: initial.icon ?? "map", image_url: (initial as any).image_url ?? "", status: initial.status, prices: (initial.prices as PriceTier[]) ?? DEFAULT_TIERS, featured_order: initial.featured_order ?? null })
+      const i = initial as any
+      setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", icon: initial.icon ?? "map", image_url: i.image_url ?? "", status: initial.status, prices: (initial.prices as PriceTier[]) ?? DEFAULT_TIERS, featured_order: initial.featured_order ?? null,
+        meta_title: i.meta_title ?? "", meta_description: i.meta_description ?? "", meta_keywords: Array.isArray(i.meta_keywords) ? i.meta_keywords.join("\n") : "", og_image: i.og_image ?? "", canonical_url: i.canonical_url ?? "" })
       setSlugManual(true)
     } else { setForm(blank); setSlugManual(false) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -871,7 +873,10 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
   const handleSubmit = async () => {
     if (!form.title || !form.slug) { onError("Nama dan slug wajib diisi", "error"); return }
     setSaving(true)
-    const payload = { title: form.title, slug: form.slug, dept: form.dept, category: form.category || null, description: form.description || null, icon: form.icon || "map", image_url: (form as any).image_url || null, prices: form.prices, status: form.status, featured_order: form.featured_order }
+    const payload = { title: form.title, slug: form.slug, dept: form.dept, category: form.category || null, description: form.description || null, icon: form.icon || "map", image_url: (form as any).image_url || null, prices: form.prices, status: form.status, featured_order: form.featured_order,
+      meta_title: form.meta_title || null, meta_description: form.meta_description || null,
+      meta_keywords: form.meta_keywords ? form.meta_keywords.split("\n").map(s => s.trim()).filter(Boolean) : null,
+      og_image: form.og_image || null, canonical_url: form.canonical_url || null }
     const res = initial
       ? await fetch(`/api/admin/layanan?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
       : await fetch("/api/admin/layanan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
@@ -915,27 +920,28 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
           <Field label="Status"><Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
         </div>
 
-        <Field label="URL Gambar (Google Drive)" hint="Paste link share Drive — otomatis dikonversi">
-          <Input value={(form as any).image_url ?? ""} onChange={v => set("image_url", v)} placeholder="https://drive.google.com/file/d/…/view" />
-          {(form as any).image_url && (
-            <div className="mt-2 h-28 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={gdriveToImg((form as any).image_url)}
-                alt="preview"
-                className="w-full h-full object-cover"
-                onError={e => {
-                  (e.target as HTMLImageElement).style.display = "none"
-                  const fb = (e.target as HTMLImageElement).nextElementSibling as HTMLElement | null
-                  if (fb) fb.style.display = "flex"
-                }}
-              />
-              <div className="absolute inset-0 hidden items-center justify-center text-[11px] text-white/30">
-                <ImageIcon size={16} className="mr-1.5 opacity-50" /> Gambar tidak dapat dimuat
-              </div>
-            </div>
-          )}
-        </Field>
+        <SvgUploadField value={(form as any).image_url ?? ""} onChange={v => set("image_url", v)} folder="layanan" />
+
+        {/* ── SEO & Meta Tag ─────────────────────────── */}
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">SEO & Meta Tag</span>
+            <span className="text-[10px] text-white/25">— untuk targeting pencarian Google</span>
+          </div>
+          <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Nama + SAYBA ARC. Ideal 50–60 karakter.">
+            <Input value={form.meta_title} onChange={v => set("meta_title", v)} placeholder="Pengembangan ArcGIS Profesional — SAYBA ARC" />
+          </Field>
+          <Field label="Meta Description" hint="Kosongkan untuk otomatis pakai Deskripsi. Ideal 150–160 karakter.">
+            <Textarea value={form.meta_description} onChange={v => set("meta_description", v)} placeholder="Jasa pengembangan ArcGIS profesional untuk instansi dan bisnis di Indonesia…" />
+          </Field>
+          <Field label="Meta Keywords (1 per baris)">
+            <Textarea value={form.meta_keywords} onChange={v => set("meta_keywords", v)} placeholder={"jasa arcgis\npengembangan gis pontianak\nweb gis indonesia"} />
+          </Field>
+          <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
+            <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://sayba.web.id/services/slug-lain" />
+          </Field>
+          <SvgUploadField value={form.og_image} onChange={v => set("og_image", v)} folder="layanan" label="OG Image (share sosial media)" />
+        </div>
 
         {/* ── Layanan Unggulan ─────────────────────────── */}
         <div className="rounded-xl border border-[#ff914d]/15 bg-[#ff914d]/5 p-4 space-y-2.5">
@@ -1117,7 +1123,7 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
   open: boolean; initial: Produk | null; depts: LayananDept[]
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
-  const blank = { title: "", slug: "", dept: depts[0]?.value ?? "arcgis", category: "", description: "", image_url: "", file_url: "", price: 0, status: "active" as Status, technologies: "", process: "", specifications: "" }
+  const blank = { title: "", slug: "", dept: depts[0]?.value ?? "arcgis", category: "", description: "", image_url: "", file_url: "", price: 0, status: "active" as Status, technologies: "", process: "", specifications: "", meta_title: "", meta_description: "", meta_keywords: "", og_image: "", canonical_url: "" }
   const [form, setForm] = useState(blank)
   const [saving, setSaving] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
@@ -1127,10 +1133,12 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
   useEffect(() => {
     if (!open) return
     if (initial) {
+      const i = initial as any
       setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", image_url: initial.image_url ?? "", file_url: initial.file_url ?? "", price: initial.price, status: initial.status,
-        technologies: Array.isArray((initial as any).technologies) ? (initial as any).technologies.join("\n") : "",
-        process: Array.isArray((initial as any).process) ? (initial as any).process.join("\n") : "",
-        specifications: Array.isArray((initial as any).specifications) ? (initial as any).specifications.join("\n") : "" })
+        technologies: Array.isArray(i.technologies) ? i.technologies.join("\n") : "",
+        process: Array.isArray(i.process) ? i.process.join("\n") : "",
+        specifications: Array.isArray(i.specifications) ? i.specifications.join("\n") : "",
+        meta_title: i.meta_title ?? "", meta_description: i.meta_description ?? "", meta_keywords: Array.isArray(i.meta_keywords) ? i.meta_keywords.join("\n") : "", og_image: i.og_image ?? "", canonical_url: i.canonical_url ?? "" })
       setSlugManual(true)
     } else { setForm(blank); setSlugManual(false) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1146,7 +1154,10 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
     const payload = { title: form.title, slug: form.slug, dept: form.dept, category: form.category || null, description: form.description || null, image_url: form.image_url || null, file_url: form.file_url || null, price: Number(form.price) || 0, status: form.status,
       technologies: form.technologies ? form.technologies.split("\n").map(s => s.trim()).filter(Boolean) : [],
       process: form.process ? form.process.split("\n").map(s => s.trim()).filter(Boolean) : [],
-      specifications: form.specifications ? form.specifications.split("\n").map(s => s.trim()).filter(Boolean) : [] }
+      specifications: form.specifications ? form.specifications.split("\n").map(s => s.trim()).filter(Boolean) : [],
+      meta_title: form.meta_title || null, meta_description: form.meta_description || null,
+      meta_keywords: form.meta_keywords ? form.meta_keywords.split("\n").map(s => s.trim()).filter(Boolean) : null,
+      og_image: form.og_image || null, canonical_url: form.canonical_url || null }
     const res = initial
       ? await fetch(`/api/admin/produk?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
       : await fetch("/api/admin/produk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
@@ -1191,33 +1202,34 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
           <Field label="Status"><Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
         </div>
 
-        <Field label="URL Gambar Preview (Google Drive)" hint="Paste link share Drive — otomatis dikonversi">
-          <Input value={form.image_url} onChange={v => set("image_url", v)} placeholder="https://drive.google.com/file/d/…/view" />
-          {form.image_url && (
-            <div className="mt-2 h-28 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={gdriveToImg(form.image_url)}
-                alt="preview"
-                className="w-full h-full object-cover"
-                onError={e => {
-                  (e.target as HTMLImageElement).style.display = "none"
-                  const fb = (e.target as HTMLImageElement).nextElementSibling as HTMLElement | null
-                  if (fb) fb.style.display = "flex"
-                }}
-              />
-              <div className="absolute inset-0 hidden items-center justify-center text-[11px] text-white/30">
-                <ImageIcon size={16} className="mr-1.5 opacity-50" /> Gambar tidak dapat dimuat
-              </div>
-            </div>
-          )}
-        </Field>
+        <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} folder="produk" label="Gambar Preview (SVG)" />
 
         <Field label="URL Dokumen / File Produk" hint="Link file yang diterima customer (Google Drive, dsb.) — dikirim manual setelah pembelian">
           <Input value={form.file_url} onChange={v => set("file_url", v)} placeholder="https://drive.google.com/file/d/…/view" />
         </Field>
 
         <Field label="Deskripsi"><Textarea value={form.description} onChange={v => set("description", v)} placeholder="Deskripsi produk…" /></Field>
+
+        {/* ── SEO & Meta Tag ─────────────────────────── */}
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">SEO & Meta Tag</span>
+            <span className="text-[10px] text-white/25">— untuk targeting pencarian Google</span>
+          </div>
+          <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Nama + SAYBA ARC. Ideal 50–60 karakter.">
+            <Input value={form.meta_title} onChange={v => set("meta_title", v)} placeholder="Paket Gambar Teknis Kapal AutoCAD — SAYBA ARC" />
+          </Field>
+          <Field label="Meta Description" hint="Kosongkan untuk otomatis pakai Deskripsi. Ideal 150–160 karakter.">
+            <Textarea value={form.meta_description} onChange={v => set("meta_description", v)} placeholder="Dokumen gambar teknis kapal siap pakai — general arrangement, lines plan…" />
+          </Field>
+          <Field label="Meta Keywords (1 per baris)">
+            <Textarea value={form.meta_keywords} onChange={v => set("meta_keywords", v)} placeholder={"gambar teknis kapal\ndokumen autocad kapal\njasa desain kapal"} />
+          </Field>
+          <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
+            <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://sayba.web.id/products/slug-lain" />
+          </Field>
+          <SvgUploadField value={form.og_image} onChange={v => set("og_image", v)} folder="produk" label="OG Image (share sosial media)" />
+        </div>
 
         <div className="h-px bg-white/[0.07] my-1" />
         <p className="text-[9.5px] font-bold uppercase tracking-widest text-white/25">Detail Tab Produk (opsional)</p>
@@ -1292,6 +1304,56 @@ function Select({ value, onChange, options }: { value: string; onChange: (v: str
       </select>
       <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
     </div>
+  )
+}
+
+function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG)" }: {
+  value: string; onChange: (v: string) => void; folder: "produk" | "layanan"; label?: string
+}) {
+  const [uploading, setUploading] = useState(false)
+  const [err, setErr] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleFile = async (file: File | undefined) => {
+    if (!file) return
+    setErr("")
+    const isSvg = file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg")
+    if (!isSvg) { setErr("Hanya file SVG yang diizinkan"); return }
+    if (file.size > 2 * 1024 * 1024) { setErr("Ukuran file maksimal 2MB"); return }
+
+    setUploading(true)
+    const fd = new FormData()
+    fd.append("file", file)
+    fd.append("folder", folder)
+    const res = await fetch("/api/admin/upload", { method: "POST", body: fd })
+    setUploading(false)
+    if (!res.ok) { setErr((await res.json()).error ?? "Upload gagal"); return }
+    const data = await res.json()
+    onChange(data.url)
+  }
+
+  return (
+    <Field label={label} hint="Upload file .svg, maksimal 2MB">
+      <input ref={inputRef} type="file" accept=".svg,image/svg+xml" className="hidden"
+        onChange={e => handleFile(e.target.files?.[0])} />
+      <div className="flex items-center gap-2">
+        <button type="button" onClick={() => inputRef.current?.click()} disabled={uploading}
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold bg-[#181818] border border-white/[0.07] text-white/60 hover:text-white hover:border-white/20 transition-all disabled:opacity-50">
+          {uploading ? <Loader2 size={13} className="animate-spin" /> : <ImageIcon size={13} />}
+          {uploading ? "Mengunggah…" : "Upload SVG"}
+        </button>
+        {value && (
+          <button type="button" onClick={() => onChange("")} className="text-[11px] text-white/30 hover:text-red-400 transition-colors">Hapus</button>
+        )}
+      </div>
+      {err && <p className="text-[10px] text-red-400 mt-1">{err}</p>}
+      {value && (
+        <div className="mt-2 h-24 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] relative">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={value} alt="preview" className="w-full h-full object-contain" onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
+        </div>
+      )}
+    </Field>
   )
 }
 
