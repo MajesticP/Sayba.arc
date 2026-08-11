@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { cache } from "react"
 import { notFound } from "next/navigation"
 import { navItems, footerLinks, socialLinks, siteConfig } from "@/lib/data"
 import Header from "@/components/header"
@@ -14,14 +15,24 @@ function formatPrice(price: number) {
 
 type Props = { params: Promise<{ slug: string }> }
 
+export const revalidate = 60
+
+// Cached so generateMetadata and the page share ONE query per request
+// instead of hitting Supabase twice for the same row.
+const getProduct = cache(async (slug: string) => {
+  const { data, error } = await supabase
+    .from("produk").select("*").eq("slug", slug).eq("status", "active").single()
+  return { data, error }
+})
+
+export async function generateStaticParams() {
+  const { data } = await supabase.from("produk").select("slug").eq("status", "active")
+  return (data ?? []).map((p: { slug: string }) => ({ slug: p.slug }))
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const { data } = await supabase
-    .from("produk")
-    .select("title, description, meta_title, meta_description, meta_keywords, image_url, og_image, canonical_url")
-    .eq("slug", slug)
-    .eq("status", "active")
-    .single()
+  const { data } = await getProduct(slug)
 
   if (!data) return { title: `Produk — ${siteConfig.name}` }
 
@@ -48,8 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params
 
-  const { data: product, error } = await supabase
-    .from("produk").select("*").eq("slug", slug).eq("status", "active").single()
+  const { data: product, error } = await getProduct(slug)
 
   if (error || !product) notFound()
 

@@ -34,6 +34,8 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
+export const revalidate = 60
+
 export default async function PortfolioPage() {
   const [{ data: portfolioItems, error }, { data: deptRows }] = await Promise.all([
     supabase.from("portfolio").select("*").eq("status", "active").order("created_at", { ascending: false }),

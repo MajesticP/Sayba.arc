@@ -25,14 +25,19 @@ export const metadata: Metadata = {
   },
 }
 
+export const revalidate = 60
+
 export default async function Home() {
-  const { data: layananItems, error } = await supabase
-    .from("layanan")
-    .select("*")
-    .eq("status", "active")
-    .not("featured_order", "is", null)
-    .order("featured_order", { ascending: true })
-    .limit(3)
+  const [{ data: layananItems, error }, { data: deptsData }] = await Promise.all([
+    supabase
+      .from("layanan")
+      .select("*")
+      .eq("status", "active")
+      .not("featured_order", "is", null)
+      .order("featured_order", { ascending: true })
+      .limit(3),
+    supabaseAdmin.from("layanan_depts").select("*").order("sort_order", { ascending: true }),
+  ])
 
   if (error) {
     console.error("Error fetching layanan:", error)
@@ -40,7 +45,6 @@ export default async function Home() {
 
   const allLayanan: Layanan[] = layananItems ?? []
 
-  const { data: deptsData } = await supabaseAdmin.from("layanan_depts").select("*").order("sort_order", { ascending: true })
   const depts: LayananDept[] = deptsData && deptsData.length > 0
     ? deptsData.map((r: any) => ({ value: r.value, label: r.label, description: r.description ?? "", badgeClass: r.badge_class, color: r.color, subCategories: r.sub_categories ?? [] }))
     : LAYANAN_DEPTS

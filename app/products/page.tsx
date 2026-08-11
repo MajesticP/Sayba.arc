@@ -15,12 +15,17 @@ export const metadata: Metadata = {
   alternates: { canonical: `${siteConfig.url}/products` },
 }
 
+export const revalidate = 60
+
 export default async function ProductsPage() {
-  const { data: produkItems, error } = await supabase
-    .from("produk")
-    .select("*")
-    .eq("status", "active")
-    .order("created_at", { ascending: true })
+  const [{ data: produkItems, error }, { data: deptsData }] = await Promise.all([
+    supabase
+      .from("produk")
+      .select("*")
+      .eq("status", "active")
+      .order("created_at", { ascending: true }),
+    supabaseAdmin.from("layanan_depts").select("*").order("sort_order", { ascending: true }),
+  ])
 
   if (error) {
     console.error("Error fetching produk:", error)
@@ -28,7 +33,6 @@ export default async function ProductsPage() {
 
   const allProduk: Produk[] = produkItems ?? []
 
-  const { data: deptsData } = await supabaseAdmin.from("layanan_depts").select("*").order("sort_order", { ascending: true })
   const depts: LayananDept[] = deptsData && deptsData.length > 0
     ? deptsData.map((r: any) => ({ value: r.value, label: r.label, description: r.description ?? "", badgeClass: r.badge_class, color: r.color, subCategories: r.sub_categories ?? [] }))
     : LAYANAN_DEPTS

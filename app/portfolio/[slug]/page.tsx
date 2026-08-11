@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { cache } from "react"
 import { notFound } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -17,13 +18,24 @@ function resolveThumbnail(url: string | null): string | null {
 
 type Props = { params: Promise<{ slug: string }> }
 
+export const revalidate = 60
+
+// Cached so generateMetadata and the page share ONE query per request
+// instead of hitting Supabase twice for the same row.
+const getPortfolio = cache(async (slug: string) => {
+  const { data, error } = await supabase
+    .from("portfolio").select("*").eq("slug", slug).eq("status", "active").single()
+  return { data, error }
+})
+
+export async function generateStaticParams() {
+  const { data } = await supabase.from("portfolio").select("slug").eq("status", "active")
+  return (data ?? []).map((p: { slug: string }) => ({ slug: p.slug }))
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const { data } = await supabase
-    .from("portfolio")
-    .select("title, description, meta_title, meta_description, meta_keywords, image_url, og_image, canonical_url")
-    .eq("slug", slug)
-    .single()
+  const { data } = await getPortfolio(slug)
 
   if (!data) return { title: `Portofolio — ${siteConfig.name}` }
 
@@ -49,12 +61,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PortfolioSlugPage({ params }: Props) {
   const { slug } = await params
-  const { data: item, error } = await supabase
-    .from("portfolio")
-    .select("*")
-    .eq("slug", slug)
-    .eq("status", "active")
-    .single()
+  const { data: item, error } = await getPortfolio(slug)
 
   if (error || !item) notFound()
 

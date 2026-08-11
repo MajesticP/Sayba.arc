@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   alternates: { canonical: `${siteConfig.url}/about` },
 }
 
+export const revalidate = 60
+
 async function getTeam(): Promise<TimMember[]> {
   try {
     const { createClient } = await import("@supabase/supabase-js")
