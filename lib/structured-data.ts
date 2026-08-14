@@ -6,8 +6,8 @@ export function generateOrganizationSchema() {
     "@type": "Organization",
     name: "SAYBA ARC",
     alternateName: "Sayba Architecture",
-    url: "https://www.sayba.web.id",
-    logo: "https://www.sayba.web.id/Sayba%20Arc.png",
+    url: "https://sayba.id",
+    logo: "https://sayba.id/Sayba%20Arc.png",
     description:
       "SAYBA ARC adalah perusahaan digital solutions yang menyediakan layanan web development, mobile app development, UI/UX design, dan software testing profesional.",
     sameAs: [
@@ -28,7 +28,7 @@ export function generateOrganizationSchema() {
         "@type": "ContactPoint",
         telephone: "+6287721916495",
         contactType: "Customer Service",
-        email: "info@sayba.web.id",
+        email: "info@sayba.id",
         areaServed: "ID",
         availableLanguage: ["id", "en"],
       },
@@ -63,10 +63,10 @@ export function generateServiceSchema(service: {
     provider: {
       "@type": "Organization",
       name: "SAYBA ARC",
-      url: "https://www.sayba.web.id",
+      url: "https://sayba.id",
     },
     url: service.url,
-    image: service.image || "https://www.sayba.web.id/Sayba%20Arc.png",
+    image: service.image || "https://sayba.id/Sayba%20Arc.png",
     areaServed: {
       "@type": "Country",
       name: "ID",
@@ -88,7 +88,7 @@ export function generateProductSchema(product: {
     name: product.name,
     description: product.description,
     url: product.url,
-    image: product.image || "https://www.sayba.web.id/Sayba%20Arc.png",
+    image: product.image || "https://sayba.id/Sayba%20Arc.png",
     offers: {
       "@type": "Offer",
       priceCurrency: product.currency || "IDR",
@@ -98,7 +98,7 @@ export function generateProductSchema(product: {
     manufacturer: {
       "@type": "Organization",
       name: "SAYBA ARC",
-      url: "https://www.sayba.web.id",
+      url: "https://sayba.id",
     },
   }
 }
@@ -108,10 +108,10 @@ export function generateLocalBusinessSchema() {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     name: "SAYBA ARC",
-    image: "https://www.sayba.web.id/Sayba%20Arc.png",
-    url: "https://www.sayba.web.id",
+    image: "https://sayba.id/Sayba%20Arc.png",
+    url: "https://sayba.id",
     telephone: "+6287721916495",
-    email: "info@sayba.web.id",
+    email: "info@sayba.id",
     address: {
       "@type": "PostalAddress",
       streetAddress: "Your Address Here",
@@ -155,7 +155,7 @@ export function generateServiceDetailMetadata(options: {
   ogImage?: string
   canonicalUrl?: string
 }) {
-  const image = options.ogImage || "https://www.sayba.web.id/Sayba%20Arc.png"
+  const image = options.ogImage || "https://sayba.id/Sayba%20Arc.png"
   return {
     title: options.title,
     description: options.description,
@@ -167,11 +167,11 @@ export function generateServiceDetailMetadata(options: {
       "digital solutions",
       "indonesia",
     ],
-    canonical: options.canonicalUrl || `https://www.sayba.web.id/services/${options.slug}`,
+    canonical: options.canonicalUrl || `https://sayba.id/services/${options.slug}`,
     openGraph: {
       title: options.title,
       description: options.description,
-      url: `https://www.sayba.web.id/services/${options.slug}`,
+      url: `https://sayba.id/services/${options.slug}`,
       type: "website" as const,
       images: [
         {
@@ -200,7 +200,7 @@ export function generateProductDetailMetadata(options: {
   ogImage?: string
   canonicalUrl?: string
 }) {
-  const image = options.ogImage || "https://www.sayba.web.id/Sayba%20Arc.png"
+  const image = options.ogImage || "https://sayba.id/Sayba%20Arc.png"
   return {
     title: options.title,
     description: options.description,
@@ -211,11 +211,11 @@ export function generateProductDetailMetadata(options: {
       "digital solutions",
       "indonesia",
     ],
-    canonical: options.canonicalUrl || `https://www.sayba.web.id/products/${options.slug}`,
+    canonical: options.canonicalUrl || `https://sayba.id/products/${options.slug}`,
     openGraph: {
       title: options.title,
       description: options.description,
-      url: `https://www.sayba.web.id/products/${options.slug}`,
+      url: `https://sayba.id/products/${options.slug}`,
       type: "website" as const,
       images: [
         {
@@ -252,15 +252,15 @@ export function generateApplicationDetailMetadata(options: {
       "application",
       "indonesia",
     ],
-    canonical: `https://www.sayba.web.id/applications/${options.slug}`,
+    canonical: `https://sayba.id/applications/${options.slug}`,
     openGraph: {
       title: options.title,
       description: options.description,
-      url: `https://www.sayba.web.id/applications/${options.slug}`,
+      url: `https://sayba.id/applications/${options.slug}`,
       type: "website" as const,
       images: [
         {
-          url: "https://www.sayba.web.id/Sayba%20Arc.png",
+          url: "https://sayba.id/Sayba%20Arc.png",
           width: 1024,
           height: 1024,
           alt: options.appTitle,
@@ -271,7 +271,7 @@ export function generateApplicationDetailMetadata(options: {
       card: "summary_large_image" as const,
       title: options.title,
       description: options.description,
-      images: ["https://www.sayba.web.id/Sayba%20Arc.png"],
+      images: ["https://sayba.id/Sayba%20Arc.png"],
     },
   }
 }
@@ -288,7 +288,7 @@ export function generateSoftwareApplicationSchema(app: {
     name: app.name,
     description: app.description,
     url: app.url,
-    image: app.image || "https://www.sayba.web.id/Sayba%20Arc.png",
+    image: app.image || "https://sayba.id/Sayba%20Arc.png",
     operatingSystem: ["Web", "Windows", "macOS", "Linux", "iOS", "Android"],
     offers: {
       "@type": "Offer",
@@ -297,7 +297,7 @@ export function generateSoftwareApplicationSchema(app: {
     creator: {
       "@type": "Organization",
       name: "SAYBA ARC",
-      url: "https://www.sayba.web.id",
+      url: "https://sayba.id",
     },
   }
 }
@@ -311,7 +311,7 @@ export function generatePortfolioDetailMetadata(options: {
   ogImage?: string
   canonicalUrl?: string
 }) {
-  const image = options.ogImage || "https://www.sayba.web.id/Sayba%20Arc.png"
+  const image = options.ogImage || "https://sayba.id/Sayba%20Arc.png"
   return {
     title: options.title,
     description: options.description,
@@ -324,11 +324,11 @@ export function generatePortfolioDetailMetadata(options: {
           "digital solutions",
           "indonesia",
         ],
-    canonical: options.canonicalUrl || `https://www.sayba.web.id/portfolio/${options.slug}`,
+    canonical: options.canonicalUrl || `https://sayba.id/portfolio/${options.slug}`,
     openGraph: {
       title: options.title,
       description: options.description,
-      url: `https://www.sayba.web.id/portfolio/${options.slug}`,
+      url: `https://sayba.id/portfolio/${options.slug}`,
       type: "website" as const,
       images: [
         {
@@ -360,11 +360,11 @@ export function generatePortfolioSchema(item: {
     name: item.name,
     description: item.description,
     url: item.url,
-    image: item.image || "https://www.sayba.web.id/Sayba%20Arc.png",
+    image: item.image || "https://sayba.id/Sayba%20Arc.png",
     creator: {
       "@type": "Organization",
       name: "SAYBA ARC",
-      url: "https://www.sayba.web.id",
+      url: "https://sayba.id",
     },
   }
 }
