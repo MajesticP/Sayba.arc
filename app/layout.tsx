@@ -47,6 +47,9 @@ export const metadata: Metadata = {
     description: "Agensi digital & engineering dari Pontianak. Solusi teknis nyata untuk bisnis dan instansi di Indonesia.",
     images: [{ url: "https://sayba.id/Sayba%20Arc.png", width: 1024, height: 1024, alt: "SAYBA ARC — Art You Believe" }],
   },
+  other: {
+    "facebook-domain-verification": "marr0bprnwfpm0mlot2sixgg29lv36",
+  },
 }
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
