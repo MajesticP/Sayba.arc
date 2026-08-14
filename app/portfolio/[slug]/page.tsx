@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import { cache } from "react"
 import { notFound } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -10,7 +9,7 @@ import Footer from "@/components/footer"
 import PageTransition from "@/components/page-transition"
 import FeatureTabs from "@/components/portfolio-feature-tabs"
 import { ArrowLeft, ExternalLink, Globe, Map, ChevronRight } from "lucide-react"
-import { generatePortfolioDetailMetadata, generatePortfolioSchema } from "@/lib/structured-data"
+import { generatePortfolioDetailMetadata, generatePortfolioSchema, generateBreadcrumbSchema } from "@/lib/structured-data"
 
 function resolveThumbnail(url: string | null): string | null {
   return !url || url === "-" ? null : url
@@ -18,24 +17,13 @@ function resolveThumbnail(url: string | null): string | null {
 
 type Props = { params: Promise<{ slug: string }> }
 
-export const revalidate = 60
-
-// Cached so generateMetadata and the page share ONE query per request
-// instead of hitting Supabase twice for the same row.
-const getPortfolio = cache(async (slug: string) => {
-  const { data, error } = await supabase
-    .from("portfolio").select("*").eq("slug", slug).eq("status", "active").single()
-  return { data, error }
-})
-
-export async function generateStaticParams() {
-  const { data } = await supabase.from("portfolio").select("slug").eq("status", "active")
-  return (data ?? []).map((p: { slug: string }) => ({ slug: p.slug }))
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const { data } = await getPortfolio(slug)
+  const { data } = await supabase
+    .from("portfolio")
+    .select("title, description, meta_title, meta_description, meta_keywords, image_url, og_image, canonical_url")
+    .eq("slug", slug)
+    .single()
 
   if (!data) return { title: `Portofolio — ${siteConfig.name}` }
 
@@ -61,7 +49,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PortfolioSlugPage({ params }: Props) {
   const { slug } = await params
-  const { data: item, error } = await getPortfolio(slug)
+  const { data: item, error } = await supabase
+    .from("portfolio")
+    .select("*")
+    .eq("slug", slug)
+    .eq("status", "active")
+    .single()
 
   if (error || !item) notFound()
 
@@ -71,6 +64,12 @@ export default async function PortfolioSlugPage({ params }: Props) {
     url: `${siteConfig.url}/portfolio/${slug}`,
     image: (item as any).og_image || item.image_url || undefined,
   })
+
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: "Beranda", url: siteConfig.url },
+    { name: "Portofolio", url: `${siteConfig.url}/portfolio` },
+    { name: item.title, url: `${siteConfig.url}/portfolio/${slug}` },
+  ])
 
   const thumbnail = resolveThumbnail(item.image_url)
   const isArcgis = item.dept === "arcgis"
@@ -83,6 +82,10 @@ export default async function PortfolioSlugPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(portfolioSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <Header navItems={navItems} />
 
