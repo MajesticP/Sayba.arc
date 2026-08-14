@@ -12,6 +12,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin"
 import type { Layanan } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
 import { LAYANAN_DEPTS } from "@/lib/layanan-config"
+import { generateOrganizationSchema, generateLocalBusinessSchema } from "@/lib/structured-data"
 
 export const metadata: Metadata = {
   title: `${siteConfig.name} — ${siteConfig.tagline}`,
@@ -25,19 +26,14 @@ export const metadata: Metadata = {
   },
 }
 
-export const revalidate = 60
-
 export default async function Home() {
-  const [{ data: layananItems, error }, { data: deptsData }] = await Promise.all([
-    supabase
-      .from("layanan")
-      .select("*")
-      .eq("status", "active")
-      .not("featured_order", "is", null)
-      .order("featured_order", { ascending: true })
-      .limit(3),
-    supabaseAdmin.from("layanan_depts").select("*").order("sort_order", { ascending: true }),
-  ])
+  const { data: layananItems, error } = await supabase
+    .from("layanan")
+    .select("*")
+    .eq("status", "active")
+    .not("featured_order", "is", null)
+    .order("featured_order", { ascending: true })
+    .limit(3)
 
   if (error) {
     console.error("Error fetching layanan:", error)
@@ -45,12 +41,24 @@ export default async function Home() {
 
   const allLayanan: Layanan[] = layananItems ?? []
 
+  const { data: deptsData } = await supabaseAdmin.from("layanan_depts").select("*").order("sort_order", { ascending: true })
   const depts: LayananDept[] = deptsData && deptsData.length > 0
     ? deptsData.map((r: any) => ({ value: r.value, label: r.label, description: r.description ?? "", badgeClass: r.badge_class, color: r.color, subCategories: r.sub_categories ?? [] }))
     : LAYANAN_DEPTS
 
+  const organizationSchema = generateOrganizationSchema()
+  const localBusinessSchema = generateLocalBusinessSchema()
+
   return (
     <main className="min-h-screen flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+      />
       <Header navItems={navItems} />
       <Hero data={hero} />
       <Services allLayanan={allLayanan} depts={depts} />
