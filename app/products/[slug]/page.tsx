@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import { cache } from "react"
 import { notFound } from "next/navigation"
 import { navItems, footerLinks, socialLinks, siteConfig } from "@/lib/data"
 import Header from "@/components/header"
@@ -7,7 +6,7 @@ import Footer from "@/components/footer"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import ProductFeatureTabs from "@/components/product-feature-tabs"
-import { generateProductDetailMetadata, generateProductSchema } from "@/lib/structured-data"
+import { generateProductDetailMetadata, generateProductSchema, generateBreadcrumbSchema } from "@/lib/structured-data"
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(price)
@@ -15,24 +14,14 @@ function formatPrice(price: number) {
 
 type Props = { params: Promise<{ slug: string }> }
 
-export const revalidate = 60
-
-// Cached so generateMetadata and the page share ONE query per request
-// instead of hitting Supabase twice for the same row.
-const getProduct = cache(async (slug: string) => {
-  const { data, error } = await supabase
-    .from("produk").select("*").eq("slug", slug).eq("status", "active").single()
-  return { data, error }
-})
-
-export async function generateStaticParams() {
-  const { data } = await supabase.from("produk").select("slug").eq("status", "active")
-  return (data ?? []).map((p: { slug: string }) => ({ slug: p.slug }))
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const { data } = await getProduct(slug)
+  const { data } = await supabase
+    .from("produk")
+    .select("title, description, meta_title, meta_description, meta_keywords, image_url, og_image, canonical_url")
+    .eq("slug", slug)
+    .eq("status", "active")
+    .single()
 
   if (!data) return { title: `Produk — ${siteConfig.name}` }
 
@@ -59,7 +48,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params
 
-  const { data: product, error } = await getProduct(slug)
+  const { data: product, error } = await supabase
+    .from("produk").select("*").eq("slug", slug).eq("status", "active").single()
 
   if (error || !product) notFound()
 
@@ -70,6 +60,12 @@ export default async function ProductDetailPage({ params }: Props) {
     image: (product as any).og_image || product.image_url || undefined,
     price: String(product.price),
   })
+
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: "Beranda", url: siteConfig.url },
+    { name: "Produk", url: `${siteConfig.url}/products` },
+    { name: product.title, url: `${siteConfig.url}/products/${slug}` },
+  ])
 
   const DEPT_MAP: Record<string, { label: string; color: string }> = {
     arcgis: { label: "Departemen ArcGIS", color: "#ff914d" },
@@ -91,6 +87,10 @@ export default async function ProductDetailPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <Header navItems={navItems} />
 
