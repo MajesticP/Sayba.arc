@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import { cache } from "react"
 import { notFound } from "next/navigation"
 import { navItems, footerLinks, socialLinks, siteConfig } from "@/lib/data"
 import Header from "@/components/header"
@@ -8,7 +7,7 @@ import Link from "next/link"
 import { DynamicIcon } from "@/lib/dynamic-icon"
 import { supabase } from "@/lib/supabase"
 import type { PriceTier } from "@/lib/database.types"
-import { generateServiceDetailMetadata, generateServiceSchema } from "@/lib/structured-data"
+import { generateServiceDetailMetadata, generateServiceSchema, generateBreadcrumbSchema } from "@/lib/structured-data"
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(price)
@@ -16,24 +15,14 @@ function formatPrice(price: number) {
 
 type Props = { params: Promise<{ slug: string }> }
 
-export const revalidate = 60
-
-// Cached so generateMetadata and the page share ONE query per request
-// instead of hitting Supabase twice for the same row.
-const getService = cache(async (slug: string) => {
-  const { data, error } = await supabase
-    .from("layanan").select("*").eq("slug", slug).eq("status", "active").single()
-  return { data, error }
-})
-
-export async function generateStaticParams() {
-  const { data } = await supabase.from("layanan").select("slug").eq("status", "active")
-  return (data ?? []).map((s: { slug: string }) => ({ slug: s.slug }))
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const { data } = await getService(slug)
+  const { data } = await supabase
+    .from("layanan")
+    .select("title, description, meta_title, meta_description, meta_keywords, image_url, og_image, canonical_url")
+    .eq("slug", slug)
+    .eq("status", "active")
+    .single()
 
   if (!data) return { title: `Layanan — ${siteConfig.name}` }
 
@@ -60,7 +49,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ServiceDetailPage({ params }: Props) {
   const { slug } = await params
 
-  const { data: service, error } = await getService(slug)
+  const { data: service, error } = await supabase
+    .from("layanan").select("*").eq("slug", slug).eq("status", "active").single()
 
   if (error || !service) notFound()
 
@@ -70,6 +60,12 @@ export default async function ServiceDetailPage({ params }: Props) {
     url: `${siteConfig.url}/services/${slug}`,
     image: (service as any).og_image || service.image_url || undefined,
   })
+
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: "Beranda", url: siteConfig.url },
+    { name: "Layanan", url: `${siteConfig.url}/services` },
+    { name: service.title, url: `${siteConfig.url}/services/${slug}` },
+  ])
 
   const prices: PriceTier[] = service.prices ?? []
 
@@ -86,6 +82,10 @@ export default async function ServiceDetailPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <Header navItems={navItems} />
 
