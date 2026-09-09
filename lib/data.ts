@@ -20,8 +20,44 @@ export const navItems = [
   { label: "Layanan", href: "/services" },
   { label: "Produk", href: "/products" },
   { label: "Portofolio", href: "/portfolio" },
+  { label: "Berita", href: "/berita" },
   { label: "Tentang Kami", href: "/about" },
   { label: "Kontak", href: "/contact" },
+]
+
+// ── Banner promosi (carousel beranda) ───────────────────────────
+// Ganti file di /public/promo/ dengan gambar asli (nama file dipertahankan)
+// agar tidak perlu mengubah kode. Rasio ideal: 1600 x 600 px.
+// Kalau gambar sudah memuat teks sendiri, kosongkan eyebrow/title/subtitle —
+// overlay teks otomatis hilang dan gambar tampil penuh.
+export const promoBanners = [
+  {
+    id: "promo-1",
+    image: "/promo/promo-1-1600x600.png",
+    alt: "Promo layanan GIS & pemetaan SAYBA ARC",
+    eyebrow: "GIS & Pemetaan",
+    title: "Pemetaan & Analisis Spasial",
+    subtitle: "Survei, pengolahan data spasial, sampai peta siap cetak — dikerjakan satu tim.",
+    cta: { text: "Lihat Layanan", href: "/services" },
+  },
+  {
+    id: "promo-2",
+    image: "/promo/promo-2-1600x600.png",
+    alt: "Promo pengembangan web dan aplikasi SAYBA ARC",
+    eyebrow: "Web & Aplikasi",
+    title: "Website & Aplikasi Custom",
+    subtitle: "Dari company profile sampai sistem internal, dibangun cepat dan rapi.",
+    cta: { text: "Konsultasi Gratis", href: "/contact" },
+  },
+  {
+    id: "promo-3",
+    image: "/promo/promo-3-1600x600.png",
+    alt: "Promo dokumen dan produk siap pakai SAYBA ARC",
+    eyebrow: "Dokumen Siap Pakai",
+    title: "Produk & Deliverable Instan",
+    subtitle: "Template dan dokumen teknis yang bisa langsung dipakai tanpa antre pengerjaan.",
+    cta: { text: "Lihat Produk", href: "/products" },
+  },
 ]
 
 export const hero = {
@@ -99,6 +135,7 @@ export const footerLinks = [
   { label: "Layanan", href: "/services" },
   { label: "Produk", href: "/products" },
   { label: "Portofolio", href: "/portfolio" },
+  { label: "Berita", href: "/berita" },
   { label: "Tentang Kami", href: "/about" },
   { label: "Kontak", href: "/contact" },
 ]
