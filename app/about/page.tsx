@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { siteConfig, aboutPage, navItems, footerLinks, socialLinks } from "@/lib/data"
+import { siteConfig, aboutPage, navItems, footerLinks, socialLinks, ogImage } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import PageHero from "@/components/page-hero"
@@ -11,6 +11,13 @@ export const metadata: Metadata = {
   title: `Tentang Kami — ${siteConfig.name}`,
   description: aboutPage.hero.subtitle,
   alternates: { canonical: `${siteConfig.url}/about` },
+  openGraph: {
+    title: `Tentang Kami — ${siteConfig.name}`,
+    description: aboutPage.hero.subtitle,
+    url: `${siteConfig.url}/about`,
+    type: "website",
+    images: [ogImage],
+  },
 }
 
 export const revalidate = 60

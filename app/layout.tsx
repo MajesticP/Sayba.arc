@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Geist } from "next/font/google"
 import { headers } from "next/headers"
+import { ogImage } from "@/lib/data"
 import "./globals.css"
 
 export const viewport: Viewport = {
@@ -46,7 +47,13 @@ export const metadata: Metadata = {
     siteName: "SAYBA ARC",
     title: "SAYBA ARC — ART YOU BELIEVE",
     description: "Agensi digital & engineering dari Pontianak. Solusi teknis nyata untuk bisnis dan instansi di Indonesia.",
-    images: [{ url: "https://sayba.id/Sayba%20Arc.png", width: 1024, height: 1024, alt: "SAYBA ARC — Art You Believe" }],
+    images: [ogImage],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SAYBA ARC — ART YOU BELIEVE",
+    description: "Agensi digital & engineering dari Pontianak. Solusi teknis nyata untuk bisnis dan instansi di Indonesia.",
+    images: [ogImage.url],
   },
   other: {
     "facebook-domain-verification": "marr0bprnwfpm0mlot2sixgg29lv36",

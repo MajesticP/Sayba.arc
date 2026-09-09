@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { siteConfig, navItems, footerLinks, socialLinks } from "@/lib/data"
+import { siteConfig, navItems, footerLinks, socialLinks, ogImage } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import PageHero from "@/components/page-hero"
@@ -19,6 +19,7 @@ export const metadata: Metadata = {
     description,
     url: `${siteConfig.url}/berita`,
     type: "website",
+    images: [ogImage],
   },
 }
 

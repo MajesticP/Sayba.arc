@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { siteConfig, navItems, footerLinks, socialLinks } from "@/lib/data"
+import { siteConfig, navItems, footerLinks, socialLinks, ogImage } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import PageHero from "@/components/page-hero"
@@ -13,6 +13,13 @@ export const metadata: Metadata = {
   title: `Portofolio — ${siteConfig.name}`,
   description: "Portofolio proyek GIS dan IT dari SAYBA ARC.",
   alternates: { canonical: `${siteConfig.url}/portfolio` },
+  openGraph: {
+    title: `Portofolio — ${siteConfig.name}`,
+    description: "Portofolio proyek GIS dan IT dari SAYBA ARC.",
+    url: `${siteConfig.url}/portfolio`,
+    type: "website",
+    images: [ogImage],
+  },
 }
 
 interface DeptConfig { value: string; label: string; color: string }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { siteConfig, navItems, footerLinks, socialLinks } from "@/lib/data"
+import { siteConfig, navItems, footerLinks, socialLinks, ogImage } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import PageHero from "@/components/page-hero"
@@ -14,6 +14,13 @@ export const metadata: Metadata = {
   title: `Layanan — ${siteConfig.name}`,
   description: "Layanan digital dan engineering end-to-end dari SAYBA ARC — GIS, web, ML, desain kapal, dan lebih.",
   alternates: { canonical: `${siteConfig.url}/services` },
+  openGraph: {
+    title: `Layanan — ${siteConfig.name}`,
+    description: "Layanan digital dan engineering end-to-end dari SAYBA ARC — GIS, web, ML, desain kapal, dan lebih.",
+    url: `${siteConfig.url}/services`,
+    type: "website",
+    images: [ogImage],
+  },
 }
 
 export const revalidate = 60

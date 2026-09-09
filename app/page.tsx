@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { siteConfig, hero, features, about, cta, navItems, footerLinks, socialLinks } from "@/lib/data"
+import { siteConfig, hero, features, about, cta, navItems, footerLinks, socialLinks, ogImage } from "@/lib/data"
 import Header from "@/components/header"
 import Hero from "@/components/hero"
 import PromoCarousel from "@/components/promo-carousel"
@@ -25,6 +25,7 @@ export const metadata: Metadata = {
     description: siteConfig.description,
     url: siteConfig.url,
     type: "website",
+    images: [ogImage],
   },
 }
 

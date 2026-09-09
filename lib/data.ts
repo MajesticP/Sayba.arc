@@ -15,6 +15,20 @@ export const siteConfig = {
   address: "Pontianak, Kalimantan Barat, Indonesia",
 }
 
+// Gambar pratinjau saat tautan dibagikan (WhatsApp, Facebook, X, LinkedIn).
+// Dibuat dari logo SAYBA ARC pada rasio 1200x630 yang dianjurkan.
+//
+// CATATAN PENTING: metadata halaman di Next.js menimpa objek `openGraph`
+// milik layout secara utuh, bukan menggabungkannya. Jadi setiap halaman yang
+// mendefinisikan openGraph HARUS ikut menyertakan `images: [ogImage]`, kalau
+// tidak gambar pratinjaunya hilang sama sekali.
+export const ogImage = {
+  url: "https://sayba.id/og-image.png",
+  width: 1200,
+  height: 630,
+  alt: "SAYBA ARC — Art You Believe",
+}
+
 export const navItems = [
   { label: "Beranda", href: "/" },
   { label: "Layanan", href: "/services" },

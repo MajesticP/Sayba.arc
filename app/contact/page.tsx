@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { siteConfig, contactPage, navItems, footerLinks, socialLinks } from "@/lib/data"
+import { siteConfig, contactPage, navItems, footerLinks, socialLinks, ogImage } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import PageHero from "@/components/page-hero"
@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   title: `Kontak — ${siteConfig.name}`,
   description: contactPage.subtitle,
   alternates: { canonical: `${siteConfig.url}/contact` },
+  openGraph: {
+    title: `Kontak — ${siteConfig.name}`,
+    description: contactPage.subtitle,
+    url: `${siteConfig.url}/contact`,
+    type: "website",
+    images: [ogImage],
+  },
 }
 
 export default function ContactPage() {
