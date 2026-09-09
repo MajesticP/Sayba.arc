@@ -3,6 +3,7 @@ import { siteConfig, hero, features, about, cta, navItems, footerLinks, socialLi
 import Header from "@/components/header"
 import Hero from "@/components/hero"
 import PromoCarousel from "@/components/promo-carousel"
+import NewsHighlight from "@/components/news-highlight"
 import Services from "@/components/services"
 import Features from "@/components/features"
 import About from "@/components/about"
@@ -10,7 +11,7 @@ import CTA from "@/components/cta"
 import Footer from "@/components/footer"
 import { supabase } from "@/lib/supabase"
 import { supabaseAdmin } from "@/lib/supabase-admin"
-import type { Layanan, PromoBanner } from "@/lib/database.types"
+import type { Layanan, PromoBanner, Berita } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
 import { LAYANAN_DEPTS } from "@/lib/layanan-config"
 import { generateOrganizationSchema, generateLocalBusinessSchema } from "@/lib/structured-data"
@@ -55,6 +56,15 @@ export default async function Home() {
 
   const promoBanners: PromoBanner[] = promoData ?? []
 
+  const { data: beritaData } = await supabase
+    .from("berita")
+    .select("*")
+    .eq("status", "active")
+    .order("published_at", { ascending: false })
+    .limit(3)
+
+  const beritaTerbaru: Berita[] = beritaData ?? []
+
   const organizationSchema = generateOrganizationSchema()
   const localBusinessSchema = generateLocalBusinessSchema()
 
@@ -71,6 +81,7 @@ export default async function Home() {
       <Header navItems={navItems} />
       <Hero data={hero} />
       <PromoCarousel slides={promoBanners} interval={3000} />
+      <NewsHighlight articles={beritaTerbaru} />
       <Services allLayanan={allLayanan} depts={depts} />
       <Features
         title="Mengapa Memilih SAYBA ARC"
