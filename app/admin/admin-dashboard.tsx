@@ -1496,7 +1496,7 @@ function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG/PNG/WebP
     const isAllowed = ["image/svg+xml", "image/png", "image/webp"].includes(file.type)
       || name.endsWith(".svg") || name.endsWith(".png") || name.endsWith(".webp")
     if (!isAllowed) { setErr("Hanya file SVG, PNG, atau WebP yang diizinkan"); return }
-    if (file.size > 4 * 1024 * 1024) { setErr("Ukuran file maksimal 4MB"); return }
+    if (file.size > 4.5 * 1024 * 1024) { setErr("Ukuran file maksimal 4,5MB — batas request Vercel"); return }
 
     setUploading(true)
     const fd = new FormData()
@@ -1516,7 +1516,7 @@ function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG/PNG/WebP
   }
 
   return (
-    <Field label={label} hint="SVG, PNG, atau WebP — maksimal 4MB, otomatis dikompres ke sekitar 50KB">
+    <Field label={label} hint="SVG, PNG, atau WebP — maksimal 4,5MB. Gambar besar otomatis dikecilkan ke maks 2000px dan disimpan sebagai WebP; file kecil disimpan apa adanya.">
       <input id={inputId} type="file" accept=".svg,.png,.webp,image/svg+xml,image/png,image/webp" className="hidden"
         onChange={e => { handleFile(e.target.files?.[0]); e.target.value = "" }} />
       <div className="flex items-center gap-2">

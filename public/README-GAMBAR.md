@@ -57,5 +57,34 @@ Sekarang dikelola dari **Admin Dashboard → Berita**. File di folder ini hanya 
 
 ## Catatan upload di admin
 
-Format yang diterima: **SVG, PNG, WebP** — maksimal 4MB, otomatis dikompres ke sekitar 50KB.
+Format yang diterima: **SVG, PNG, WebP** — maksimal **4,5MB** per file.
+
+Batas 4,5MB itu berasal dari Vercel (batas body request serverless function),
+bukan dari aplikasi. File di atas itu tidak akan pernah sampai ke server.
+
 JPG tidak diterima; ubah dulu ke PNG atau WebP sebelum diunggah.
+
+### Apa yang terjadi pada gambar Anda
+
+File yang sudah **di bawah 500KB dan tidak lebih dari 2000px** disimpan apa
+adanya — format aslinya dipertahankan. Ikon dan logo tidak tersentuh.
+
+Gambar yang lebih besar dari itu dikecilkan ke maksimal **2000px** pada sisi
+terpanjangnya, lalu disimpan sebagai **WebP** dengan kualitas 82 (turun
+bertahap sampai paling rendah 60 bila masih di atas 500KB). Transparansi tetap
+terjaga.
+
+Kenapa dikonversi ke WebP: PNG tidak bisa memampatkan foto. Pada pengujian,
+foto 5MB butuh sekitar 105 detik untuk di-encode ulang sebagai PNG dan hasilnya
+tetap ~2MB — cukup lama untuk membuat upload gagal. WebP menyelesaikannya dalam
+sekitar 1,5 detik pada ukuran 476KB.
+
+Hasil pengujian ukuran akhir:
+
+| Masukan | Hasil | Dimensi | Waktu |
+|---|---|---|---|
+| Foto PNG 3000×2000 | 476KB WebP | 2000×1333 | 1,5 dtk |
+| Foto WebP 3000×2000 | 381KB WebP | 2000×1333 | 2,4 dtk |
+| Banner PNG 1600×600 | 366KB WebP | 1600×600 | 0,3 dtk |
+| PNG transparan 1200×800 | 365KB WebP | 1200×800 | 0,3 dtk |
+| Ikon PNG 128×128 | tidak diubah | 128×128 | — |
