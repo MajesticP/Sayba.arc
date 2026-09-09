@@ -183,7 +183,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
       {/* Isi artikel */}
       <article className="bg-white py-8 md:py-16 flex-1">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <figure className="relative aspect-[16/9] rounded-xl md:rounded-2xl overflow-hidden border border-black/10 mb-7 md:mb-12 -mt-14 md:-mt-24 shadow-2xl bg-black">
+          <figure className="relative aspect-[16/9] rounded-xl md:rounded-2xl overflow-hidden border border-black/10 mb-7 md:mb-12 shadow-xl bg-black">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={heroImg} alt={article.title} className="absolute inset-0 w-full h-full object-cover" />
           </figure>

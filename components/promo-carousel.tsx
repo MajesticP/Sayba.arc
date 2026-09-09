@@ -79,7 +79,7 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
               const hasCopy = Boolean(slide.title || slide.eyebrow || slide.subtitle)
               const cta = slide.cta_text && slide.cta_href ? { text: slide.cta_text, href: slide.cta_href } : null
               const body = (
-                <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] lg:aspect-[64/21]">
+                <div className="relative w-full aspect-[8/3]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={gdriveToImg(slide.image_url)}
@@ -95,9 +95,9 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
                       <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent" />
 
                       <div className="relative h-full flex items-center">
-                        <div className="px-4 sm:px-8 md:px-12 lg:px-16 max-w-[85%] sm:max-w-lg lg:max-w-xl">
+                        <div className="px-3.5 sm:px-8 md:px-12 lg:px-16 max-w-[78%] sm:max-w-lg lg:max-w-xl">
                           {slide.eyebrow && (
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#ff914d]/15 border border-[#ff914d]/30 mb-2 md:mb-4">
+                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full bg-[#ff914d]/15 border border-[#ff914d]/30 mb-1.5 md:mb-4">
                               <span className="w-1.5 h-1.5 rounded-full bg-[#ff914d] animate-pulse" />
                               <span className="text-[9px] md:text-[11px] font-bold uppercase tracking-widest text-[#ff914d]">
                                 {slide.eyebrow}
@@ -106,7 +106,7 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
                           )}
 
                           {slide.title && (
-                            <h3 className="text-[17px] sm:text-2xl md:text-4xl font-black text-white leading-[1.12] tracking-tight">
+                            <h3 className="text-[15px] sm:text-2xl md:text-4xl font-black text-white leading-[1.15] tracking-tight line-clamp-2">
                               {slide.title}
                             </h3>
                           )}
@@ -118,7 +118,7 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
                           )}
 
                           {cta && (
-                            <span className="mt-2.5 md:mt-6 inline-flex items-center gap-1.5 px-3.5 py-1.5 md:px-5 md:py-2.5 rounded-full bg-[#ff914d] text-white text-[11px] md:text-sm font-semibold shadow-lg shadow-orange-500/20 transition-transform duration-200 group-hover:scale-[1.03]">
+                            <span className="mt-2 md:mt-6 inline-flex items-center gap-1.5 px-3 py-1 md:px-5 md:py-2.5 min-h-0 rounded-full bg-[#ff914d] text-white text-[10.5px] md:text-sm font-semibold shadow-lg shadow-orange-500/20 transition-transform duration-200 group-hover:scale-[1.03]">
                               {cta.text}
                               <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />

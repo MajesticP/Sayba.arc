@@ -61,12 +61,15 @@ export default function NewsHighlight({ articles }: { articles: Berita[] }) {
         </div>
 
         {/* Kartu */}
-        <div ref={cards.ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div
+          ref={cards.ref}
+          className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mb-2 scrollbar-hide sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 md:gap-6 sm:overflow-visible sm:pb-0 sm:mb-0"
+        >
           {articles.map((article, i) => (
             <Link
               key={article.id}
               href={`/berita/${article.slug}`}
-              className={`group flex flex-col items-stretch justify-start rounded-xl md:rounded-2xl overflow-hidden border border-black/10 bg-white transition-all duration-700 hover:-translate-y-1 hover:shadow-2xl ${cards.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+              className={`group flex flex-col items-stretch justify-start shrink-0 w-[86vw] snap-center sm:w-auto sm:shrink rounded-xl md:rounded-2xl overflow-hidden border border-black/10 bg-white transition-all duration-700 hover:-translate-y-1 hover:shadow-2xl ${cards.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
               style={{ transitionDelay: `${i * 100}ms` }}
             >
               <div className="relative w-full aspect-[8/5] overflow-hidden bg-black/5">
@@ -101,6 +104,14 @@ export default function NewsHighlight({ articles }: { articles: Berita[] }) {
               </div>
             </Link>
           ))}
+        </div>
+
+        {/* Petunjuk geser — mobile saja */}
+        <div className="flex items-center justify-center gap-1.5 mt-3 sm:hidden">
+          {articles.map((a) => (
+            <span key={a.id} className="w-1.5 h-1.5 rounded-full bg-black/15" />
+          ))}
+          <span className="text-[10px] text-black/25 ml-1.5">Geser untuk lihat lainnya</span>
         </div>
 
         {/* Strip penutup */}
