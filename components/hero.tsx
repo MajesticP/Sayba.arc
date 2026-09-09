@@ -106,8 +106,12 @@ export default function Hero({ data }: { data: HeroData }) {
                   {/* Neon logo centerpiece */}
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-neon-flicker">
                     <img
-                      src="/Sayba%20Arc.png"
+                      src="/logo-256.png"
                       alt="SAYBA ARC"
+                      width={112}
+                      height={112}
+                      fetchPriority="high"
+                      decoding="async"
                       className="w-28 h-28 rounded-2xl object-contain"
                       style={{ filter: "drop-shadow(0 0 10px rgba(255,145,77,0.9)) drop-shadow(0 0 28px rgba(255,145,77,0.6)) drop-shadow(0 0 55px rgba(255,145,77,0.35))" }}
                     />

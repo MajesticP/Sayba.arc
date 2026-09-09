@@ -34,10 +34,11 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://sayba.id"),
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/logo-square.png", type: "image/png" },
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/favicon-48.png", type: "image/png", sizes: "48x48" },
+      { url: "/logo-256.png", type: "image/png", sizes: "256x256" },
     ],
-    apple: "/logo-square.png",
+    apple: "/logo-180.png",
   },
   openGraph: {
     type: "website",

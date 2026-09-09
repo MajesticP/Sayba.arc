@@ -14,7 +14,7 @@ interface PageHeroProps {
 
 export default function PageHero({ image, imageAlt = "", eyebrow, title, subtitle, children }: PageHeroProps) {
   return (
-    <section className="relative bg-black overflow-hidden">
+    <section className="relative bg-black overflow-hidden min-h-[220px] md:min-h-[380px] flex items-center">
       {/* Banner */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -30,7 +30,7 @@ export default function PageHero({ image, imageAlt = "", eyebrow, title, subtitl
       {/* Aksen glow oranye */}
       <div className="absolute -top-16 right-1/4 w-72 h-72 rounded-full bg-[#ff914d] opacity-[0.10] blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 pt-[88px] pb-10 md:pt-32 md:pb-24">
+      <div className="relative z-10 w-full pt-[88px] pb-8 md:pt-32 md:pb-20">
         <PageTransition>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             {eyebrow && (

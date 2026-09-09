@@ -27,7 +27,7 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
           <div className="col-span-2">
             <div className="flex items-center gap-2 mb-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/Sayba%20Arc.png" alt={siteConfig.name} className="w-8 h-8 rounded-md object-contain opacity-90" />
+              <img src="/logo-256.png" alt={siteConfig.name} width={32} height={32} loading="lazy" decoding="async" className="w-8 h-8 rounded-md object-contain opacity-90" />
               <span className="font-bold text-white text-[15px]">{siteConfig.name}</span>
             </div>
             <p className="text-[12px] leading-relaxed mb-1 max-w-sm">Art You Believe — Agensi Digital & Engineering dari Pontianak</p>

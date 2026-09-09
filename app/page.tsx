@@ -80,7 +80,7 @@ export default async function Home() {
       />
       <Header navItems={navItems} />
       <Hero data={hero} />
-      <PromoCarousel slides={promoBanners} interval={3000} />
+      <PromoCarousel slides={promoBanners} interval={5000} />
       <NewsHighlight articles={beritaTerbaru} />
       <Services allLayanan={allLayanan} depts={depts} />
       <Features
