@@ -90,12 +90,18 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
                   />
 
                   {hasCopy && (
-                    <>
-                      {/* Scrim agar teks tetap terbaca */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent" />
+                    // Di ponsel banner tampil sebagai gambar utuh: teks disembunyikan
+                    // dengan `sr-only`, BUKAN `hidden`. Bedanya penting untuk SEO —
+                    // Google memakai mobile-first indexing, jadi teks yang benar-benar
+                    // dihapus dari DOM di ponsel ikut hilang dari indeks. Dengan
+                    // sr-only teksnya tetap ada, terbaca crawler dan pembaca layar,
+                    // hanya tidak terlihat. Mulai md tampil normal seperti biasa.
+                    <div className="sr-only md:not-sr-only md:absolute md:inset-0">
+                      {/* Scrim agar teks tetap terbaca — hanya perlu saat teks tampil */}
+                      <div className="hidden md:block absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent" />
 
-                      <div className="relative h-full flex items-center">
-                        <div className="px-3.5 sm:px-8 md:px-12 lg:px-16 max-w-[78%] sm:max-w-lg lg:max-w-xl">
+                      <div className="md:relative md:h-full md:flex md:items-center">
+                        <div className="md:px-12 lg:px-16 md:max-w-lg lg:max-w-xl">
                           {slide.eyebrow && (
                             <div className="inline-flex items-center gap-1.5 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full bg-[#ff914d]/15 border border-[#ff914d]/30 mb-1.5 md:mb-4">
                               <span className="w-1.5 h-1.5 rounded-full bg-[#ff914d] animate-pulse" />
@@ -127,7 +133,7 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
                           )}
                         </div>
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               )
