@@ -30,7 +30,7 @@ export default function PageHero({ image, imageAlt = "", eyebrow, title, subtitl
       {/* Aksen glow oranye */}
       <div className="absolute -top-16 right-1/4 w-72 h-72 rounded-full bg-[#ff914d] opacity-[0.10] blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 py-10 md:py-24">
+      <div className="relative z-10 pt-[88px] pb-10 md:pt-32 md:pb-24">
         <PageTransition>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             {eyebrow && (

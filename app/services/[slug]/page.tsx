@@ -90,7 +90,7 @@ export default async function ServiceDetailPage({ params }: Props) {
       <Header navItems={navItems} />
 
       {/* Hero */}
-      <section className="relative py-7 md:py-20 overflow-hidden bg-black min-h-[220px] md:min-h-[380px] flex items-center">
+      <section className="relative pt-[88px] pb-7 md:pt-32 md:pb-20 overflow-hidden bg-black min-h-[220px] md:min-h-[380px] flex items-center">
         {service.image_url && (
           <>
             {/* Real <img> (not a CSS background) so Google Images can crawl and index it */}

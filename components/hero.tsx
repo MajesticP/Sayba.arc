@@ -38,7 +38,7 @@ export default function Hero({ data }: { data: HeroData }) {
       </div>
 
       <div className="w-full relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-28">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[88px] pb-6 md:pt-32 md:pb-28">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-14 items-center">
 
             {/* Text */}

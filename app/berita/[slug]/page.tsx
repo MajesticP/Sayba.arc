@@ -134,7 +134,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
         <img src={heroImg} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover opacity-40" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/80 to-black/95" />
 
-        <div className="relative z-10 py-10 md:py-20">
+        <div className="relative z-10 pt-[88px] pb-10 md:pt-32 md:pb-20">
           <PageTransition>
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
               <nav className="flex items-center gap-1.5 text-[11px] text-white/40 mb-5" aria-label="Breadcrumb">

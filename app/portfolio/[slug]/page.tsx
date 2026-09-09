@@ -89,7 +89,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
       />
       <Header navItems={navItems} />
 
-      <div className="flex-1">
+      <div className="flex-1 pt-[72px] md:pt-20">
         {/* Breadcrumb */}
         <div className="border-b border-black/6 bg-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">

@@ -28,11 +28,16 @@ export default function Header({ navItems, ctaText, ctaHref }: HeaderProps) {
 
   return (
     <>
-      {/* Spacer agar konten tidak tertutup header yang fixed */}
-      <div className="h-[70px] md:h-[78px]" aria-hidden="true" />
-
-      <header className="fixed inset-x-0 top-0 z-50 pt-2.5 md:pt-3.5 pointer-events-none">
-        <div className="max-w-6xl mx-auto px-3 sm:px-5">
+      {/* Tanpa spacer: header melayang di atas section pertama, sehingga
+          latarnya mengikuti warna/gambar hero di bawahnya. Setiap halaman
+          memberi padding-atas pada section pertamanya agar konten tidak
+          tertutup kapsul ini. */}
+      {/* Jarak atas dipasang di container dalam, bukan di <header>: globals.css
+          punya aturan `header { padding-top: env(safe-area-inset-top) }` tanpa
+          @layer, yang presedennya mengalahkan utility Tailwind. Dengan begini
+          safe-area untuk ponsel berponi tetap jalan dan jarak ini tetap terpakai. */}
+      <header className="fixed inset-x-0 top-0 z-50 pointer-events-none">
+        <div className="max-w-6xl mx-auto px-3 sm:px-5 pt-4 md:pt-6">
           <div
             className={`pointer-events-auto rounded-2xl md:rounded-full border transition-all duration-300 ${
               scrolled
