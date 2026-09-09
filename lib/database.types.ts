@@ -91,6 +91,55 @@ export type Database = {
         }
         Update: Partial<Database["public"]["Tables"]["produk"]["Insert"]>
       }
+      berita: {
+        Row: {
+          id: string
+          title: string
+          slug: string
+          excerpt: string | null
+          category: string              // open string — lihat newsCategories di lib/news-data.ts
+          image_url: string | null
+          author: string
+          body: string | null           // Markdown ringan: "## " = sub-judul, baris kosong = paragraf baru
+          published_at: string          // date (YYYY-MM-DD)
+          read_minutes: number
+          views: number
+          featured: boolean             // true = tampil sebagai kartu Sorotan di /berita
+          tags: string[] | null
+          status: "active" | "draft" | "archived"
+          meta_title: string | null
+          meta_description: string | null
+          meta_keywords: string[] | null
+          og_image: string | null
+          canonical_url: string | null
+          created_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["berita"]["Row"], "id" | "created_at"> & {
+          id?: string
+          created_at?: string
+        }
+        Update: Partial<Database["public"]["Tables"]["berita"]["Insert"]>
+      }
+      promo_banner: {
+        Row: {
+          id: string
+          image_url: string
+          alt: string
+          eyebrow: string | null
+          title: string | null          // kosongkan semua teks jika gambar sudah memuat teksnya sendiri
+          subtitle: string | null
+          cta_text: string | null       // kosong = slide tidak bisa diklik
+          cta_href: string | null
+          sort_order: number
+          status: "active" | "draft"
+          created_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["promo_banner"]["Row"], "id" | "created_at"> & {
+          id?: string
+          created_at?: string
+        }
+        Update: Partial<Database["public"]["Tables"]["promo_banner"]["Insert"]>
+      }
       tim: {
         Row: {
           id: string
@@ -124,3 +173,9 @@ export type LayananInsert = Database["public"]["Tables"]["layanan"]["Insert"]
 
 export type Produk = Database["public"]["Tables"]["produk"]["Row"]
 export type ProdukInsert = Database["public"]["Tables"]["produk"]["Insert"]
+
+export type Berita = Database["public"]["Tables"]["berita"]["Row"]
+export type BeritaInsert = Database["public"]["Tables"]["berita"]["Insert"]
+
+export type PromoBanner = Database["public"]["Tables"]["promo_banner"]["Row"]
+export type PromoBannerInsert = Database["public"]["Tables"]["promo_banner"]["Insert"]

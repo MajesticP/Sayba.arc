@@ -1,20 +1,21 @@
 "use client"
 
 import { useEffect, useState, useCallback, useRef, useId } from "react"
-import type { Portfolio, PortfolioInsert, Layanan, LayananInsert, Produk, PriceTier } from "@/lib/database.types"
+import type { Portfolio, PortfolioInsert, Layanan, LayananInsert, Produk, PriceTier, Berita, PromoBanner } from "@/lib/database.types"
 import { LAYANAN_DEPTS as DEFAULT_DEPTS, type LayananDept, getDept as getDefaultDept } from "@/lib/layanan-config"
 import {
   LayoutGrid, Layers, Settings, Plus, Pencil, Trash2,
   RefreshCw, Search, X, Save, ChevronDown, ExternalLink,
   Map, CheckCircle, AlertCircle, Loader2, Tag, Users, ImageIcon,
-  Menu, Package,
+  Menu, Package, Newspaper, GalleryHorizontalEnd,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { newsCategories, getCategoryLabel, slugifyTitle } from "@/lib/news-data"
 
 // Dept config is now persisted in Supabase via /api/admin/tipe
 
 // ── Types ──────────────────────────────────────────────────────────────────
-type Tab = "portfolio" | "layanan" | "produk" | "tipe" | "tim"
+type Tab = "portfolio" | "layanan" | "produk" | "berita" | "promo" | "tipe" | "tim"
 
 interface TimMember {
   id: string
@@ -79,6 +80,8 @@ function tabIcon(t: Tab, size = 14) {
   if (t === "portfolio") return <LayoutGrid size={size} />
   if (t === "layanan") return <Layers size={size} />
   if (t === "produk") return <Package size={size} />
+  if (t === "berita") return <Newspaper size={size} />
+  if (t === "promo") return <GalleryHorizontalEnd size={size} />
   if (t === "tim") return <Users size={size} />
   return <Settings size={size} />
 }
@@ -86,6 +89,8 @@ function tabLabel(t: Tab) {
   if (t === "portfolio") return "Portofolio"
   if (t === "layanan") return "Layanan"
   if (t === "produk") return "Produk"
+  if (t === "berita") return "Berita"
+  if (t === "promo") return "Banner"
   if (t === "tim") return "Tim"
   return "Tipe"
 }
@@ -118,10 +123,14 @@ export default function AdminDashboard() {
   const [layananData, setLayananData] = useState<Layanan[]>([])
   const [produkData, setProdukData] = useState<Produk[]>([])
   const [timData, setTimData] = useState<TimMember[]>([])
+  const [beritaData, setBeritaData] = useState<Berita[]>([])
+  const [promoData, setPromoData] = useState<PromoBanner[]>([])
   const [loadingP, setLoadingP] = useState(true)
   const [loadingL, setLoadingL] = useState(true)
   const [loadingPr, setLoadingPr] = useState(true)
   const [loadingT, setLoadingT] = useState(true)
+  const [loadingB, setLoadingB] = useState(true)
+  const [loadingPm, setLoadingPm] = useState(true)
 
   const [toasts, setToasts] = useState<Toast[]>([])
   const toastCounter = useRef(0)
@@ -134,6 +143,10 @@ export default function AdminDashboard() {
   const [pdEdit, setPdEdit] = useState<Produk | null>(null)
   const [timModal, setTimModal] = useState(false)
   const [timEdit, setTimEdit] = useState<TimMember | null>(null)
+  const [brModal, setBrModal] = useState(false)
+  const [brEdit, setBrEdit] = useState<Berita | null>(null)
+  const [pmModal, setPmModal] = useState(false)
+  const [pmEdit, setPmEdit] = useState<PromoBanner | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<{ table: Tab; id: string; name: string } | null>(null)
   const deleteRef = useRef<{ table: Tab; id: string; name: string } | null>(null)
 
@@ -175,7 +188,23 @@ export default function AdminDashboard() {
     setLoadingPr(false)
   }, [showToast])
 
-  useEffect(() => { fetchDepts(); fetchPortfolio(); fetchLayanan(); fetchProduk(); fetchTim() }, [fetchDepts, fetchPortfolio, fetchLayanan, fetchProduk, fetchTim])
+  const fetchBerita = useCallback(async () => {
+    setLoadingB(true)
+    const res = await fetch("/api/admin/berita")
+    if (!res.ok) showToast("Gagal memuat berita", "error")
+    else setBeritaData(await res.json())
+    setLoadingB(false)
+  }, [showToast])
+
+  const fetchPromo = useCallback(async () => {
+    setLoadingPm(true)
+    const res = await fetch("/api/admin/promo")
+    if (!res.ok) showToast("Gagal memuat banner", "error")
+    else setPromoData(await res.json())
+    setLoadingPm(false)
+  }, [showToast])
+
+  useEffect(() => { fetchDepts(); fetchPortfolio(); fetchLayanan(); fetchProduk(); fetchTim(); fetchBerita(); fetchPromo() }, [fetchDepts, fetchPortfolio, fetchLayanan, fetchProduk, fetchTim, fetchBerita, fetchPromo])
 
   const filteredPortfolio = portfolioData.filter(p => {
     const matchDept = deptFilter === "semua" || p.dept === deptFilter
@@ -193,6 +222,14 @@ export default function AdminDashboard() {
     const matchDept = deptFilter === "semua" || p.dept === deptFilter
     const matchSearch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.description?.toLowerCase().includes(search.toLowerCase())
     return matchDept && matchSearch
+  })
+
+  const filteredBerita = beritaData.filter(b => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return b.title.toLowerCase().includes(q)
+      || (b.excerpt ?? "").toLowerCase().includes(q)
+      || getCategoryLabel(b.category).toLowerCase().includes(q)
   })
 
   const [deleting, setDeleting] = useState(false)
@@ -213,6 +250,8 @@ export default function AdminDashboard() {
       if (target.table === "portfolio") fetchPortfolio()
       else if (target.table === "layanan") fetchLayanan()
       else if (target.table === "produk") fetchProduk()
+      else if (target.table === "berita") fetchBerita()
+      else if (target.table === "promo") fetchPromo()
       else fetchTim()
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Delete gagal", "error")
@@ -222,17 +261,21 @@ export default function AdminDashboard() {
   const switchTab = (t: Tab) => {
     setTab(t); setDeptFilter("semua"); setSearch(""); setShowSearch(false); setSidebarOpen(false)
     if (t === "tim") fetchTim()
+    else if (t === "berita") fetchBerita()
+    else if (t === "promo") fetchPromo()
   }
 
   const handleAdd = () => {
     if (tab === "portfolio") { setPfEdit(null); setPfModal(true) }
     else if (tab === "layanan") { setLvEdit(null); setLvModal(true) }
     else if (tab === "produk") { setPdEdit(null); setPdModal(true) }
+    else if (tab === "berita") { setBrEdit(null); setBrModal(true) }
+    else if (tab === "promo") { setPmEdit(null); setPmModal(true) }
     else if (tab === "tim") { setTimEdit(null); setTimModal(true) }
     else { setTipeEdit(null); setTipeModal(true) }
   }
 
-  const isLoading = (tab === "portfolio" && loadingP) || (tab === "layanan" && loadingL) || (tab === "produk" && loadingPr) || (tab === "tim" && loadingT)
+  const isLoading = (tab === "portfolio" && loadingP) || (tab === "layanan" && loadingL) || (tab === "produk" && loadingPr) || (tab === "tim" && loadingT) || (tab === "berita" && loadingB) || (tab === "promo" && loadingPm)
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans">
@@ -265,7 +308,7 @@ export default function AdminDashboard() {
         {/* Nav */}
         <nav className="flex-1 py-3 px-2.5 space-y-0.5 overflow-y-auto">
           <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 px-2 mb-2">Menu</p>
-          {(["portfolio", "layanan", "produk", "tim", "tipe"] as Tab[]).map(t => (
+          {(["portfolio", "layanan", "produk", "berita", "promo", "tim", "tipe"] as Tab[]).map(t => (
             <button
               key={t}
               onClick={() => switchTab(t)}
@@ -277,7 +320,7 @@ export default function AdminDashboard() {
               {tabIcon(t, 13)}
               {tabLabel(t)}
               <span className={cn("ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-md", tab === t ? "bg-[#ff914d]/20 text-[#ff914d]" : "bg-white/[0.06] text-white/30")}>
-                {t === "portfolio" ? portfolioData.length : t === "layanan" ? layananData.length : t === "produk" ? produkData.length : t === "tim" ? timData.length : depts.length}
+                {t === "portfolio" ? portfolioData.length : t === "layanan" ? layananData.length : t === "produk" ? produkData.length : t === "berita" ? beritaData.length : t === "promo" ? promoData.length : t === "tim" ? timData.length : depts.length}
               </span>
             </button>
           ))}
@@ -335,7 +378,7 @@ export default function AdminDashboard() {
 
           <h1 className="font-bold text-[14px] flex-1 truncate">{tabLabel(tab)}</h1>
 
-          {(tab === "portfolio" || tab === "layanan" || tab === "produk") && (
+          {(tab === "portfolio" || tab === "layanan" || tab === "produk" || tab === "berita") && (
             <button
               onClick={() => setShowSearch(v => !v)}
               className={cn("p-1.5 rounded-lg transition-all", showSearch ? "text-[#ff914d] bg-[#ff914d]/10" : "text-white/40 hover:text-white/70 hover:bg-white/[0.05]")}
@@ -345,7 +388,7 @@ export default function AdminDashboard() {
           )}
 
           <button
-            onClick={() => { if (tab === "portfolio") fetchPortfolio(); else if (tab === "layanan") fetchLayanan(); else if (tab === "produk") fetchProduk(); else fetchTim() }}
+            onClick={() => { if (tab === "portfolio") fetchPortfolio(); else if (tab === "layanan") fetchLayanan(); else if (tab === "produk") fetchProduk(); else if (tab === "berita") fetchBerita(); else if (tab === "promo") fetchPromo(); else fetchTim() }}
             className="p-1.5 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-all"
           >
             <RefreshCw size={14} className={cn(isLoading ? "animate-spin" : "")} />
@@ -361,7 +404,7 @@ export default function AdminDashboard() {
         </header>
 
         {/* Search bar (expandable) */}
-        {showSearch && (tab === "portfolio" || tab === "layanan" || tab === "produk") && (
+        {showSearch && (tab === "portfolio" || tab === "layanan" || tab === "produk" || tab === "berita") && (
           <div className="bg-[#111] border-b border-white/[0.07] px-3 py-2 flex items-center gap-2">
             <Search size={12} className="text-white/25 flex-shrink-0" />
             <input
@@ -415,10 +458,10 @@ export default function AdminDashboard() {
           <div className="bg-[#111] border border-white/[0.07] rounded-xl overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.07]">
               <p className="font-bold text-[13px] flex-1 truncate">
-                {tab === "portfolio" ? "Daftar Portofolio" : tab === "layanan" ? "Daftar Layanan" : tab === "produk" ? "Daftar Produk" : tab === "tim" ? "Daftar Anggota Tim" : "Kelola Tipe Layanan"}
+                {tab === "portfolio" ? "Daftar Portofolio" : tab === "layanan" ? "Daftar Layanan" : tab === "produk" ? "Daftar Produk" : tab === "berita" ? "Daftar Berita" : tab === "promo" ? "Banner Carousel Beranda" : tab === "tim" ? "Daftar Anggota Tim" : "Kelola Tipe Layanan"}
               </p>
               <span className="text-[10.5px] text-white/25 flex-shrink-0">
-                {tab === "portfolio" ? filteredPortfolio.length : tab === "layanan" ? filteredLayanan.length : tab === "produk" ? filteredProduk.length : tab === "tim" ? timData.length : depts.length} item
+                {tab === "portfolio" ? filteredPortfolio.length : tab === "layanan" ? filteredLayanan.length : tab === "produk" ? filteredProduk.length : tab === "berita" ? filteredBerita.length : tab === "promo" ? promoData.length : tab === "tim" ? timData.length : depts.length} item
               </span>
             </div>
 
@@ -440,6 +483,18 @@ export default function AdminDashboard() {
                 onEdit={p => { setPdEdit(p); setPdModal(true) }}
                 onDelete={p => { const t = { table: "produk" as Tab, id: p.id, name: p.title }; deleteRef.current = t; setDeleteTarget(t) }}
               />
+            ) : tab === "berita" ? (
+              <BeritaTable
+                data={filteredBerita} loading={loadingB}
+                onEdit={b => { setBrEdit(b); setBrModal(true) }}
+                onDelete={b => { const t = { table: "berita" as Tab, id: b.id, name: b.title }; deleteRef.current = t; setDeleteTarget(t) }}
+              />
+            ) : tab === "promo" ? (
+              <PromoTable
+                data={promoData} loading={loadingPm}
+                onEdit={b => { setPmEdit(b); setPmModal(true) }}
+                onDelete={b => { const t = { table: "promo" as Tab, id: b.id, name: b.title || b.alt }; deleteRef.current = t; setDeleteTarget(t) }}
+              />
             ) : tab === "tim" ? (
               <TimTable
                 data={timData} loading={loadingT}
@@ -459,7 +514,7 @@ export default function AdminDashboard() {
 
       {/* ── MOBILE BOTTOM NAV ──────────────────────────────────── */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#111] border-t border-white/[0.07] flex z-30 safe-area-pb">
-        {(["portfolio", "layanan", "produk", "tim", "tipe"] as Tab[]).map(t => (
+        {(["portfolio", "layanan", "produk", "berita", "promo", "tim", "tipe"] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => switchTab(t)}
@@ -468,8 +523,8 @@ export default function AdminDashboard() {
               tab === t ? "text-[#ff914d]" : "text-white/30"
             )}
           >
-            {tabIcon(t, 18)}
-            <span className="text-[9px] font-semibold">{tabLabel(t)}</span>
+            {tabIcon(t, 16)}
+            <span className="text-[8.5px] font-semibold">{tabLabel(t)}</span>
           </button>
         ))}
       </nav>
@@ -486,6 +541,12 @@ export default function AdminDashboard() {
         onError={showToast} />
       <ProdukModal open={pdModal} initial={pdEdit} depts={depts} onClose={() => setPdModal(false)}
         onSaved={() => { setPdModal(false); fetchProduk(); showToast(pdEdit ? "Produk diperbarui" : "Produk ditambahkan") }}
+        onError={showToast} />
+      <BeritaModal open={brModal} initial={brEdit} onClose={() => setBrModal(false)}
+        onSaved={() => { setBrModal(false); fetchBerita(); showToast(brEdit ? "Berita diperbarui" : "Berita ditambahkan") }}
+        onError={showToast} />
+      <PromoModal open={pmModal} initial={pmEdit} nextOrder={promoData.length + 1} onClose={() => setPmModal(false)}
+        onSaved={() => { setPmModal(false); fetchPromo(); showToast(pmEdit ? "Banner diperbarui" : "Banner ditambahkan") }}
         onError={showToast} />
       <TipeModal open={tipeModal} initial={tipeEdit} onClose={() => setTipeModal(false)}
         onSaved={async (dept) => {
@@ -1418,7 +1479,7 @@ async function deleteMediaFile(url: string) {
 }
 
 function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG/PNG/WebP)", onTrackChange }: {
-  value: string; onChange: (v: string) => void; folder: "produk" | "layanan" | "portfolio" | "tim"; label?: string
+  value: string; onChange: (v: string) => void; folder: "produk" | "layanan" | "portfolio" | "tim" | "berita" | "promo"; label?: string
   // Reports (oldUrl, newUrl) whenever the field's value changes, so the
   // parent modal can decide when it's actually safe to delete the old file
   // (only after the record is saved — never on a cancelled edit).
@@ -1810,6 +1871,465 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
           </Field>
           <Field label="Status">
             <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active — tampil" }, { value: "draft", label: "Draft — tersembunyi" }]} />
+          </Field>
+        </div>
+      </div>
+      <ModalFooter>
+        <button onClick={handleClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
+        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all disabled:opacity-50">
+          {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+          {saving ? "Menyimpan…" : "Simpan"}
+        </button>
+      </ModalFooter>
+    </Modal>
+  )
+}
+
+// ── Berita Table ───────────────────────────────────────────────────────────
+function beritaDateLabel(iso: string) {
+  const d = new Date(`${iso.slice(0, 10)}T00:00:00`)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+}
+
+function BeritaTable({ data, loading, onEdit, onDelete }: {
+  data: Berita[]; loading: boolean
+  onEdit: (b: Berita) => void; onDelete: (b: Berita) => void
+}) {
+  if (loading) return <TableLoading />
+  if (!data.length) return <TableEmpty label="berita" />
+  return (
+    <>
+      <div className="hidden lg:block overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-white/[0.05]">
+              {["Judul & Ringkasan", "Kategori", "Slug", "Gambar", "Tanggal", "Status", "Aksi"].map(h => (
+                <th key={h} className="text-left text-[9.5px] font-bold uppercase tracking-widest text-white/20 px-4 py-2.5">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.map(b => (
+              <tr key={b.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1.5">
+                    {b.featured && <span className="text-[8.5px] font-black uppercase tracking-widest text-[#ff914d] bg-[#ff914d]/10 border border-[#ff914d]/25 px-1.5 py-0.5 rounded-md flex-shrink-0">Sorotan</span>}
+                    <p className="text-[13px] font-medium text-white truncate max-w-[260px]">{b.title}</p>
+                  </div>
+                  {b.excerpt && <p className="text-[11px] text-white/30 mt-0.5 max-w-[260px] truncate">{b.excerpt}</p>}
+                </td>
+                <td className="px-4 py-3">
+                  <span className="inline-flex items-center gap-1 text-[10px] text-white/35"><Tag size={8} />{getCategoryLabel(b.category)}</span>
+                </td>
+                <td className="px-4 py-3"><code className="text-[10px] bg-[#181818] text-white/40 px-1.5 py-0.5 rounded-md">/berita/{b.slug}</code></td>
+                <td className="px-4 py-3">
+                  {b.image_url ? (
+                    <div className="w-14 h-10 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] flex-shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={gdriveToImg(b.image_url)} alt={b.title} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
+                    </div>
+                  ) : <span className="text-[10px] text-white/20 italic">—</span>}
+                </td>
+                <td className="px-4 py-3">
+                  <span className="text-[11.5px] text-white/50">{beritaDateLabel(b.published_at)}</span>
+                  <span className="block text-[10px] text-white/25">{b.read_minutes} mnt · {b.views.toLocaleString("id-ID")} dibaca</span>
+                </td>
+                <td className="px-4 py-3"><StatusBadge status={b.status} /></td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <a href={`/berita/${b.slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><ExternalLink size={12} /></a>
+                    <button onClick={() => onEdit(b)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={12} /></button>
+                    <button onClick={() => onDelete(b)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={12} /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="lg:hidden">
+        {data.map(b => (
+          <CardRow key={b.id} actions={<><button onClick={() => onEdit(b)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={13} /></button><button onClick={() => onDelete(b)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={13} /></button></>}>
+            <p className="text-[13px] font-medium text-white truncate">{b.title}</p>
+            {b.excerpt && <p className="text-[11px] text-white/30 mt-0.5 line-clamp-1">{b.excerpt}</p>}
+            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+              {b.featured && <span className="text-[8.5px] font-black uppercase tracking-widest text-[#ff914d] bg-[#ff914d]/10 border border-[#ff914d]/25 px-1.5 py-0.5 rounded-md">Sorotan</span>}
+              <span className="text-[10px] text-white/35">{getCategoryLabel(b.category)}</span>
+              <StatusBadge status={b.status} />
+              <span className="text-[10px] text-white/40">{beritaDateLabel(b.published_at)}</span>
+            </div>
+          </CardRow>
+        ))}
+      </div>
+    </>
+  )
+}
+
+// ── Berita Modal ───────────────────────────────────────────────────────────
+function BeritaModal({ open, initial, onClose, onSaved, onError }: {
+  open: boolean; initial: Berita | null
+  onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
+}) {
+  const today = new Date().toISOString().slice(0, 10)
+  const blank = {
+    title: "", slug: "", excerpt: "", category: newsCategories[0]?.slug ?? "gis", image_url: "",
+    author: "Redaksi SAYBA ARC", body: "", published_at: today, read_minutes: 3, views: 0,
+    featured: false, tags: "", status: "active" as Status,
+    meta_title: "", meta_description: "", meta_keywords: "", og_image: "", canonical_url: "",
+  }
+  const [form, setForm] = useState(blank)
+  const [saving, setSaving] = useState(false)
+  const [slugManual, setSlugManual] = useState(false)
+  const stagedUploads = useRef<Set<string>>(new Set())
+  const replacedUrls = useRef<Set<string>>(new Set())
+  const trackImageChange = (oldUrl: string, newUrl: string) => {
+    if (oldUrl) replacedUrls.current.add(oldUrl)
+    if (newUrl) stagedUploads.current.add(newUrl)
+  }
+
+  useEffect(() => {
+    if (!open) return
+    stagedUploads.current.clear()
+    replacedUrls.current.clear()
+    if (initial) {
+      setForm({
+        title: initial.title, slug: initial.slug, excerpt: initial.excerpt ?? "", category: initial.category,
+        image_url: initial.image_url ?? "", author: initial.author, body: initial.body ?? "",
+        published_at: initial.published_at.slice(0, 10), read_minutes: initial.read_minutes, views: initial.views,
+        featured: initial.featured, tags: (initial.tags ?? []).join("\n"), status: initial.status,
+        meta_title: initial.meta_title ?? "", meta_description: initial.meta_description ?? "",
+        meta_keywords: (initial.meta_keywords ?? []).join("\n"), og_image: initial.og_image ?? "",
+        canonical_url: initial.canonical_url ?? "",
+      })
+      setSlugManual(true)
+    } else { setForm(blank); setSlugManual(false) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initial])
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }))
+  const handleTitle = (v: string) => { set("title", v); if (!slugManual) set("slug", slugifyTitle(v)) }
+
+  const handleClose = () => {
+    stagedUploads.current.forEach(deleteMediaFile)
+    stagedUploads.current.clear()
+    replacedUrls.current.clear()
+    onClose()
+  }
+
+  const handleSubmit = async () => {
+    if (!form.title || !form.slug) { onError("Judul dan slug wajib diisi", "error"); return }
+    setSaving(true)
+    const payload = {
+      title: form.title, slug: form.slug, excerpt: form.excerpt || null, category: form.category,
+      image_url: form.image_url || null, author: form.author || "Redaksi SAYBA ARC", body: form.body || null,
+      published_at: form.published_at || today,
+      read_minutes: Number(form.read_minutes) || 1,
+      views: Number(form.views) || 0,
+      featured: form.featured, status: form.status,
+      tags: form.tags ? form.tags.split("\n").map(s => s.trim()).filter(Boolean) : null,
+      meta_title: form.meta_title || null, meta_description: form.meta_description || null,
+      meta_keywords: form.meta_keywords ? form.meta_keywords.split("\n").map(s => s.trim()).filter(Boolean) : null,
+      og_image: form.og_image || null, canonical_url: form.canonical_url || null,
+    }
+    const res = initial
+      ? await fetch(`/api/admin/berita?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      : await fetch("/api/admin/berita", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+    setSaving(false)
+    if (!res.ok) { onError((await res.json()).error ?? "Save failed", "error"); return }
+    const finalUrls = new Set([payload.image_url, payload.og_image].filter(Boolean) as string[])
+    const toDelete = [...replacedUrls.current, ...stagedUploads.current].filter(u => !finalUrls.has(u))
+    toDelete.forEach(deleteMediaFile)
+    stagedUploads.current.clear()
+    replacedUrls.current.clear()
+    onSaved()
+  }
+
+  return (
+    <Modal open={open} onClose={handleClose} maxW="max-w-2xl">
+      <ModalHeader icon={<Newspaper size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Berita" : "Tulis Berita"} onClose={handleClose} />
+      <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
+        <Field label="Judul Artikel" required>
+          <Input value={form.title} onChange={handleTitle} placeholder="Pemetaan Partisipatif Desa di Kalimantan Barat" />
+        </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Slug / URL" required hint={`URL: /berita/${form.slug || "slug"}`}>
+            <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="pemetaan-partisipatif-desa" />
+          </Field>
+          <Field label="Kategori" required>
+            <Select value={form.category} onChange={v => set("category", v)} options={newsCategories.map(c => ({ value: c.slug, label: c.label }))} />
+          </Field>
+        </div>
+
+        <Field label="Ringkasan" hint="Tampil di kartu daftar berita dan dipakai sebagai meta description bila kosong">
+          <Textarea value={form.excerpt} onChange={v => set("excerpt", v)} placeholder="Bagaimana data lapangan yang dikumpulkan bersama warga desa diubah menjadi basis data spasial…" />
+        </Field>
+
+        <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="berita" label="Gambar Artikel (SVG/PNG/WebP)" />
+
+        <Field
+          label="Isi Artikel"
+          hint='Markdown ringan — awali baris dengan "## " untuk sub-judul, dan pisahkan paragraf dengan satu baris kosong.'
+        >
+          <textarea
+            value={form.body}
+            onChange={e => set("body", e.target.value)}
+            rows={14}
+            placeholder={"Paragraf pembuka artikel Anda di sini.\n\n## Sub-judul pertama\n\nIsi paragraf berikutnya.\n\n## Sub-judul kedua\n\nIsi paragraf lagi."}
+            className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] leading-relaxed text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors resize-y font-mono"
+          />
+        </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Penulis"><Input value={form.author} onChange={v => set("author", v)} placeholder="Tim GIS SAYBA ARC" /></Field>
+          <Field label="Tanggal Terbit">
+            <input type="date" value={form.published_at} onChange={e => set("published_at", e.target.value)}
+              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Waktu Baca (mnt)">
+            <input type="number" min={1} value={form.read_minutes} onChange={e => set("read_minutes", e.target.value)}
+              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+          </Field>
+          <Field label="Jumlah Dibaca">
+            <input type="number" min={0} value={form.views} onChange={e => set("views", e.target.value)}
+              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+          </Field>
+          <Field label="Status">
+            <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} />
+          </Field>
+        </div>
+
+        <Field label="Tag (1 per baris)">
+          <Textarea value={form.tags} onChange={v => set("tags", v)} placeholder={"ArcGIS\nSurvei Lapangan\nTata Ruang"} />
+        </Field>
+
+        <button
+          type="button"
+          onClick={() => set("featured", !form.featured)}
+          className={cn("w-full flex items-start gap-2.5 rounded-xl border p-3 text-left transition-all",
+            form.featured ? "border-[#ff914d]/40 bg-[#ff914d]/[0.07]" : "border-white/[0.08] bg-white/[0.02] hover:border-white/20")}
+        >
+          <span className={cn("mt-0.5 w-4 h-4 rounded-md border flex items-center justify-center flex-shrink-0 transition-all",
+            form.featured ? "bg-[#ff914d] border-[#ff914d]" : "border-white/20")}>
+            {form.featured && <CheckCircle size={11} className="text-white" />}
+          </span>
+          <span>
+            <span className={cn("block text-[12.5px] font-semibold", form.featured ? "text-[#ff914d]" : "text-white/70")}>Jadikan artikel Sorotan</span>
+            <span className="block text-[10.5px] text-white/30 mt-0.5">Tampil sebagai kartu besar di atas halaman /berita. Hanya satu artikel yang bisa jadi Sorotan — menandai ini otomatis melepas tanda dari artikel lain.</span>
+          </span>
+        </button>
+
+        {/* ── SEO & Meta Tag ─────────────────────────── */}
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">SEO & Meta Tag</span>
+            <span className="text-[10px] text-white/25">— untuk targeting pencarian Google</span>
+          </div>
+          <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Judul + SAYBA ARC. Ideal 50–60 karakter.">
+            <Input value={form.meta_title} onChange={v => set("meta_title", v)} placeholder="Pemetaan Partisipatif Desa — SAYBA ARC" />
+          </Field>
+          <Field label="Meta Description" hint="Kosongkan untuk otomatis pakai Ringkasan. Ideal 150–160 karakter.">
+            <Textarea value={form.meta_description} onChange={v => set("meta_description", v)} placeholder="Bagaimana data lapangan bersama warga desa diubah menjadi basis data spasial…" />
+          </Field>
+          <Field label="Meta Keywords (1 per baris)">
+            <Textarea value={form.meta_keywords} onChange={v => set("meta_keywords", v)} placeholder={"pemetaan partisipatif\npeta desa kalimantan\njasa GIS pontianak"} />
+          </Field>
+          <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
+            <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://sayba.id/berita/slug-lain" />
+          </Field>
+          <SvgUploadField value={form.og_image} onChange={v => set("og_image", v)} onTrackChange={trackImageChange} folder="berita" label="OG Image (share sosial media)" />
+        </div>
+      </div>
+      <ModalFooter>
+        <button onClick={handleClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
+        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all disabled:opacity-50">
+          {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+          {saving ? "Menyimpan…" : "Simpan"}
+        </button>
+      </ModalFooter>
+    </Modal>
+  )
+}
+
+// ── Promo Banner Table ─────────────────────────────────────────────────────
+function PromoTable({ data, loading, onEdit, onDelete }: {
+  data: PromoBanner[]; loading: boolean
+  onEdit: (b: PromoBanner) => void; onDelete: (b: PromoBanner) => void
+}) {
+  if (loading) return <TableLoading />
+  if (!data.length) return <TableEmpty label="banner" />
+  return (
+    <>
+      <div className="hidden lg:block overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-white/[0.05]">
+              {["Urutan", "Gambar", "Judul & Subjudul", "Tombol CTA", "Status", "Aksi"].map(h => (
+                <th key={h} className="text-left text-[9.5px] font-bold uppercase tracking-widest text-white/20 px-4 py-2.5">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.map(b => (
+              <tr key={b.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+                <td className="px-4 py-3"><span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-[#181818] border border-white/[0.07] text-[11px] font-bold text-white/50">{b.sort_order}</span></td>
+                <td className="px-4 py-3">
+                  <div className="w-20 h-8 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] flex-shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={gdriveToImg(b.image_url)} alt={b.alt} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  {b.eyebrow && <p className="text-[9.5px] font-bold uppercase tracking-widest text-[#ff914d]">{b.eyebrow}</p>}
+                  <p className="text-[13px] font-medium text-white truncate max-w-[220px]">{b.title || <span className="text-white/25 italic">Tanpa teks (gambar penuh)</span>}</p>
+                  {b.subtitle && <p className="text-[11px] text-white/30 mt-0.5 max-w-[220px] truncate">{b.subtitle}</p>}
+                </td>
+                <td className="px-4 py-3">
+                  {b.cta_text && b.cta_href
+                    ? <><span className="text-[11.5px] text-white/60">{b.cta_text}</span><code className="block text-[10px] text-white/30 mt-0.5">{b.cta_href}</code></>
+                    : <span className="text-[10px] text-white/20 italic">—</span>}
+                </td>
+                <td className="px-4 py-3"><StatusBadge status={b.status} /></td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => onEdit(b)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={12} /></button>
+                    <button onClick={() => onDelete(b)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={12} /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="lg:hidden">
+        {data.map(b => (
+          <CardRow key={b.id} actions={<><button onClick={() => onEdit(b)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={13} /></button><button onClick={() => onDelete(b)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={13} /></button></>}>
+            <p className="text-[13px] font-medium text-white truncate">{b.title || "Tanpa teks (gambar penuh)"}</p>
+            {b.subtitle && <p className="text-[11px] text-white/30 mt-0.5 line-clamp-1">{b.subtitle}</p>}
+            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+              <span className="text-[10px] text-white/40">Urutan {b.sort_order}</span>
+              <StatusBadge status={b.status} />
+            </div>
+          </CardRow>
+        ))}
+      </div>
+    </>
+  )
+}
+
+// ── Promo Banner Modal ─────────────────────────────────────────────────────
+function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
+  open: boolean; initial: PromoBanner | null; nextOrder: number
+  onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
+}) {
+  const blank = {
+    image_url: "", alt: "Banner promosi SAYBA ARC", eyebrow: "", title: "", subtitle: "",
+    cta_text: "", cta_href: "", sort_order: nextOrder, status: "active" as "active" | "draft",
+  }
+  const [form, setForm] = useState(blank)
+  const [saving, setSaving] = useState(false)
+  const stagedUploads = useRef<Set<string>>(new Set())
+  const replacedUrls = useRef<Set<string>>(new Set())
+  const trackImageChange = (oldUrl: string, newUrl: string) => {
+    if (oldUrl) replacedUrls.current.add(oldUrl)
+    if (newUrl) stagedUploads.current.add(newUrl)
+  }
+
+  useEffect(() => {
+    if (!open) return
+    stagedUploads.current.clear()
+    replacedUrls.current.clear()
+    if (initial) {
+      setForm({
+        image_url: initial.image_url, alt: initial.alt, eyebrow: initial.eyebrow ?? "",
+        title: initial.title ?? "", subtitle: initial.subtitle ?? "",
+        cta_text: initial.cta_text ?? "", cta_href: initial.cta_href ?? "",
+        sort_order: initial.sort_order, status: initial.status,
+      })
+    } else { setForm({ ...blank, sort_order: nextOrder }) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initial, nextOrder])
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }))
+
+  const handleClose = () => {
+    stagedUploads.current.forEach(deleteMediaFile)
+    stagedUploads.current.clear()
+    replacedUrls.current.clear()
+    onClose()
+  }
+
+  const handleSubmit = async () => {
+    if (!form.image_url) { onError("Gambar banner wajib diisi", "error"); return }
+    if (form.cta_text && !form.cta_href) { onError("Isi juga Link Tombol, atau kosongkan Teks Tombol", "error"); return }
+    setSaving(true)
+    const payload = {
+      image_url: form.image_url, alt: form.alt || "Banner promosi SAYBA ARC",
+      eyebrow: form.eyebrow || null, title: form.title || null, subtitle: form.subtitle || null,
+      cta_text: form.cta_text || null, cta_href: form.cta_href || null,
+      sort_order: Number(form.sort_order) || 1, status: form.status,
+    }
+    const res = initial
+      ? await fetch(`/api/admin/promo?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      : await fetch("/api/admin/promo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+    setSaving(false)
+    if (!res.ok) { onError((await res.json()).error ?? "Save failed", "error"); return }
+    const toDelete = [...replacedUrls.current, ...stagedUploads.current].filter(u => u !== payload.image_url)
+    toDelete.forEach(deleteMediaFile)
+    stagedUploads.current.clear()
+    replacedUrls.current.clear()
+    onSaved()
+  }
+
+  return (
+    <Modal open={open} onClose={handleClose} maxW="max-w-lg">
+      <ModalHeader icon={<GalleryHorizontalEnd size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Banner" : "Tambah Banner"} onClose={handleClose} />
+      <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
+        <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="promo" label="Gambar Banner (SVG/PNG/WebP)" />
+        <p className="text-[10.5px] text-white/30 -mt-1.5 leading-relaxed">
+          Rasio ideal <span className="text-white/50">1600 × 600 px</span>. Sisi kiri banner tertutup gradient gelap untuk teks — letakkan visual utama di sisi kanan.
+        </p>
+
+        <Field label="Teks Alternatif (alt)" hint="Deskripsi gambar untuk pembaca layar dan SEO">
+          <Input value={form.alt} onChange={v => set("alt", v)} placeholder="Promo layanan GIS & pemetaan SAYBA ARC" />
+        </Field>
+
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Teks di atas gambar</span>
+          </div>
+          <p className="text-[10.5px] text-white/30 leading-relaxed">
+            Kosongkan ketiganya kalau gambar Anda sudah memuat teksnya sendiri — overlay teks otomatis hilang dan gambar tampil penuh.
+          </p>
+          <Field label="Label Kecil (eyebrow)"><Input value={form.eyebrow} onChange={v => set("eyebrow", v)} placeholder="GIS & Pemetaan" /></Field>
+          <Field label="Judul"><Input value={form.title} onChange={v => set("title", v)} placeholder="Pemetaan & Analisis Spasial" /></Field>
+          <Field label="Subjudul" hint="Disembunyikan otomatis di layar ponsel">
+            <Textarea value={form.subtitle} onChange={v => set("subtitle", v)} placeholder="Survei, pengolahan data spasial, sampai peta siap cetak — dikerjakan satu tim." />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Teks Tombol" hint="Kosongkan agar banner tidak bisa diklik">
+            <Input value={form.cta_text} onChange={v => set("cta_text", v)} placeholder="Lihat Layanan" />
+          </Field>
+          <Field label="Link Tombol" hint="Contoh: /services">
+            <Input value={form.cta_href} onChange={v => set("cta_href", v)} placeholder="/services" />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Urutan Tampil" hint="Angka kecil tampil lebih dulu">
+            <input type="number" min={1} value={form.sort_order} onChange={e => set("sort_order", e.target.value)}
+              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+          </Field>
+          <Field label="Status">
+            <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }]} />
           </Field>
         </div>
       </div>

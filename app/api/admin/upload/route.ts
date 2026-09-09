@@ -9,9 +9,9 @@ import { requireAdmin } from "@/lib/admin-auth"
 const MAX_INPUT_SIZE = 4 * 1024 * 1024 // 4 MB
 // What we try to compress the final file down to before storing.
 const TARGET_SIZE = 50 * 1024 // 50 KB
-const ALLOWED_FOLDERS = ["produk", "layanan", "portfolio", "tim"]
+const ALLOWED_FOLDERS = ["produk", "layanan", "portfolio", "tim", "berita", "promo"]
 // path = "<folder>/<sha256-of-contents>.<ext>" — matches what POST generates below.
-const MEDIA_PATH_RE = /^(produk|layanan|portfolio|tim)\/[a-f0-9]{64}\.(svg|png|webp)$/
+const MEDIA_PATH_RE = /^(produk|layanan|portfolio|tim|berita|promo)\/[a-f0-9]{64}\.(svg|png|webp)$/
 
 type ImgKind = "svg" | "png" | "webp"
 

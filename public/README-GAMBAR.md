@@ -1,12 +1,26 @@
 # Gambar Placeholder — SAYBA ARC
 
 File di folder `banners/`, `promo/`, dan `berita/` adalah **placeholder** bergaya tema situs
-(hitam + oranye `#ff914d`). Ganti isinya dengan gambar asli, **pertahankan nama file dan
-ukurannya** agar tidak perlu mengubah kode sama sekali.
+(hitam + oranye `#ff914d`).
 
 > Logo (`logo.png`, `Sayba Arc.png`, dll.) di root `public/` bukan placeholder — jangan diganti.
 
+## Mana yang diganti lewat Admin, mana yang diganti lewat file
+
+| Gambar | Cara mengganti |
+|---|---|
+| Banner carousel beranda | **Admin Dashboard → Banner** (upload langsung) |
+| Gambar artikel berita | **Admin Dashboard → Berita** (upload langsung) |
+| Hero banner tiap halaman | **Timpa file** di `banners/` (belum ada tab admin) |
+
+Gambar yang diunggah lewat admin disimpan di Supabase Storage, bukan di folder ini. File di
+`promo/` dan `berita/` hanya dipakai sebagai isi awal (seed) saat migrasi dijalankan pertama kali.
+
+---
+
 ## `/banners` — Hero banner tiap halaman (1920 × 600 px)
+
+Diganti dengan **menimpa file**, pertahankan nama filenya.
 
 | File | Dipakai di |
 |---|---|
@@ -24,29 +38,24 @@ Bagian tengah tertutup judul — letakkan objek utama di sisi kiri atau kanan.
 
 ## `/promo` — Banner carousel beranda (1600 × 600 px)
 
-| File | Slide |
-|---|---|
-| `promo-1-1600x600.png` | GIS & Pemetaan |
-| `promo-2-1600x600.png` | Web & Aplikasi |
-| `promo-3-1600x600.png` | Dokumen Siap Pakai |
+Sekarang dikelola dari **Admin Dashboard → Banner**: upload gambar, atur judul, subjudul,
+tombol CTA, urutan, dan status aktif/draft. File di folder ini hanya isi awal.
 
-Teks slide diatur di `lib/data.ts` → `promoBanners`. Kalau gambar Anda sudah memuat teks
-sendiri (seperti banner NexShop), kosongkan `eyebrow`, `title`, dan `subtitle` — overlay teks
-otomatis hilang dan gambar tampil penuh.
+Kalau gambar Anda sudah memuat teks sendiri (seperti banner NexShop), kosongkan kolom
+Label Kecil, Judul, dan Subjudul di admin — overlay teks otomatis hilang dan gambar tampil penuh.
 
 Sisi **kiri** banner tertutup gradient gelap untuk teks. Taruh visual utama di sisi kanan.
 
 ## `/berita` — Gambar artikel
+
+Sekarang dikelola dari **Admin Dashboard → Berita**. File di folder ini hanya isi awal.
 
 | File | Ukuran | Dipakai untuk |
 |---|---|---|
 | `berita-featured-1200x675.png` | 1200 × 675 | artikel sorotan (rasio 16:9) |
 | `berita-1-800x500.png` … `berita-6-800x500.png` | 800 × 500 | kartu artikel (rasio 8:5) |
 
-Pemetaan gambar ke artikel diatur di `lib/news-data.ts` pada field `image`.
+## Catatan upload di admin
 
-## Menambah gambar baru
-
-1. Simpan file di salah satu folder di atas.
-2. Rujuk dengan path absolut dari root, contoh: `/berita/berita-7-800x500.png`.
-3. Format bebas (`.png`, `.jpg`, `.webp`) — cukup sesuaikan nama di kode.
+Format yang diterima: **SVG, PNG, WebP** — maksimal 4MB, otomatis dikompres ke sekitar 50KB.
+JPG tidak diterima; ubah dulu ke PNG atau WebP sebelum diunggah.

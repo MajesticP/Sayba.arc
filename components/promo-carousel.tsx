@@ -2,22 +2,24 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
-
-export interface PromoSlide {
-  id: string
-  /** Path di bawah /public — ganti file, pertahankan nama, slide ikut berubah */
-  image: string
-  alt: string
-  eyebrow?: string
-  title?: string
-  subtitle?: string
-  cta?: { text: string; href: string }
-}
+import type { PromoBanner } from "@/lib/database.types"
 
 interface PromoCarouselProps {
-  slides: PromoSlide[]
+  /** Baris tabel `promo_banner` — dikelola lewat Admin Dashboard */
+  slides: PromoBanner[]
   /** Jeda geser otomatis (ms) */
   interval?: number
+}
+
+/** Link Google Drive → proxy gambar lokal, sama seperti layanan/produk */
+function gdriveToImg(url: string): string {
+  if (!url) return url
+  if (url.startsWith("/api/gdrive-img")) return url
+  const fileMatch = url.match(/\/d\/([\w-]+)/)
+  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
+  const idMatch = url.match(/[?&]id=([\w-]+)/)
+  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
+  return url
 }
 
 export default function PromoCarousel({ slides, interval = 3000 }: PromoCarouselProps) {
@@ -75,11 +77,12 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
           >
             {slides.map((slide) => {
               const hasCopy = Boolean(slide.title || slide.eyebrow || slide.subtitle)
+              const cta = slide.cta_text && slide.cta_href ? { text: slide.cta_text, href: slide.cta_href } : null
               const body = (
                 <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] lg:aspect-[64/21]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={slide.image}
+                    src={gdriveToImg(slide.image_url)}
                     alt={slide.alt}
                     className="absolute inset-0 w-full h-full object-cover"
                     loading="lazy"
@@ -114,9 +117,9 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
                             </p>
                           )}
 
-                          {slide.cta && (
+                          {cta && (
                             <span className="mt-2.5 md:mt-6 inline-flex items-center gap-1.5 px-3.5 py-1.5 md:px-5 md:py-2.5 rounded-full bg-[#ff914d] text-white text-[11px] md:text-sm font-semibold shadow-lg shadow-orange-500/20 transition-transform duration-200 group-hover:scale-[1.03]">
-                              {slide.cta.text}
+                              {cta.text}
                               <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                               </svg>
@@ -131,8 +134,8 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
 
               return (
                 <div key={slide.id} className="w-full shrink-0">
-                  {slide.cta ? (
-                    <Link href={slide.cta.href} className="block" aria-label={slide.title ?? slide.alt}>
+                  {cta ? (
+                    <Link href={cta.href} className="block" aria-label={slide.title ?? slide.alt}>
                       {body}
                     </Link>
                   ) : (

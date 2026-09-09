@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { siteConfig, hero, features, about, cta, navItems, footerLinks, socialLinks, promoBanners } from "@/lib/data"
+import { siteConfig, hero, features, about, cta, navItems, footerLinks, socialLinks } from "@/lib/data"
 import Header from "@/components/header"
 import Hero from "@/components/hero"
 import PromoCarousel from "@/components/promo-carousel"
@@ -10,7 +10,7 @@ import CTA from "@/components/cta"
 import Footer from "@/components/footer"
 import { supabase } from "@/lib/supabase"
 import { supabaseAdmin } from "@/lib/supabase-admin"
-import type { Layanan } from "@/lib/database.types"
+import type { Layanan, PromoBanner } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
 import { LAYANAN_DEPTS } from "@/lib/layanan-config"
 import { generateOrganizationSchema, generateLocalBusinessSchema } from "@/lib/structured-data"
@@ -46,6 +46,14 @@ export default async function Home() {
   const depts: LayananDept[] = deptsData && deptsData.length > 0
     ? deptsData.map((r: any) => ({ value: r.value, label: r.label, description: r.description ?? "", badgeClass: r.badge_class, color: r.color, subCategories: r.sub_categories ?? [] }))
     : LAYANAN_DEPTS
+
+  const { data: promoData } = await supabase
+    .from("promo_banner")
+    .select("*")
+    .eq("status", "active")
+    .order("sort_order", { ascending: true })
+
+  const promoBanners: PromoBanner[] = promoData ?? []
 
   const organizationSchema = generateOrganizationSchema()
   const localBusinessSchema = generateLocalBusinessSchema()

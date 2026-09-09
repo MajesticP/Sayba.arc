@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next"
 import { siteConfig } from "@/lib/data"
 import { supabase } from "@/lib/supabase"
-import { newsArticles } from "@/lib/news-data"
 
 // Always fetch fresh from the database — a cached sitemap would keep
 // pointing at stale slugs/images after admins add or edit records.
@@ -22,10 +21,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/contact`, lastModified: now, changeFrequency: "yearly" as const, priority: 0.7 },
   ]
 
-  const [{ data: layananItems }, { data: produkItems }, { data: portfolioItems }] = await Promise.all([
+  const [{ data: layananItems }, { data: produkItems }, { data: portfolioItems }, { data: beritaItems }] = await Promise.all([
     supabase.from("layanan").select("slug, created_at, image_url, og_image").eq("status", "active"),
     supabase.from("produk").select("slug, created_at, image_url, og_image").eq("status", "active"),
     supabase.from("portfolio").select("slug, created_at, image_url, og_image").eq("status", "active"),
+    supabase.from("berita").select("slug, published_at, image_url, og_image").eq("status", "active"),
   ])
 
   type ItemRow = { slug: string; created_at: string; image_url: string | null; og_image: string | null }
@@ -42,13 +42,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     })
 
-  const newsPages = newsArticles.map((a) => ({
-    url: `${base}/berita/${a.slug}`,
-    lastModified: new Date(a.date),
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-    images: [`${base}${a.image}`],
-  }))
+  type BeritaRow = { slug: string; published_at: string; image_url: string | null; og_image: string | null }
+
+  const newsPages = ((beritaItems ?? []) as BeritaRow[]).map((a) => {
+    const images = [...new Set([a.image_url, a.og_image].filter((u): u is string => !!u))]
+      .map((u) => (u.startsWith("http") ? u : `${base}${u}`))
+    return {
+      url: `${base}/berita/${a.slug}`,
+      lastModified: new Date(a.published_at),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      ...(images.length > 0 ? { images } : {}),
+    }
+  })
 
   return [
     ...staticPages,

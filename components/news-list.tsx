@@ -2,30 +2,38 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import {
-  formatNewsDate,
-  getCategoryColor,
-  getCategoryLabel,
-  newsCategories,
-  type NewsArticle,
-} from "@/lib/news-data"
+import type { Berita } from "@/lib/database.types"
+import { formatNewsDate, getCategoryColor, getCategoryLabel, newsCategories } from "@/lib/news-data"
 
 interface NewsListProps {
-  articles: NewsArticle[]
-  featured: NewsArticle
+  articles: Berita[]
+  featured: Berita | null
 }
 
-function MetaRow({ article, tone = "dark" }: { article: NewsArticle; tone?: "dark" | "light" }) {
+const FALLBACK_IMG = "/berita/berita-1-800x500.png"
+
+/** Link Google Drive → proxy gambar lokal, sama seperti layanan/produk */
+function gdriveToImg(url: string | null): string {
+  if (!url) return FALLBACK_IMG
+  if (url.startsWith("/api/gdrive-img")) return url
+  const fileMatch = url.match(/\/d\/([\w-]+)/)
+  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
+  const idMatch = url.match(/[?&]id=([\w-]+)/)
+  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
+  return url
+}
+
+function MetaRow({ article, tone = "dark" }: { article: Berita; tone?: "dark" | "light" }) {
   const muted = tone === "dark" ? "text-white/45" : "text-black/40"
   return (
     <div className={`flex items-center flex-wrap gap-x-2.5 gap-y-1 text-[11px] ${muted}`}>
-      <span>{formatNewsDate(article.date)}</span>
+      <span>{formatNewsDate(article.published_at)}</span>
       <span aria-hidden="true">·</span>
       <span className="inline-flex items-center gap-1">
         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        {article.readMinutes} mnt
+        {article.read_minutes} mnt
       </span>
       <span aria-hidden="true">·</span>
       <span className="inline-flex items-center gap-1">
@@ -46,7 +54,7 @@ export default function NewsList({ articles, featured }: NewsListProps) {
   // Hanya tampilkan kategori yang benar-benar punya artikel
   const availableCategories = useMemo(() => {
     const used = new Set(articles.map((a) => a.category))
-    return newsCategories.filter((c) => c.slug === "semua" || used.has(c.slug))
+    return [{ slug: "semua", label: "Semua", color: "#ff914d" }, ...newsCategories.filter((c) => used.has(c.slug))]
   }, [articles])
 
   const filtered = useMemo(() => {
@@ -56,63 +64,77 @@ export default function NewsList({ articles, featured }: NewsListProps) {
       if (!q) return true
       return (
         a.title.toLowerCase().includes(q) ||
-        a.excerpt.toLowerCase().includes(q) ||
+        (a.excerpt ?? "").toLowerCase().includes(q) ||
         (a.tags ?? []).some((t) => t.toLowerCase().includes(q))
       )
     })
   }, [articles, active, query])
 
+  if (!articles.length) {
+    return (
+      <section className="bg-white py-20 flex-1">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-black/40 text-[13px]">Belum ada artikel yang dipublikasikan.</p>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <>
       {/* ── Sorotan ───────────────────────────────────────────── */}
-      <section className="bg-white pt-8 md:pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link
-            href={`/berita/${featured.slug}`}
-            className="group grid grid-cols-1 lg:grid-cols-2 items-stretch justify-items-stretch rounded-xl md:rounded-3xl overflow-hidden border border-black/10 bg-black transition-all duration-300 hover:shadow-2xl hover:-translate-y-0.5"
-          >
-            <div className="relative w-full aspect-[16/10] lg:aspect-auto lg:min-h-[360px] overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={featured.image}
-                alt={featured.title}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-black/70" />
-              <span
-                className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-white shadow-lg"
-                style={{ backgroundColor: getCategoryColor(featured.category) }}
-              >
-                {getCategoryLabel(featured.category)}
-              </span>
-            </div>
-
-            <div className="flex flex-col justify-center p-5 md:p-10">
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#ff914d] mb-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#ff914d] animate-pulse" />
-                Sorotan
-              </span>
-              <h2 className="text-[19px] md:text-3xl font-black text-white leading-snug mb-2.5 group-hover:text-[#ff914d] transition-colors duration-200">
-                {featured.title}
-              </h2>
-              <p className="text-white/50 text-[13px] md:text-base leading-relaxed mb-4 line-clamp-4">{featured.excerpt}</p>
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-7 h-7 rounded-full bg-[#ff914d]/20 border border-[#ff914d]/30 flex items-center justify-center text-[#ff914d] text-[11px] font-black">
-                  {featured.author.charAt(0)}
-                </div>
-                <span className="text-white/60 text-[13px] font-medium">{featured.author}</span>
+      {featured && (
+        <section className="bg-white pt-8 md:pt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Link
+              href={`/berita/${featured.slug}`}
+              className="group grid grid-cols-1 lg:grid-cols-2 items-stretch justify-items-stretch rounded-xl md:rounded-3xl overflow-hidden border border-black/10 bg-black transition-all duration-300 hover:shadow-2xl hover:-translate-y-0.5"
+            >
+              <div className="relative w-full aspect-[16/10] lg:aspect-auto lg:min-h-[360px] overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={gdriveToImg(featured.image_url)}
+                  alt={featured.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-black/70" />
+                <span
+                  className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-white shadow-lg"
+                  style={{ backgroundColor: getCategoryColor(featured.category) }}
+                >
+                  {getCategoryLabel(featured.category)}
+                </span>
               </div>
-              <MetaRow article={featured} />
-              <span className="mt-5 inline-flex items-center gap-1.5 text-[13px] font-bold text-[#ff914d]">
-                Baca selengkapnya
-                <svg className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                </svg>
-              </span>
-            </div>
-          </Link>
-        </div>
-      </section>
+
+              <div className="flex flex-col justify-center p-5 md:p-10">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#ff914d] mb-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ff914d] animate-pulse" />
+                  Sorotan
+                </span>
+                <h2 className="text-[19px] md:text-3xl font-black text-white leading-snug mb-2.5 group-hover:text-[#ff914d] transition-colors duration-200">
+                  {featured.title}
+                </h2>
+                {featured.excerpt && (
+                  <p className="text-white/50 text-[13px] md:text-base leading-relaxed mb-4 line-clamp-4">{featured.excerpt}</p>
+                )}
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="w-7 h-7 rounded-full bg-[#ff914d]/20 border border-[#ff914d]/30 flex items-center justify-center text-[#ff914d] text-[11px] font-black">
+                    {featured.author.charAt(0)}
+                  </div>
+                  <span className="text-white/60 text-[13px] font-medium">{featured.author}</span>
+                </div>
+                <MetaRow article={featured} />
+                <span className="mt-5 inline-flex items-center gap-1.5 text-[13px] font-bold text-[#ff914d]">
+                  Baca selengkapnya
+                  <svg className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </div>
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* ── Filter + daftar ───────────────────────────────────── */}
       <section className="bg-white py-8 md:py-16 flex-1">
@@ -180,14 +202,14 @@ export default function NewsList({ articles, featured }: NewsListProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {filtered.map((article) => (
                 <Link
-                  key={article.slug}
+                  key={article.id}
                   href={`/berita/${article.slug}`}
                   className="group flex flex-col items-stretch justify-start rounded-xl md:rounded-2xl overflow-hidden border border-black/10 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
                 >
                   <div className="relative w-full aspect-[8/5] overflow-hidden bg-black/5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={article.image}
+                      src={gdriveToImg(article.image_url)}
                       alt={article.title}
                       loading="lazy"
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -205,7 +227,9 @@ export default function NewsList({ articles, featured }: NewsListProps) {
                     <h3 className="text-[15px] font-black text-black leading-snug mb-1.5 line-clamp-2 group-hover:text-[#ff914d] transition-colors duration-200">
                       {article.title}
                     </h3>
-                    <p className="text-black/45 text-[13px] leading-relaxed line-clamp-3 flex-1">{article.excerpt}</p>
+                    {article.excerpt && (
+                      <p className="text-black/45 text-[13px] leading-relaxed line-clamp-3 flex-1">{article.excerpt}</p>
+                    )}
                     <div className="mt-3 pt-2.5 border-t border-black/8">
                       <MetaRow article={article} tone="light" />
                     </div>
