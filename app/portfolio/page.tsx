@@ -3,6 +3,7 @@ import Link from "next/link"
 import { siteConfig, navItems, footerLinks, socialLinks } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
+import PageHero from "@/components/page-hero"
 import PageTransition from "@/components/page-transition"
 import { supabase } from "@/lib/supabase"
 import type { Portfolio } from "@/lib/database.types"
@@ -55,17 +56,12 @@ export default async function PortfolioPage() {
       <Header navItems={navItems} />
 
       {/* Hero */}
-      <section className="bg-black py-8 md:py-20">
-        <PageTransition>
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <span className="inline-block text-[10px] font-bold text-[#ff914d] uppercase tracking-widest mb-2">Karya Kami</span>
-            <h1 className="text-[22px] md:text-5xl font-bold text-white mb-2">Portofolio</h1>
-            <p className="text-white/45 text-[13px] md:text-lg max-w-xl mx-auto">
-              Hasil kerja nyata dari berbagai proyek yang telah kami selesaikan untuk klien.
-            </p>
-          </div>
-        </PageTransition>
-      </section>
+      <PageHero
+        image="/banners/portfolio-1920x600.png"
+        eyebrow="Karya Kami"
+        title="Portofolio"
+        subtitle="Hasil kerja nyata dari berbagai proyek yang telah kami selesaikan untuk klien."
+      />
 
       {/* Grid */}
       <section className="py-6 md:py-20 bg-white flex-1">

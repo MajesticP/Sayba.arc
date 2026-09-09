@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { siteConfig, navItems, footerLinks, socialLinks } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
+import PageHero from "@/components/page-hero"
 import { supabase } from "@/lib/supabase"
 import { supabaseAdmin } from "@/lib/supabase-admin"
 import type { Produk } from "@/lib/database.types"
@@ -42,15 +43,12 @@ export default async function ProductsPage() {
       <Header navItems={navItems} />
 
       {/* Hero */}
-      <section className="bg-black py-8 md:py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="inline-block text-[10px] font-bold text-[#ff914d] uppercase tracking-widest mb-2">Dokumen Siap Pakai</span>
-          <h1 className="text-[22px] md:text-5xl font-bold text-white mb-2">Produk Kami</h1>
-          <p className="text-white/45 text-[13px] md:text-lg max-w-2xl mx-auto">
-            Dokumen, template, dan deliverable siap pakai yang bisa langsung Anda gunakan — tanpa menunggu proses pengerjaan kustom.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        image="/banners/products-1920x600.png"
+        eyebrow="Dokumen Siap Pakai"
+        title="Produk Kami"
+        subtitle="Dokumen, template, dan deliverable siap pakai yang bisa langsung Anda gunakan — tanpa menunggu proses pengerjaan kustom."
+      />
 
       <ProductsClient allProduk={allProduk} allDepts={depts} />
 

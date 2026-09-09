@@ -3,6 +3,7 @@ import Link from "next/link"
 import { siteConfig, aboutPage, navItems, footerLinks, socialLinks } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
+import PageHero from "@/components/page-hero"
 import PageTransition from "@/components/page-transition"
 import TeamSection, { type TimMember } from "@/components/team-section"
 
@@ -39,15 +40,12 @@ export default async function AboutPage() {
       <Header navItems={navItems} />
 
       {/* Hero */}
-      <section className="bg-black py-8 md:py-20">
-        <PageTransition>
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <span className="inline-block text-[10px] font-bold text-[#ff914d] uppercase tracking-widest mb-1.5">Siapa Kami</span>
-            <h1 className="text-[22px] md:text-5xl font-bold text-white mb-2">{aboutPage.hero.title}</h1>
-            <p className="text-white/45 text-[13px] md:text-lg">{aboutPage.hero.subtitle}</p>
-          </div>
-        </PageTransition>
-      </section>
+      <PageHero
+        image="/banners/about-1920x600.png"
+        eyebrow="Siapa Kami"
+        title={aboutPage.hero.title}
+        subtitle={aboutPage.hero.subtitle}
+      />
 
       {/* Misi & Visi */}
       <section className="py-6 md:py-20 bg-white">

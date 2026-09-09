@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 import { siteConfig } from "@/lib/data"
 import { supabase } from "@/lib/supabase"
+import { newsArticles } from "@/lib/news-data"
 
 // Always fetch fresh from the database — a cached sitemap would keep
 // pointing at stale slugs/images after admins add or edit records.
@@ -17,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/services`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.9 },
     { url: `${base}/products`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.9 },
     { url: `${base}/portfolio`, lastModified: now, changeFrequency: "monthly" as const, priority: 0.8 },
+    { url: `${base}/berita`, lastModified: now, changeFrequency: "daily" as const, priority: 0.8 },
     { url: `${base}/contact`, lastModified: now, changeFrequency: "yearly" as const, priority: 0.7 },
   ]
 
@@ -40,8 +42,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     })
 
+  const newsPages = newsArticles.map((a) => ({
+    url: `${base}/berita/${a.slug}`,
+    lastModified: new Date(a.date),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+    images: [`${base}${a.image}`],
+  }))
+
   return [
     ...staticPages,
+    ...newsPages,
     ...toPages(layananItems, "services", 0.7),
     ...toPages(produkItems, "products", 0.7),
     ...toPages(portfolioItems, "portfolio", 0.6),

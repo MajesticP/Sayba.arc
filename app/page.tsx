@@ -1,7 +1,8 @@
 import type { Metadata } from "next"
-import { siteConfig, hero, features, about, cta, navItems, footerLinks, socialLinks } from "@/lib/data"
+import { siteConfig, hero, features, about, cta, navItems, footerLinks, socialLinks, promoBanners } from "@/lib/data"
 import Header from "@/components/header"
 import Hero from "@/components/hero"
+import PromoCarousel from "@/components/promo-carousel"
 import Services from "@/components/services"
 import Features from "@/components/features"
 import About from "@/components/about"
@@ -61,6 +62,7 @@ export default async function Home() {
       />
       <Header navItems={navItems} />
       <Hero data={hero} />
+      <PromoCarousel slides={promoBanners} interval={3000} />
       <Services allLayanan={allLayanan} depts={depts} />
       <Features
         title="Mengapa Memilih SAYBA ARC"

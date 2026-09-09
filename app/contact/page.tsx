@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { siteConfig, contactPage, navItems, footerLinks, socialLinks } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
+import PageHero from "@/components/page-hero"
 import PageTransition from "@/components/page-transition"
 import { DynamicIcon } from "@/lib/dynamic-icon"
 
@@ -17,15 +18,12 @@ export default function ContactPage() {
       <Header navItems={navItems} />
 
       {/* Hero */}
-      <section className="bg-black py-8 md:py-20">
-        <PageTransition>
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <span className="inline-block text-[10px] font-bold text-[#ff914d] uppercase tracking-widest mb-1.5">Ayo Bicara</span>
-            <h1 className="text-[22px] md:text-5xl font-bold text-white mb-2">{contactPage.title}</h1>
-            <p className="text-white/45 text-[13px] md:text-lg max-w-xl mx-auto">{contactPage.subtitle}</p>
-          </div>
-        </PageTransition>
-      </section>
+      <PageHero
+        image="/banners/contact-1920x600.png"
+        eyebrow="Ayo Bicara"
+        title={contactPage.title}
+        subtitle={contactPage.subtitle}
+      />
 
       <section className="py-6 md:py-20 bg-white flex-1">
         <PageTransition delay={100}>
