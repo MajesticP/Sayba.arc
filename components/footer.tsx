@@ -21,10 +21,10 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
   return (
     <footer className="bg-black text-white/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-10 mb-5 md:mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-6 md:gap-10 mb-5 md:mb-12">
 
           {/* Brand */}
-          <div className="col-span-2">
+          <div className="col-span-2 order-1">
             <div className="flex items-center gap-2 mb-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo-256.png" alt={siteConfig.name} width={32} height={32} loading="lazy" decoding="async" className="w-8 h-8 rounded-md object-contain opacity-90" />
@@ -38,13 +38,16 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
             </div>
           </div>
 
-          {/* Nav */}
-          <div>
+          {/* Nav — di ponsel setiap blok melebar penuh dan dipisah garis tipis
+              supaya tidak berdesakan dua kolom bersebelahan. Urutan tampil di
+              ponsel: Brand, Navigasi, Legalitas, Kontak. Kelas order-* memulihkan
+              urutan desktop (Kontak sebelum Legalitas) tanpa mengubah urutan DOM. */}
+          <div className="col-span-2 md:col-span-1 order-2 border-t border-white/[0.06] pt-5 md:border-t-0 md:pt-0">
             <h4 className="text-white font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Navigasi</h4>
             {/* Dua kolom supaya daftarnya tidak memanjang ke bawah. Pembagiannya
                 dihitung dari jumlah tautan, jadi tetap seimbang kalau menu
                 ditambah atau dikurangi di lib/data.ts. */}
-            <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-2 md:gap-y-1.5">
               {footerLinks.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-[12px] hover:text-[#ff914d] transition-colors duration-200">{link.label}</Link>
@@ -53,31 +56,8 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
             </ul>
           </div>
 
-          {/* Contact */}
-          <div>
-            <h4 className="text-white font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Kontak</h4>
-            <div className="space-y-1.5 mb-3">
-              <a href={`mailto:${siteConfig.email}`} className="inline-flex items-center gap-1.5 text-[12px] hover:text-[#ff914d] transition-colors break-all">
-                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                {siteConfig.email}
-              </a>
-              <p className="flex items-center gap-1.5 text-[12px]">
-                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                {siteConfig.phone}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              {socialLinks.map((social) => (
-                <a key={social.name} href={social.href} target="_blank" rel="noopener noreferrer" title={social.name}
-                  className="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-white/5 border border-white/[0.08] hover:bg-[#ff914d]/20 hover:border-[#ff914d]/40 hover:text-[#ff914d] transition-all duration-200">
-                  <SocialIcon icon={social.icon} className="w-3.5 h-3.5" />
-                </a>
-              ))}
-            </div>
-          </div>
-
           {/* Legalitas */}
-          <div className="col-span-2 md:col-span-1">
+          <div className="col-span-2 md:col-span-1 order-3 md:order-4 border-t border-white/[0.06] pt-5 md:border-t-0 md:pt-0">
             <h4 className="text-white font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Legalitas</h4>
 
             <p className="text-[12px] text-white/70 font-semibold">
@@ -120,6 +100,29 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
                 className="w-[18px] h-[18px] rounded object-contain flex-shrink-0"
               />
               <span className="text-[10.5px] text-white/45 leading-tight">{legalitas.ossLabel}</span>
+            </div>
+          </div>
+
+          {/* Contact */}
+          <div className="col-span-2 md:col-span-1 order-4 md:order-3 border-t border-white/[0.06] pt-5 md:border-t-0 md:pt-0">
+            <h4 className="text-white font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Kontak</h4>
+            <div className="space-y-1.5 mb-3">
+              <a href={`mailto:${siteConfig.email}`} className="inline-flex items-center gap-1.5 text-[12px] hover:text-[#ff914d] transition-colors break-all">
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                {siteConfig.email}
+              </a>
+              <p className="flex items-center gap-1.5 text-[12px]">
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                {siteConfig.phone}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              {socialLinks.map((social) => (
+                <a key={social.name} href={social.href} target="_blank" rel="noopener noreferrer" title={social.name}
+                  className="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-white/5 border border-white/[0.08] hover:bg-[#ff914d]/20 hover:border-[#ff914d]/40 hover:text-[#ff914d] transition-all duration-200">
+                  <SocialIcon icon={social.icon} className="w-3.5 h-3.5" />
+                </a>
+              ))}
             </div>
           </div>
         </div>
