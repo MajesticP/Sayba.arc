@@ -15,6 +15,21 @@ export const siteConfig = {
   address: "Pontianak, Kalimantan Barat, Indonesia",
 }
 
+// ── Legalitas usaha ─────────────────────────────────────────────
+// Ditampilkan di footer. Angka-angka di sini adalah pernyataan resmi yang
+// terbaca publik — pastikan cocok dengan dokumen NIB Anda sebelum diubah.
+// Kolom yang dikosongkan otomatis tidak ditampilkan.
+export const legalitas = {
+  namaUsaha: "SAYBA ARC",
+  bentukUsaha: "Usaha Mikro",
+  nib: "6105010402050002",
+  kbli: "60390",
+  kbliVersi: "KBLI 2025",
+  /** Ganti berkas di /public/oss-logo.png dengan lambang resmi OSS */
+  ossLogo: "/oss-logo.png",
+  ossLabel: "Terdaftar melalui OSS",
+}
+
 // Gambar pratinjau saat tautan dibagikan (WhatsApp, Facebook, X, LinkedIn).
 // Dibuat dari logo SAYBA ARC pada rasio 1200x630 yang dianjurkan.
 //

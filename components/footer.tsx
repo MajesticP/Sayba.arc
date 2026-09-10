@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { siteConfig } from "@/lib/data"
+import { siteConfig, legalitas } from "@/lib/data"
 
 interface FooterLink { label: string; href: string }
 interface SocialLink { name: string; icon: string; href: string }
@@ -21,7 +21,7 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
   return (
     <footer className="bg-black text-white/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-10 mb-5 md:mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-10 mb-5 md:mb-12">
 
           {/* Brand */}
           <div className="col-span-2">
@@ -70,6 +70,53 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
                   <SocialIcon icon={social.icon} className="w-3.5 h-3.5" />
                 </a>
               ))}
+            </div>
+          </div>
+
+          {/* Legalitas */}
+          <div className="col-span-2 md:col-span-1">
+            <h4 className="text-white font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Legalitas</h4>
+
+            <p className="text-[12px] text-white/70 font-semibold">
+              {legalitas.namaUsaha}
+              {legalitas.bentukUsaha && (
+                <span className="text-white/30 font-normal"> · {legalitas.bentukUsaha}</span>
+              )}
+            </p>
+
+            {/* Nomor ditulis dengan angka tabular agar deretnya rata */}
+            <dl className="mt-1.5 space-y-0.5 text-[11.5px] text-white/35 tabular-nums">
+              {legalitas.nib && (
+                <div className="flex gap-1.5">
+                  <dt className="text-white/25">NIB</dt>
+                  <dd className="tracking-wide">{legalitas.nib}</dd>
+                </div>
+              )}
+              {legalitas.kbli && (
+                <div className="flex gap-1.5">
+                  <dt className="text-white/25">KBLI</dt>
+                  <dd className="tracking-wide">
+                    {legalitas.kbli}
+                    {legalitas.kbliVersi && (
+                      <span className="text-white/20"> · {legalitas.kbliVersi}</span>
+                    )}
+                  </dd>
+                </div>
+              )}
+            </dl>
+
+            <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/5 px-2 py-1.5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={legalitas.ossLogo}
+                alt="Logo OSS"
+                width={18}
+                height={18}
+                loading="lazy"
+                decoding="async"
+                className="w-[18px] h-[18px] rounded object-contain flex-shrink-0"
+              />
+              <span className="text-[10.5px] text-white/45 leading-tight">{legalitas.ossLabel}</span>
             </div>
           </div>
         </div>
