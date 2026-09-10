@@ -65,6 +65,7 @@ export default async function PortfolioPage() {
       {/* Hero */}
       <PageHero
         image="/banners/portfolio-1920x600.png"
+        imageMobile="/banners/portfolio-mobile-900x450.png"
         eyebrow="Karya Kami"
         title="Portofolio"
         subtitle="Hasil kerja nyata dari berbagai proyek yang telah kami selesaikan untuk klien."

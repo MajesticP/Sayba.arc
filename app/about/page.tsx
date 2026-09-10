@@ -49,6 +49,7 @@ export default async function AboutPage() {
       {/* Hero */}
       <PageHero
         image="/banners/about-1920x600.png"
+        imageMobile="/banners/about-mobile-900x450.png"
         eyebrow="Siapa Kami"
         title={aboutPage.hero.title}
         subtitle={aboutPage.hero.subtitle}

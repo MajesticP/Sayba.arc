@@ -52,6 +52,7 @@ export default async function ProductsPage() {
       {/* Hero */}
       <PageHero
         image="/banners/products-1920x600.png"
+        imageMobile="/banners/products-mobile-900x450.png"
         eyebrow="Dokumen Siap Pakai"
         title="Produk Kami"
         subtitle="Dokumen, template, dan deliverable siap pakai yang bisa langsung Anda gunakan — tanpa menunggu proses pengerjaan kustom."

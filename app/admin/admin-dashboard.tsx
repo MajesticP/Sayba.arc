@@ -871,6 +871,10 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
             <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">SEO & Meta Tag</span>
             <span className="text-[10px] text-white/25">— untuk targeting pencarian Google</span>
           </div>
+          <p className="text-[10.5px] text-white/30 leading-relaxed">
+            Gambar untuk pratinjau saat dibagikan ke sosial media diambil otomatis dari
+            Gambar utama di atas, jadi tidak perlu diunggah terpisah.
+          </p>
           <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Judul + SAYBA ARC. Ideal 50–60 karakter.">
             <Input value={form.meta_title ?? ""} onChange={v => set("meta_title", v)} placeholder="Sistem Pemetaan Tata Ruang — SAYBA ARC" />
           </Field>
@@ -883,7 +887,6 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
           <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
             <Input value={form.canonical_url ?? ""} onChange={v => set("canonical_url", v)} placeholder="https://sayba.id/portfolio/slug-lain" />
           </Field>
-          <SvgUploadField value={form.og_image ?? ""} onChange={v => set("og_image", v)} onTrackChange={trackImageChange} folder="portfolio" label="OG Image (share sosial media)" />
         </div>
 
         <Field label="URL Hasil Proyek"><Input value={form.result_url ?? ""} onChange={v => set("result_url", v)} placeholder="https://link-hasil.com" /></Field>
@@ -1058,6 +1061,10 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
             <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">SEO & Meta Tag</span>
             <span className="text-[10px] text-white/25">— untuk targeting pencarian Google</span>
           </div>
+          <p className="text-[10.5px] text-white/30 leading-relaxed">
+            Gambar untuk pratinjau saat dibagikan ke sosial media diambil otomatis dari
+            Gambar utama di atas, jadi tidak perlu diunggah terpisah.
+          </p>
           <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Nama + SAYBA ARC. Ideal 50–60 karakter.">
             <Input value={form.meta_title} onChange={v => set("meta_title", v)} placeholder="Pengembangan ArcGIS Profesional — SAYBA ARC" />
           </Field>
@@ -1070,7 +1077,6 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
           <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
             <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://sayba.id/services/slug-lain" />
           </Field>
-          <SvgUploadField value={form.og_image} onChange={v => set("og_image", v)} onTrackChange={trackImageChange} folder="layanan" label="OG Image (share sosial media)" />
         </div>
 
         {/* ── Layanan Unggulan ─────────────────────────── */}
@@ -1368,6 +1374,10 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
             <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">SEO & Meta Tag</span>
             <span className="text-[10px] text-white/25">— untuk targeting pencarian Google</span>
           </div>
+          <p className="text-[10.5px] text-white/30 leading-relaxed">
+            Gambar untuk pratinjau saat dibagikan ke sosial media diambil otomatis dari
+            Gambar utama di atas, jadi tidak perlu diunggah terpisah.
+          </p>
           <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Nama + SAYBA ARC. Ideal 50–60 karakter.">
             <Input value={form.meta_title} onChange={v => set("meta_title", v)} placeholder="Paket Gambar Teknis Kapal AutoCAD — SAYBA ARC" />
           </Field>
@@ -1380,7 +1390,6 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
           <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
             <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://sayba.id/products/slug-lain" />
           </Field>
-          <SvgUploadField value={form.og_image} onChange={v => set("og_image", v)} onTrackChange={trackImageChange} folder="produk" label="OG Image (share sosial media)" />
         </div>
 
         <div className="h-px bg-white/[0.07] my-1" />
@@ -2130,6 +2139,10 @@ function BeritaModal({ open, initial, onClose, onSaved, onError }: {
             <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">SEO & Meta Tag</span>
             <span className="text-[10px] text-white/25">— untuk targeting pencarian Google</span>
           </div>
+          <p className="text-[10.5px] text-white/30 leading-relaxed">
+            Gambar untuk pratinjau saat dibagikan ke sosial media diambil otomatis dari
+            Gambar utama di atas, jadi tidak perlu diunggah terpisah.
+          </p>
           <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Judul + SAYBA ARC. Ideal 50–60 karakter.">
             <Input value={form.meta_title} onChange={v => set("meta_title", v)} placeholder="Pemetaan Partisipatif Desa — SAYBA ARC" />
           </Field>
@@ -2142,7 +2155,6 @@ function BeritaModal({ open, initial, onClose, onSaved, onError }: {
           <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
             <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://sayba.id/berita/slug-lain" />
           </Field>
-          <SvgUploadField value={form.og_image} onChange={v => set("og_image", v)} onTrackChange={trackImageChange} folder="berita" label="OG Image (share sosial media)" />
         </div>
       </div>
       <ModalFooter>

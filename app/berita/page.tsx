@@ -45,6 +45,7 @@ export default async function BeritaPage() {
 
       <PageHero
         image="/banners/berita-1920x600.png"
+        imageMobile="/banners/berita-mobile-900x450.png"
         eyebrow="Ruang Baca"
         title="Berita & Artikel"
         subtitle="Catatan proyek, panduan teknis, dan kabar terbaru dari tim SAYBA ARC — ditulis dari pengalaman lapangan."
