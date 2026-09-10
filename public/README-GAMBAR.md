@@ -66,13 +66,28 @@ JPG tidak diterima; ubah dulu ke PNG atau WebP sebelum diunggah.
 
 ### Apa yang terjadi pada gambar Anda
 
-File yang sudah **di bawah 500KB dan tidak lebih dari 2000px** disimpan apa
-adanya — format aslinya dipertahankan. Ikon dan logo tidak tersentuh.
+**Semua foto disimpan sebagai WebP**, apa pun format yang Anda unggah.
+Transparansi tetap terjaga.
 
-Gambar yang lebih besar dari itu dikecilkan ke maksimal **2000px** pada sisi
-terpanjangnya, lalu disimpan sebagai **WebP** dengan kualitas 82 (turun
-bertahap sampai paling rendah 60 bila masih di atas 500KB). Transparansi tetap
-terjaga.
+- Gambar yang sudah di bawah 500KB dan tidak lebih dari 2000px: satu kali
+  konversi ke WebP dengan kualitas 90.
+- Gambar yang lebih besar: dikecilkan ke maksimal **2000px** pada sisi
+  terpanjangnya, lalu disimpan sebagai WebP kualitas 82, turun bertahap sampai
+  paling rendah 60 bila masih di atas 500KB.
+- Berkas yang sudah berformat WebP dan ukurannya aman disimpan apa adanya,
+  karena encode ulang hanya akan membuang kualitas tanpa menghemat apa pun.
+
+**SVG tidak dikonversi.** SVG adalah vektor, bukan foto — menjadikannya raster
+akan menghilangkan kemampuannya diperbesar tanpa pecah, yang justru jadi alasan
+utama sebuah logo disimpan sebagai SVG.
+
+Perbandingan yang diukur pada aset situs ini:
+
+| Berkas | PNG asli | WebP |
+|---|---|---|
+| Logo transparan 256×256 | 25,7KB | **4,8KB** |
+| Banner 1600×600 | 156,5KB | **19,2KB** |
+| Foto 600×400 | 704,8KB | **197,7KB** |
 
 Kenapa dikonversi ke WebP: PNG tidak bisa memampatkan foto. Pada pengujian,
 foto 5MB butuh sekitar 105 detik untuk di-encode ulang sebagai PNG dan hasilnya

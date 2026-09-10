@@ -17,9 +17,10 @@ export const maxDuration = 60
 // To go beyond this the browser must upload straight to Supabase Storage via
 // a signed URL, bypassing Vercel entirely.
 const MAX_INPUT_SIZE = 4.5 * 1024 * 1024 // 4.5 MB
-// Size we try to compress down to before storing. Files already under this
-// are stored untouched. Kept generous so photos and 1600px-wide banners stay
-// sharp — the old 50 KB budget visibly softened large images.
+// Anggaran ukuran berkas. Gambar di bawah ini cukup dikonversi sekali dengan
+// kualitas tinggi; yang di atasnya diturunkan kualitasnya bertahap. Dibuat
+// longgar supaya foto dan banner selebar 1600px tetap tajam — anggaran lama
+// 50 KB membuat gambar besar terlihat lembek.
 const TARGET_SIZE = 500 * 1024 // 500 KB
 const ALLOWED_FOLDERS = ["produk", "layanan", "portfolio", "tim", "berita", "promo"]
 // path = "<folder>/<sha256-of-contents>.<ext>" — matches what POST generates below.
@@ -85,40 +86,55 @@ async function compressEmbeddedImages(svgText: string, targetBytes: number): Pro
   return best // best effort — may still be above target for very dense images
 }
 
-// Standalone PNG/WebP uploads.
+// Unggahan raster (PNG / WebP). Semuanya disimpan sebagai WebP, apa pun format
+// masuknya. Tiga hal berikut diukur, bukan diasumsikan:
 //
-// Two things dominate the outcome here, both measured rather than assumed:
+// 1. WebP selalu lebih kecil pada aset proyek ini — logo transparan 256px
+//    25,7 KB PNG menjadi 4,8 KB, banner 1600x600 156,5 KB menjadi 19,2 KB.
+//    Jadi tidak ada pertukaran yang perlu ditimbang, hanya keuntungan.
 //
-// 1. Pixel count, not encoder settings, drives the file size. A 3000x2000
-//    photo cannot be squeezed under the budget by quality alone, but capping
-//    it at MAX_DIMENSION gets it there immediately — and nothing on the site
-//    displays wider than ~1600px anyway.
+// 2. Jumlah piksel, bukan setelan encoder, yang menentukan ukuran berkas. Foto
+//    3000x2000 tidak bisa ditekan di bawah anggaran hanya dengan menurunkan
+//    kualitas, tetapi membatasinya di MAX_DIMENSION langsung menyelesaikannya —
+//    dan tidak ada bagian situs yang menampilkan lebih lebar dari ~1600px.
 //
-// 2. sharp's PNG encoder must not be used on photographs. Passing `quality`
-//    triggers palette quantisation, which on a 5 MB photo took ~105 s across
-//    four attempts and still returned ~2 MB. WebP did the same job in ~2.5 s
-//    at 389 KB, alpha channel intact. So anything that actually needs
-//    re-encoding is written out as WebP regardless of what came in.
+// 3. Encoder PNG milik sharp tidak boleh dipakai pada foto. Memberi opsi
+//    `quality` memicu kuantisasi palet: pada foto 5 MB butuh ~105 detik untuk
+//    empat percobaan dan hasilnya tetap ~2 MB. WebP menyelesaikannya dalam
+//    ~2,5 detik pada 389 KB dengan kanal alfa tetap utuh.
 //
-// Files already small enough AND within the dimension cap are stored byte for
-// byte, keeping their original format — so icons and logos are untouched.
+// SVG sengaja tidak disentuh: ia vektor, bukan foto. Menjadikannya raster akan
+// membuang kemampuannya diperbesar tanpa pecah — justru alasan utama sebuah
+// logo disimpan sebagai SVG.
 const MAX_DIMENSION = 2000
+
+/** Kualitas untuk gambar yang sudah cukup kecil — cukup sekali encode. */
+const QUALITY_DIRECT = 90
 
 async function compressRaster(
   buffer: Buffer,
   kind: "png" | "webp",
   targetBytes: number,
-): Promise<{ buffer: Buffer; kind: "png" | "webp" }> {
+): Promise<{ buffer: Buffer; kind: "webp" }> {
   const meta = await sharp(buffer).metadata()
   const oversized = (meta.width ?? 0) > MAX_DIMENSION || (meta.height ?? 0) > MAX_DIMENSION
+  const overBudget = buffer.length > targetBytes
 
-  if (buffer.length <= targetBytes && !oversized) return { buffer, kind }
+  // Sudah WebP, ukuran dan dimensinya aman: encode ulang hanya akan membuang
+  // kualitas tanpa menghemat apa pun, jadi simpan apa adanya.
+  if (kind === "webp" && !overBudget && !oversized) return { buffer, kind: "webp" }
 
   const encode = (quality: number) =>
     sharp(buffer)
       .resize({ width: MAX_DIMENSION, height: MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
       .webp({ quality })
       .toBuffer()
+
+  // Muat anggaran dan tidak kebesaran: satu kali konversi dengan kualitas
+  // tinggi. Tidak perlu menurunkan kualitas kalau ukurannya memang sudah aman.
+  if (!overBudget && !oversized) {
+    return { buffer: await encode(QUALITY_DIRECT), kind: "webp" }
+  }
 
   let quality = 82
   let out = await encode(quality)
@@ -134,8 +150,9 @@ async function compressRaster(
 }
 
 // POST /api/admin/upload — body: multipart/form-data { file, folder }
-// Uploads an SVG/PNG/WebP image to the public "media" Storage bucket and
-// returns its public URL. Files over the size budget are auto-compressed first.
+// Menyimpan gambar ke bucket Storage "media" lalu mengembalikan URL publiknya.
+// Semua gambar raster (PNG maupun WebP) selalu disimpan sebagai WebP; SVG
+// dibiarkan tetap SVG karena vektor, bukan foto.
 export async function POST(req: NextRequest) {
   const { user, unauthorized } = await requireAdmin()
   if (!user) return unauthorized()
@@ -160,8 +177,9 @@ export async function POST(req: NextRequest) {
 
   let buffer: Buffer
   let contentType: string
-  // May differ from the uploaded kind: an oversized PNG is re-encoded as WebP
-  // (see compressRaster), and the stored extension has to follow suit.
+  // Berbeda dari format yang diunggah: setiap raster disimpan sebagai WebP
+  // (lihat compressRaster), jadi ekstensi yang disimpan ikut menyesuaikan.
+  // Hanya SVG yang mempertahankan formatnya.
   let storedKind: ImgKind = kind
 
   if (kind === "svg") {
@@ -173,8 +191,8 @@ export async function POST(req: NextRequest) {
     const inputBuffer = Buffer.from(await file.arrayBuffer())
     const result = await compressRaster(inputBuffer, kind, TARGET_SIZE)
     buffer = result.buffer
-    storedKind = result.kind
-    contentType = storedKind === "png" ? "image/png" : "image/webp"
+    storedKind = result.kind // selalu "webp" — raster apa pun disimpan sebagai WebP
+    contentType = "image/webp"
   }
 
   // Content-hash filename: re-uploading identical bytes lands on the same

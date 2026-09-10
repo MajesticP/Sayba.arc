@@ -1525,7 +1525,7 @@ function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG/PNG/WebP
   }
 
   return (
-    <Field label={label} hint="SVG, PNG, atau WebP — maksimal 4,5MB. Gambar besar otomatis dikecilkan ke maks 2000px dan disimpan sebagai WebP; file kecil disimpan apa adanya.">
+    <Field label={label} hint="SVG, PNG, atau WebP — maksimal 4,5MB. Semua foto otomatis dikonversi ke WebP; gambar di atas 2000px ikut dikecilkan. SVG tetap SVG.">
       <input id={inputId} type="file" accept=".svg,.png,.webp,image/svg+xml,image/png,image/webp" className="hidden"
         onChange={e => { handleFile(e.target.files?.[0]); e.target.value = "" }} />
       <div className="flex items-center gap-2">

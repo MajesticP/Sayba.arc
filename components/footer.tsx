@@ -41,7 +41,10 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
           {/* Nav */}
           <div>
             <h4 className="text-white font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Navigasi</h4>
-            <ul className="space-y-1.5">
+            {/* Dua kolom supaya daftarnya tidak memanjang ke bawah. Pembagiannya
+                dihitung dari jumlah tautan, jadi tetap seimbang kalau menu
+                ditambah atau dikurangi di lib/data.ts. */}
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5">
               {footerLinks.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-[12px] hover:text-[#ff914d] transition-colors duration-200">{link.label}</Link>
