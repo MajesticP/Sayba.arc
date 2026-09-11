@@ -18,18 +18,25 @@ Gambar yang diunggah lewat admin disimpan di Supabase Storage, bukan di folder i
 
 ---
 
-## `/banners` — Hero banner tiap halaman (1920 × 600 px)
+## `/banners` — Hero banner tiap halaman
+
+Disimpan sebagai **WebP** — ukurannya 88% lebih kecil dari PNG dengan tampilan
+setara (total 1.135KB menjadi 132KB). Kalau menimpa dengan berkas sendiri,
+simpan juga sebagai `.webp` agar namanya tetap cocok.
+
+Dua ukuran per halaman: **1920 × 600** untuk desktop dan **900 × 450** untuk
+ponsel (rasio 2:1, supaya tidak terpotong di layar sempit).
 
 Diganti dengan **menimpa file**, pertahankan nama filenya.
 
 | File | Dipakai di |
 |---|---|
-| `services-1920x600.png` | `/services` — Layanan |
-| `products-1920x600.png` | `/products` — Produk |
-| `portfolio-1920x600.png` | `/portfolio` — Portofolio |
-| `berita-1920x600.png` | `/berita` — Berita |
-| `about-1920x600.png` | `/about` — Tentang Kami |
-| `contact-1920x600.png` | `/contact` — Kontak |
+| `services-1920x600.webp` | `/services` — Layanan |
+| `products-1920x600.webp` | `/products` — Produk |
+| `portfolio-1920x600.webp` | `/portfolio` — Portofolio |
+| `berita-1920x600.webp` | `/berita` — Berita |
+| `about-1920x600.webp` | `/about` — Tentang Kami |
+| `contact-1920x600.webp` | `/contact` — Kontak |
 
 Beranda (`/`) sengaja **tidak** memakai banner — hero-nya dibiarkan seperti semula.
 

@@ -51,8 +51,8 @@ export default async function ServicesPage() {
 
       {/* Hero */}
       <PageHero
-        image="/banners/services-1920x600.png"
-        imageMobile="/banners/services-mobile-900x450.png"
+        image="/banners/services-1920x600.webp"
+        imageMobile="/banners/services-mobile-900x450.webp"
         eyebrow="Yang Kami Tawarkan"
         title="Layanan Kami"
         subtitle="Semua layanan kami dikerjakan langsung oleh tim — tidak ada subkontrak, tidak ada hand-off ke pihak ketiga yang tidak Anda kenal."

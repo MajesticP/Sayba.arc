@@ -72,8 +72,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         {/* Exposes nonce to Next.js runtime so it stamps all its inline scripts */}
         {nonce && <meta property="csp-nonce" content={nonce} />}
         <meta name="theme-color" content="#0A1628" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Tidak ada preconnect ke Google Fonts: next/font/google mengunduh
+            Geist saat build dan menyajikannya dari domain sendiri
+            (/_next/static/media/*.woff2). Preconnect ke fonts.googleapis.com
+            dan fonts.gstatic.com hanya membuka koneksi TLS yang tak pernah
+            dipakai, dan itu mengambil jatah koneksi di jalur kritis. */}
       </head>
       <body className={`${geist.className} antialiased bg-white text-gray-900`}>
         {children}
