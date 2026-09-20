@@ -333,7 +333,7 @@ export default function AdminDashboard() {
                 <div key={d.value} className="flex items-center justify-between px-2.5 py-0.5">
                   <span className="text-[11px] text-white/30 truncate">{d.label}</span>
                   <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/25 ml-2 flex-shrink-0">
-                    {(tab === "layanan" ? layananData : informasiData).filter(l => l.dept === d.value).length}
+                    {(tab === "layanan" ? layananData.filter(l => l.dept === d.value).length : 0)}
                   </span>
                 </div>
               ))}
@@ -480,7 +480,7 @@ export default function AdminDashboard() {
               />
             ) : tab === "informasi" ? (
               <InformasiTable
-                data={filteredInformasi} loading={loadingI} depts={depts}
+                data={filteredInformasi} loading={loadingI}
                 onEdit={p => { setInEdit(p); setInModal(true) }}
                 onDelete={p => { const t = { table: "informasi" as Tab, id: p.id, name: p.title }; deleteRef.current = t; setDeleteTarget(t) }}
               />
@@ -540,7 +540,7 @@ export default function AdminDashboard() {
       <LayananModal open={lvModal} initial={lvEdit} depts={depts} allLayanan={layananData} onClose={() => setLvModal(false)}
         onSaved={() => { setLvModal(false); fetchLayanan(); showToast(lvEdit ? "Layanan diperbarui" : "Layanan ditambahkan") }}
         onError={showToast} />
-      <InformasiModal open={inModal} initial={inEdit} depts={depts} onClose={() => setInModal(false)}
+      <InformasiModal open={inModal} initial={inEdit} onClose={() => setInModal(false)}
         onSaved={() => { setInModal(false); fetchInformasi(); showToast(inEdit ? "Informasi diperbarui" : "Informasi ditambahkan") }}
         onError={showToast} />
       <BeritaModal open={brModal} initial={brEdit} onClose={() => setBrModal(false)}
@@ -1182,13 +1182,9 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
 }
 
 // ── Informasi Table ───────────────────────────────────────────────────────────
-function formatIDR(price: number) {
-  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(price)
-}
-
 function InformasiTable({ data, loading, onEdit, onDelete }: {
-  data: Informasi[]; loading: boolean; depts: LayananDept[]
-  onEdit: (p: Informasi) => void; onDelete: (p: Informasi) => void
+  data: Informasi[]; loading: boolean
+  onEdit: (b: Informasi) => void; onDelete: (b: Informasi) => void
 }) {
   if (loading) return <TableLoading />
   if (!data.length) return <TableEmpty label="informasi" />
@@ -1198,39 +1194,43 @@ function InformasiTable({ data, loading, onEdit, onDelete }: {
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/[0.05]">
-              {["Judul & Deskripsi", "Tipe / Sub-Kategori", "Slug", "Gambar", "Harga", "Status", "Aksi"].map(h => (
+              {["Judul & Ringkasan", "Kategori", "Slug", "Gambar", "Tanggal", "Status", "Aksi"].map(h => (
                 <th key={h} className="text-left text-[9.5px] font-bold uppercase tracking-widest text-white/20 px-4 py-2.5">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {data.map(p => (
-              <tr key={p.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+            {data.map(b => (
+              <tr key={b.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
                 <td className="px-4 py-3">
-                  <p className="text-[13px] font-medium text-white">{p.title}</p>
-                  {p.description && <p className="text-[11px] text-white/30 mt-0.5 max-w-[200px] truncate">{p.description}</p>}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex flex-col gap-1">
-                    <DeptBadge dept={p.dept} depts={depts} />
-                    {p.category && <span className="inline-flex items-center gap-1 text-[10px] text-white/35"><Tag size={8} />{p.category}</span>}
+                  <div className="flex items-center gap-1.5">
+                    {b.featured && <span className="text-[8.5px] font-black uppercase tracking-widest text-[#ff914d] bg-[#ff914d]/10 border border-[#ff914d]/25 px-1.5 py-0.5 rounded-md flex-shrink-0">Sorotan</span>}
+                    <p className="text-[13px] font-medium text-white truncate max-w-[260px]">{b.title}</p>
                   </div>
+                  {b.excerpt && <p className="text-[11px] text-white/30 mt-0.5 max-w-[260px] truncate">{b.excerpt}</p>}
                 </td>
-                <td className="px-4 py-3"><code className="text-[10px] bg-[#181818] text-white/40 px-1.5 py-0.5 rounded-md">/products/{p.slug}</code></td>
                 <td className="px-4 py-3">
-                  {p.image_url ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] text-white/35"><Tag size={8} />{getCategoryLabel(b.category)}</span>
+                </td>
+                <td className="px-4 py-3"><code className="text-[10px] bg-[#181818] text-white/40 px-1.5 py-0.5 rounded-md">/informasi/{b.slug}</code></td>
+                <td className="px-4 py-3">
+                  {b.image_url ? (
                     <div className="w-14 h-10 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] flex-shrink-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={gdriveToImg(p.image_url)} alt={p.title} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
+                      <img src={gdriveToImg(b.image_url)} alt={b.title} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
                     </div>
                   ) : <span className="text-[10px] text-white/20 italic">—</span>}
                 </td>
-                <td className="px-4 py-3"><span className="text-[12px] text-white/70 font-medium">{formatIDR(p.price)}</span></td>
-                <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
+                <td className="px-4 py-3">
+                  <span className="text-[11.5px] text-white/50">{beritaDateLabel(b.published_at)}</span>
+                  <span className="block text-[10px] text-white/25">{b.read_minutes} mnt · {b.views.toLocaleString("id-ID")} dibaca</span>
+                </td>
+                <td className="px-4 py-3"><StatusBadge status={b.status} /></td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => onEdit(p)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={12} /></button>
-                    <button onClick={() => onDelete(p)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={12} /></button>
+                    <a href={`/informasi/${b.slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><ExternalLink size={12} /></a>
+                    <button onClick={() => onEdit(b)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={12} /></button>
+                    <button onClick={() => onDelete(b)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={12} /></button>
                   </div>
                 </td>
               </tr>
@@ -1239,14 +1239,15 @@ function InformasiTable({ data, loading, onEdit, onDelete }: {
         </table>
       </div>
       <div className="lg:hidden">
-        {data.map(p => (
-          <CardRow key={p.id} actions={<><button onClick={() => onEdit(p)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={13} /></button><button onClick={() => onDelete(p)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={13} /></button></>}>
-            <p className="text-[13px] font-medium text-white truncate">{p.title}</p>
-            {p.description && <p className="text-[11px] text-white/30 mt-0.5 line-clamp-1">{p.description}</p>}
+        {data.map(b => (
+          <CardRow key={b.id} actions={<><button onClick={() => onEdit(b)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={13} /></button><button onClick={() => onDelete(b)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={13} /></button></>}>
+            <p className="text-[13px] font-medium text-white truncate">{b.title}</p>
+            {b.excerpt && <p className="text-[11px] text-white/30 mt-0.5 line-clamp-1">{b.excerpt}</p>}
             <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-              <DeptBadge dept={p.dept} depts={depts} />
-              <StatusBadge status={p.status} />
-              <span className="text-[10px] text-white/40 font-medium">{formatIDR(p.price)}</span>
+              {b.featured && <span className="text-[8.5px] font-black uppercase tracking-widest text-[#ff914d] bg-[#ff914d]/10 border border-[#ff914d]/25 px-1.5 py-0.5 rounded-md">Sorotan</span>}
+              <span className="text-[10px] text-white/35">{getCategoryLabel(b.category)}</span>
+              <StatusBadge status={b.status} />
+              <span className="text-[10px] text-white/40">{beritaDateLabel(b.published_at)}</span>
             </div>
           </CardRow>
         ))}
@@ -1257,15 +1258,19 @@ function InformasiTable({ data, loading, onEdit, onDelete }: {
 
 // ── Informasi Modal ───────────────────────────────────────────────────────────
 function InformasiModal({ open, initial, onClose, onSaved, onError }: {
-  open: boolean; initial: Informasi | null; depts: LayananDept[]
+  open: boolean; initial: Informasi | null
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
-  const blank = { title: "", slug: "", dept: depts[0]?.value ?? "arcgis", category: "", description: "", image_url: "", file_url: "", price: 0, status: "active" as Status, technologies: "", process: "", specifications: "", meta_title: "", meta_description: "", meta_keywords: "", og_image: "", canonical_url: "" }
+  const today = new Date().toISOString().slice(0, 10)
+  const blank = {
+    title: "", slug: "", excerpt: "", category: newsCategories[0]?.slug ?? "gis", image_url: "",
+    author: "Redaksi SAYBA ARC", body: "", published_at: today, read_minutes: 3, views: 0,
+    featured: false, tags: "", status: "active" as Status,
+    meta_title: "", meta_description: "", meta_keywords: "", og_image: "", canonical_url: "",
+  }
   const [form, setForm] = useState(blank)
   const [saving, setSaving] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
-  // Files uploaded (or replaced) during this modal session. Only actually
-  // deleted from Storage once we know the outcome — see handleSubmit/handleClose.
   const stagedUploads = useRef<Set<string>>(new Set())
   const replacedUrls = useRef<Set<string>>(new Set())
   const trackImageChange = (oldUrl: string, newUrl: string) => {
@@ -1273,27 +1278,28 @@ function InformasiModal({ open, initial, onClose, onSaved, onError }: {
     if (newUrl) stagedUploads.current.add(newUrl)
   }
 
-  const selectedDept = depts.find(d => d.value === form.dept) ?? depts[0]
-
   useEffect(() => {
     if (!open) return
     stagedUploads.current.clear()
     replacedUrls.current.clear()
     if (initial) {
-      const i = initial as any
-      setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", image_url: initial.image_url ?? "", file_url: initial.file_url ?? "", price: initial.price, status: initial.status,
-        technologies: Array.isArray(i.technologies) ? i.technologies.join("\n") : "",
-        process: Array.isArray(i.process) ? i.process.join("\n") : "",
-        specifications: Array.isArray(i.specifications) ? i.specifications.join("\n") : "",
-        meta_title: i.meta_title ?? "", meta_description: i.meta_description ?? "", meta_keywords: Array.isArray(i.meta_keywords) ? i.meta_keywords.join("\n") : "", og_image: i.og_image ?? "", canonical_url: i.canonical_url ?? "" })
+      setForm({
+        title: initial.title, slug: initial.slug, excerpt: initial.excerpt ?? "", category: initial.category,
+        image_url: initial.image_url ?? "", author: initial.author, body: initial.body ?? "",
+        published_at: initial.published_at.slice(0, 10), read_minutes: initial.read_minutes, views: initial.views,
+        featured: initial.featured, tags: (initial.tags ?? []).join("\n"), status: initial.status,
+        meta_title: initial.meta_title ?? "", meta_description: initial.meta_description ?? "",
+        meta_keywords: (initial.meta_keywords ?? []).join("\n"), og_image: initial.og_image ?? "",
+        canonical_url: initial.canonical_url ?? "",
+      })
       setSlugManual(true)
     } else { setForm(blank); setSlugManual(false) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initial])
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }))
-  const handleTitle = (v: string) => { set("title", v); if (!slugManual) set("slug", slugify(v)) }
-  const handleDeptChange = (v: string) => { set("dept", v); set("category", "") }
+  const handleTitle = (v: string) => { set("title", v); if (!slugManual) set("slug", slugifyTitle(v)) }
 
   const handleClose = () => {
     stagedUploads.current.forEach(deleteMediaFile)
@@ -1303,15 +1309,20 @@ function InformasiModal({ open, initial, onClose, onSaved, onError }: {
   }
 
   const handleSubmit = async () => {
-    if (!form.title || !form.slug) { onError("Nama dan slug wajib diisi", "error"); return }
+    if (!form.title || !form.slug) { onError("Judul dan slug wajib diisi", "error"); return }
     setSaving(true)
-    const payload = { title: form.title, slug: form.slug, dept: form.dept, category: form.category || null, description: form.description || null, image_url: form.image_url || null, file_url: form.file_url || null, price: Number(form.price) || 0, status: form.status,
-      technologies: form.technologies ? form.technologies.split("\n").map(s => s.trim()).filter(Boolean) : [],
-      process: form.process ? form.process.split("\n").map(s => s.trim()).filter(Boolean) : [],
-      specifications: form.specifications ? form.specifications.split("\n").map(s => s.trim()).filter(Boolean) : [],
+    const payload = {
+      title: form.title, slug: form.slug, excerpt: form.excerpt || null, category: form.category,
+      image_url: form.image_url || null, author: form.author || "Redaksi SAYBA ARC", body: form.body || null,
+      published_at: form.published_at || today,
+      read_minutes: Number(form.read_minutes) || 1,
+      views: Number(form.views) || 0,
+      featured: form.featured, status: form.status,
+      tags: form.tags ? form.tags.split("\n").map(s => s.trim()).filter(Boolean) : null,
       meta_title: form.meta_title || null, meta_description: form.meta_description || null,
       meta_keywords: form.meta_keywords ? form.meta_keywords.split("\n").map(s => s.trim()).filter(Boolean) : null,
-      og_image: form.og_image || null, canonical_url: form.canonical_url || null }
+      og_image: form.og_image || null, canonical_url: form.canonical_url || null,
+    }
     const res = initial
       ? await fetch(`/api/admin/informasi?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
       : await fetch("/api/admin/informasi", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
@@ -1327,47 +1338,81 @@ function InformasiModal({ open, initial, onClose, onSaved, onError }: {
 
   return (
     <Modal open={open} onClose={handleClose} maxW="max-w-2xl">
-      <ModalHeader icon={<Package size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Informasi" : "Tambah Informasi"} onClose={handleClose} />
+      <ModalHeader icon={<Newspaper size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Informasi" : "Tulis Informasi"} onClose={handleClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
-        <Field label="Nama Informasi" required><Input value={form.title} onChange={handleTitle} placeholder="Aplikasi GIS Terintegrasi" /></Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Slug / Href" required hint={`URL: /products/${form.slug || "slug"}`}>
-            <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="aplikasi-gis-terintegrasi" />
-          </Field>
-          <Field label="Tipe Informasi" required>
-            <Select value={form.dept} onChange={handleDeptChange} options={depts.map(d => ({ value: d.value, label: d.label }))} />
-          </Field>
-        </div>
-        <Field label="Sub-Kategori" hint="Pilih cepat atau ketik sendiri">
-          <Input value={form.category} onChange={v => set("category", v)} placeholder={selectedDept?.subCategories[0] ?? "Contoh: Web Development…"} />
-          {selectedDept?.subCategories.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {selectedDept.subCategories.map(sc => (
-                <button key={sc} type="button" onClick={() => set("category", sc)}
-                  className={cn("px-2 py-0.5 rounded-lg text-[10.5px] font-medium border transition-all",
-                    form.category === sc ? "border-[#ff914d]/40 text-[#ff914d] bg-[#ff914d]/10" : "border-white/[0.07] text-white/30 bg-[#181818] hover:text-white/60")}>
-                  {sc}
-                </button>
-              ))}
-              {form.category && <button onClick={() => set("category", "")} className="text-white/20 hover:text-white/50"><X size={11} /></button>}
-            </div>
-          )}
-        </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Harga (IDR)" required>
-            <input type="number" value={form.price} onChange={e => set("price", e.target.value)} placeholder="1500000"
-              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors" />
-          </Field>
-          <Field label="Status"><Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
-        </div>
-
-        <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="informasi" label="Gambar Preview (SVG/PNG/WebP)" />
-
-        <Field label="URL Dokumen / File Informasi" hint="Link file yang diterima customer (Google Drive, dsb.) — dikirim manual setelah pembelian">
-          <Input value={form.file_url} onChange={v => set("file_url", v)} placeholder="https://drive.google.com/file/d/…/view" />
+        <Field label="Judul Artikel" required>
+          <Input value={form.title} onChange={handleTitle} placeholder="Pemetaan Partisipatif Desa di Kalimantan Barat" />
         </Field>
 
-        <Field label="Deskripsi"><Textarea value={form.description} onChange={v => set("description", v)} placeholder="Deskripsi informasi…" /></Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Slug / URL" required hint={`URL: /informasi/${form.slug || "slug"}`}>
+            <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="pemetaan-partisipatif-desa" />
+          </Field>
+          <Field label="Kategori" required>
+            <Select value={form.category} onChange={v => set("category", v)} options={newsCategories.map(c => ({ value: c.slug, label: c.label }))} />
+          </Field>
+        </div>
+
+        <Field label="Ringkasan" hint="Tampil di kartu daftar informasi dan dipakai sebagai meta description bila kosong">
+          <Textarea value={form.excerpt} onChange={v => set("excerpt", v)} placeholder="Bagaimana data lapangan yang dikumpulkan bersama warga desa diubah menjadi basis data spasial…" />
+        </Field>
+
+        <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="informasi" label="Gambar Artikel (SVG/PNG/WebP)" />
+
+        <Field
+          label="Isi Artikel"
+          hint='Markdown ringan — awali baris dengan "## " untuk sub-judul, dan pisahkan paragraf dengan satu baris kosong.'
+        >
+          <textarea
+            value={form.body}
+            onChange={e => set("body", e.target.value)}
+            rows={14}
+            placeholder={"Paragraf pembuka artikel Anda di sini.\n\n## Sub-judul pertama\n\nIsi paragraf berikutnya.\n\n## Sub-judul kedua\n\nIsi paragraf lagi."}
+            className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] leading-relaxed text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors resize-y font-mono"
+          />
+        </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Penulis"><Input value={form.author} onChange={v => set("author", v)} placeholder="Tim GIS SAYBA ARC" /></Field>
+          <Field label="Tanggal Terbit">
+            <input type="date" value={form.published_at} onChange={e => set("published_at", e.target.value)}
+              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Waktu Baca (mnt)">
+            <input type="number" min={1} value={form.read_minutes} onChange={e => set("read_minutes", e.target.value)}
+              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+          </Field>
+          <Field label="Jumlah Dibaca">
+            <input type="number" min={0} value={form.views} onChange={e => set("views", e.target.value)}
+              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+          </Field>
+          <Field label="Status">
+            <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} />
+          </Field>
+        </div>
+
+        <Field label="Tag (1 per baris)">
+          <Textarea value={form.tags} onChange={v => set("tags", v)} placeholder={"ArcGIS\nSurvei Lapangan\nTata Ruang"} />
+        </Field>
+
+        <button
+          type="button"
+          onClick={() => set("featured", !form.featured)}
+          className={cn("w-full flex items-start gap-2.5 rounded-xl border p-3 text-left transition-all",
+            form.featured ? "border-[#ff914d]/40 bg-[#ff914d]/[0.07]" : "border-white/[0.08] bg-white/[0.02] hover:border-white/20")}
+        >
+          <span className={cn("mt-0.5 w-4 h-4 rounded-md border flex items-center justify-center flex-shrink-0 transition-all",
+            form.featured ? "bg-[#ff914d] border-[#ff914d]" : "border-white/20")}>
+            {form.featured && <CheckCircle size={11} className="text-white" />}
+          </span>
+          <span>
+            <span className={cn("block text-[12.5px] font-semibold", form.featured ? "text-[#ff914d]" : "text-white/70")}>Jadikan artikel Sorotan</span>
+            <span className="block text-[10.5px] text-white/30 mt-0.5">Tampil sebagai kartu besar di atas halaman /informasi. Hanya satu artikel yang bisa jadi Sorotan — menandai ini otomatis melepas tanda dari artikel lain.</span>
+          </span>
+        </button>
 
         {/* ── SEO & Meta Tag ─────────────────────────── */}
         <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3">
@@ -1379,31 +1424,19 @@ function InformasiModal({ open, initial, onClose, onSaved, onError }: {
             Gambar untuk pratinjau saat dibagikan ke sosial media diambil otomatis dari
             Gambar utama di atas, jadi tidak perlu diunggah terpisah.
           </p>
-          <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Nama + SAYBA ARC. Ideal 50–60 karakter.">
-            <Input value={form.meta_title} onChange={v => set("meta_title", v)} placeholder="Aplikasi Web GIS — SAYBA ARC" />
+          <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Judul + SAYBA ARC. Ideal 50–60 karakter.">
+            <Input value={form.meta_title} onChange={v => set("meta_title", v)} placeholder="Pemetaan Partisipatif Desa — SAYBA ARC" />
           </Field>
-          <Field label="Meta Description" hint="Kosongkan untuk otomatis pakai Deskripsi. Ideal 150–160 karakter.">
-            <Textarea value={form.meta_description} onChange={v => set("meta_description", v)} placeholder="Solusi aplikasi GIS terintegrasi — peta interaktif, dashboard spasial…" />
+          <Field label="Meta Description" hint="Kosongkan untuk otomatis pakai Ringkasan. Ideal 150–160 karakter.">
+            <Textarea value={form.meta_description} onChange={v => set("meta_description", v)} placeholder="Bagaimana data lapangan bersama warga desa diubah menjadi basis data spasial…" />
           </Field>
           <Field label="Meta Keywords (1 per baris)">
-            <Textarea value={form.meta_keywords} onChange={v => set("meta_keywords", v)} placeholder={"gambar teknis kapal\ndokumen autocad kapal\njasa desain kapal"} />
+            <Textarea value={form.meta_keywords} onChange={v => set("meta_keywords", v)} placeholder={"pemetaan partisipatif\npeta desa kalimantan\njasa GIS pontianak"} />
           </Field>
           <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
-            <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://sayba.id/products/slug-lain" />
+            <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://sayba.id/informasi/slug-lain" />
           </Field>
         </div>
-
-        <div className="h-px bg-white/[0.07] my-1" />
-        <p className="text-[9.5px] font-bold uppercase tracking-widest text-white/25">Detail Tab Informasi (opsional)</p>
-        <Field label="Teknologi (1 per baris)" hint="Muncul sebagai tag di tab Teknologi">
-          <Textarea value={form.technologies} onChange={v => set("technologies", v)} placeholder={"AutoCAD 2024\nSolidWorks\nRhino 3D"} />
-        </Field>
-        <Field label="Proses Pengerjaan (1 per baris)" hint="Ditampilkan berurutan sebagai langkah 1, 2, 3, dst di tab Proses">
-          <Textarea value={form.process} onChange={v => set("process", v)} placeholder={"Survey & pengukuran lokasi\nDesain awal (draft)\nRevisi & finalisasi\nPengiriman file"} />
-        </Field>
-        <Field label="Spesifikasi (1 per baris)" hint={'Format "Label: Value" — contoh: Format File: DWG, PDF'}>
-          <Textarea value={form.specifications} onChange={v => set("specifications", v)} placeholder={"Format File: DWG, PDF\nSkala: 1:50\nSatuan: Metrik"} />
-        </Field>
       </div>
       <ModalFooter>
         <button onClick={handleClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
@@ -1415,6 +1448,8 @@ function InformasiModal({ open, initial, onClose, onSaved, onError }: {
     </Modal>
   )
 }
+
+
 
 // ── Reusable UI ────────────────────────────────────────────────────────────
 function Modal({ open, onClose, maxW = "max-w-lg", children }: { open: boolean; onClose: () => void; maxW?: string; children: React.ReactNode }) {
