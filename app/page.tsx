@@ -82,8 +82,8 @@ export default async function Home() {
       <Header navItems={navItems} />
       <Hero data={hero} />
       <PromoCarousel slides={promoBanners} interval={5000} />
-      <NewsHighlight articles={beritaTerbaru} />
       <Services allLayanan={allLayanan} depts={depts} />
+      <NewsHighlight articles={beritaTerbaru} />
       <Features
         title="Mengapa Memilih SAYBA ARC"
         subtitle="Yang membedakan kami dari agensi biasa"

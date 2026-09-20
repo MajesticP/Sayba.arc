@@ -53,7 +53,7 @@ export default function About({ data }: { data: AboutData }) {
   const left = useInView(); const right = useInView()
 
   return (
-    <section className="py-8 md:py-24 bg-white" id="about">
+    <section className="pt-16 pb-12 md:py-24 bg-white" id="about">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16 items-center">
 

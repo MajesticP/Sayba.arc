@@ -15,11 +15,9 @@ export default function CTA({ data }: { data: CTAData }) {
   }, [])
 
   return (
-    <section className="py-10 md:py-24 bg-[#f7f7f7]" id="cta">
+    <section className="pt-16 pb-12 md:py-24 bg-[#f7f7f7]" id="cta">
       <div ref={ref} className={`max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`}>
         <div className="bg-black rounded-2xl md:rounded-3xl p-7 md:p-16 text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#ff914d] animate-orb-pulse pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-[#ff914d] animate-orb-pulse-2 pointer-events-none" style={{ animationDelay: "2.5s" }} />
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ff914d]/60 to-transparent" />
           <div className={`absolute top-0 left-1/2 -translate-x-1/2 h-1 bg-[#ff914d] rounded-full transition-all duration-1000 ${inView ? "w-28" : "w-0"}`} style={{ transitionDelay: "400ms" }} />
 
@@ -31,7 +29,7 @@ export default function CTA({ data }: { data: CTAData }) {
               {data.subtitle}
             </p>
             <div className={`transition-all duration-700 ${inView ? "opacity-100 scale-100" : "opacity-0 scale-95"}`} style={{ transitionDelay: "440ms" }}>
-              <Link href={data.buttonHref} className="btn-shine inline-block px-8 py-3.5 rounded-xl font-bold text-[15px] bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:shadow-2xl hover:shadow-orange-500/40 hover:scale-105 active:scale-95 animate-glow">
+              <Link href={data.buttonHref} className="btn-shine inline-block px-8 py-3.5 rounded-xl font-bold text-[15px] bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:shadow-2xl hover:shadow-orange-500/40 hover:scale-105 active:scale-95">
                 {data.buttonText}
               </Link>
             </div>

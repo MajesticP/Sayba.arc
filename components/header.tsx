@@ -11,6 +11,7 @@ interface HeaderProps { navItems: NavItem[]; ctaText?: string; ctaHref?: string 
 export default function Header({ navItems, ctaText, ctaHref }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [textIdx, setTextIdx] = useState(0)
   const pathname = usePathname()
 
   // Kapsul menebal saat halaman di-scroll
@@ -19,6 +20,12 @@ export default function Header({ navItems, ctaText, ctaHref }: HeaderProps) {
     onScroll()
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
+  // Animasi text logo SAYBA ARC -> ART YOU BELIEVE
+  useEffect(() => {
+    const id = setInterval(() => setTextIdx(prev => (prev + 1) % 2), 3000)
+    return () => clearInterval(id)
   }, [])
 
   // Tutup menu mobile setiap pindah halaman
@@ -47,10 +54,15 @@ export default function Header({ navItems, ctaText, ctaHref }: HeaderProps) {
           >
             <div className="flex justify-between items-center h-14 pl-3.5 pr-2.5 md:pl-5 md:pr-2.5">
               {/* Logo */}
-              <Link href="/" className="flex items-center gap-2 group shrink-0">
+              <Link href="/" className="flex items-center gap-2.5 group shrink-0 relative w-[180px]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo-256.png" alt={siteConfig.name} width={32} height={32} fetchPriority="high" decoding="async" className="h-8 w-8 rounded-md object-contain transition-opacity group-hover:opacity-80" />
-                <span className="font-bold text-base text-black tracking-tight group-hover:text-[#ff914d] transition-colors">{siteConfig.name}</span>
+                <img src="/logo-256.png" alt={siteConfig.name} width={32} height={32} fetchPriority="high" decoding="async" className="h-8 w-8 rounded-md object-contain transition-opacity group-hover:opacity-80 shrink-0" />
+                <div className="relative h-6 overflow-hidden w-full">
+                  <div className="absolute inset-x-0 flex flex-col transition-transform duration-700 ease-[cubic-bezier(0.87,0,0.13,1)]" style={{ transform: `translateY(${textIdx === 0 ? "0" : "-50%"})` }}>
+                    <span className="font-black text-[13px] md:text-[15px] text-black tracking-tight group-hover:text-[#ff914d] transition-colors h-6 flex items-center">SAYBA ARC</span>
+                    <span className="font-black text-[13px] md:text-[15px] text-black tracking-tight group-hover:text-[#ff914d] transition-colors h-6 flex items-center">ART YOU BELIEVE</span>
+                  </div>
+                </div>
               </Link>
 
               {/* Desktop Nav */}

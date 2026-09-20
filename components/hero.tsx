@@ -13,7 +13,7 @@ interface HeroData {
 
 export default function Hero({ data }: { data: HeroData }) {
   return (
-    <section className="relative min-h-[480px] md:min-h-[800px] flex items-center justify-center overflow-hidden bg-black text-center pt-20 md:pt-32 pb-16">
+    <section className="relative flex items-center justify-center overflow-hidden bg-black text-center pt-32 pb-16 md:pt-44 md:pb-24 px-2">
       {/* Subtle minimalist grid background */}
       <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
       
@@ -32,7 +32,7 @@ export default function Hero({ data }: { data: HeroData }) {
           )}
 
           {/* Title */}
-          <h1 className="animate-blur-in stagger-2 text-3xl sm:text-5xl lg:text-[64px] font-bold text-white tracking-tight leading-[1.1] mb-6">
+          <h1 className="animate-blur-in stagger-2 text-[26px] sm:text-4xl lg:text-[56px] font-bold text-white tracking-tight leading-tight sm:leading-[1.1] mb-4 sm:mb-6">
             {data.title.split('SAYBA ARC').map((part, i, arr) => 
               i === arr.length - 1 ? part : <span key={i}>{part}<span className="text-[#ff914d]">SAYBA ARC</span></span>
             )}
@@ -55,7 +55,7 @@ export default function Hero({ data }: { data: HeroData }) {
           </div>
 
           {/* Minimalist Trust Badges */}
-          <div className="animate-fade-in-up stagger-5 mt-16 flex flex-wrap justify-center gap-6 sm:gap-12 pt-8 border-t border-white/5">
+          <div className="animate-fade-in-up stagger-5 mt-10 md:mt-16 flex flex-wrap justify-center gap-6 sm:gap-12 pt-6 md:pt-8 border-t border-white/5">
             <div className="flex flex-col items-center gap-2">
               <span className="text-2xl font-bold text-white">50+</span>
               <span className="text-xs text-white/40 uppercase tracking-wider">Proyek Selesai</span>
