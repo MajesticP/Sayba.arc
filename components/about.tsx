@@ -43,8 +43,8 @@ function StatCard({ value, label, active, delay }: { value: string; label: strin
   const count = useCountUp(value, active)
   return (
     <div className={`bg-white/[0.05] rounded-xl p-3 md:p-5 border border-white/8 hover:border-[#ff914d]/35 transition-all duration-500 hover:-translate-y-1 ${active ? "animate-card-reveal" : "opacity-0"}`} style={{ animationDelay: `${delay}ms` }}>
-      <div className="text-[22px] md:text-3xl font-bold text-[#ff914d] mb-0.5">{count}</div>
-      <div className="text-white/40 text-[11px] md:text-sm">{label}</div>
+      <div className="text-lg sm:text-[22px] md:text-3xl font-bold text-[#ff914d] mb-0.5">{count}</div>
+      <div className="text-white/40 text-[10px] sm:text-[11px] md:text-sm leading-tight">{label}</div>
     </div>
   )
 }
@@ -53,20 +53,19 @@ export default function About({ data }: { data: AboutData }) {
   const left = useInView(); const right = useInView()
 
   return (
-    <section className="pt-16 pb-12 md:py-24 bg-white" id="about">
+    <section className="py-12 md:py-24 bg-white" id="about">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16 items-center">
 
           {/* Stats panel */}
           <div ref={left.ref} className={`relative transition-all duration-700 ease-out ${left.inView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"}`}>
-            <div className="bg-black rounded-2xl p-5 md:p-10">
-              <div className="grid grid-cols-2 gap-2.5 md:gap-5">
+            <div className="bg-black rounded-2xl p-4 sm:p-5 md:p-10">
+              <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-5">
                 {data.stats.map((stat, index) => (
                   <StatCard key={index} value={stat.value} label={stat.label} active={left.inView} delay={index * 100} />
                 ))}
               </div>
             </div>
-            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-2xl bg-[#ff914d] opacity-15 -z-10 animate-float-up" style={{ animationDuration: "4s" }} />
           </div>
 
           {/* Text */}
@@ -78,10 +77,10 @@ export default function About({ data }: { data: AboutData }) {
             </div>
             <p className="text-black/55 text-[13px] md:text-lg leading-relaxed">{data.description}</p>
             <div className="flex flex-wrap gap-2 pt-1">
-              <Link href={data.buttonHref} className="btn-shine px-5 py-2.5 rounded-xl font-semibold bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:scale-105 active:scale-95 text-[13px]">
+              <Link href={data.buttonHref} className="px-5 py-2.5 rounded-full font-semibold bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:scale-105 active:scale-95 text-[13px]">
                 {data.buttonText}
               </Link>
-              <Link href="/services" className="px-5 py-2.5 rounded-xl font-semibold bg-black text-white hover:bg-black/80 transition-all duration-200 hover:scale-105 active:scale-95 text-[13px]">
+              <Link href="/services" className="px-5 py-2.5 rounded-full font-semibold bg-black text-white hover:bg-black/80 transition-all duration-200 hover:scale-105 active:scale-95 text-[13px]">
                 Layanan Kami
               </Link>
             </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback, useRef, useId } from "react"
-import type { Portfolio, PortfolioInsert, Layanan, LayananInsert, Produk, PriceTier, Berita, PromoBanner } from "@/lib/database.types"
+import type { Portfolio, PortfolioInsert, Layanan, LayananInsert, Informasi, PriceTier, Berita, PromoBanner } from "@/lib/database.types"
 import { LAYANAN_DEPTS as DEFAULT_DEPTS, type LayananDept, getDept as getDefaultDept } from "@/lib/layanan-config"
 import {
   LayoutGrid, Layers, Settings, Plus, Pencil, Trash2,
@@ -15,7 +15,7 @@ import { newsCategories, getCategoryLabel, slugifyTitle } from "@/lib/news-data"
 // Dept config is now persisted in Supabase via /api/admin/tipe
 
 // ── Types ──────────────────────────────────────────────────────────────────
-type Tab = "portfolio" | "layanan" | "produk" | "berita" | "promo" | "tipe" | "tim"
+type Tab = "portfolio" | "layanan" | "informasi" | "berita" | "promo" | "tipe" | "tim"
 
 interface TimMember {
   id: string
@@ -79,7 +79,7 @@ function DeptBadge({ dept, depts }: { dept: string; depts: LayananDept[] }) {
 function tabIcon(t: Tab, size = 14) {
   if (t === "portfolio") return <LayoutGrid size={size} />
   if (t === "layanan") return <Layers size={size} />
-  if (t === "produk") return <Package size={size} />
+  if (t === "informasi") return <Newspaper size={size} />
   if (t === "berita") return <Newspaper size={size} />
   if (t === "promo") return <GalleryHorizontalEnd size={size} />
   if (t === "tim") return <Users size={size} />
@@ -88,7 +88,7 @@ function tabIcon(t: Tab, size = 14) {
 function tabLabel(t: Tab) {
   if (t === "portfolio") return "Portofolio"
   if (t === "layanan") return "Layanan"
-  if (t === "produk") return "Produk"
+  if (t === "informasi") return "Informasi"
   if (t === "berita") return "Berita"
   if (t === "promo") return "Banner"
   if (t === "tim") return "Tim"
@@ -121,13 +121,13 @@ export default function AdminDashboard() {
 
   const [portfolioData, setPortfolioData] = useState<Portfolio[]>([])
   const [layananData, setLayananData] = useState<Layanan[]>([])
-  const [produkData, setProdukData] = useState<Produk[]>([])
+  const [informasiData, setInformasiData] = useState<Informasi[]>([])
   const [timData, setTimData] = useState<TimMember[]>([])
   const [beritaData, setBeritaData] = useState<Berita[]>([])
   const [promoData, setPromoData] = useState<PromoBanner[]>([])
   const [loadingP, setLoadingP] = useState(true)
   const [loadingL, setLoadingL] = useState(true)
-  const [loadingPr, setLoadingPr] = useState(true)
+  const [loadingI, setLoadingI] = useState(true)
   const [loadingT, setLoadingT] = useState(true)
   const [loadingB, setLoadingB] = useState(true)
   const [loadingPm, setLoadingPm] = useState(true)
@@ -139,8 +139,8 @@ export default function AdminDashboard() {
   const [pfEdit, setPfEdit] = useState<Portfolio | null>(null)
   const [lvModal, setLvModal] = useState(false)
   const [lvEdit, setLvEdit] = useState<Layanan | null>(null)
-  const [pdModal, setPdModal] = useState(false)
-  const [pdEdit, setPdEdit] = useState<Produk | null>(null)
+  const [inModal, setInModal] = useState(false)
+  const [inEdit, setInEdit] = useState<Informasi | null>(null)
   const [timModal, setTimModal] = useState(false)
   const [timEdit, setTimEdit] = useState<TimMember | null>(null)
   const [brModal, setBrModal] = useState(false)
@@ -180,12 +180,12 @@ export default function AdminDashboard() {
     setLoadingT(false)
   }, [showToast])
 
-  const fetchProduk = useCallback(async () => {
-    setLoadingPr(true)
-    const res = await fetch("/api/admin/produk")
-    if (!res.ok) showToast("Gagal memuat produk", "error")
-    else setProdukData(await res.json())
-    setLoadingPr(false)
+  const fetchInformasi = useCallback(async () => {
+    setLoadingI(true)
+    const res = await fetch("/api/admin/informasi")
+    if (!res.ok) showToast("Gagal memuat informasi", "error")
+    else setInformasiData(await res.json())
+    setLoadingI(false)
   }, [showToast])
 
   const fetchBerita = useCallback(async () => {
@@ -204,7 +204,7 @@ export default function AdminDashboard() {
     setLoadingPm(false)
   }, [showToast])
 
-  useEffect(() => { fetchDepts(); fetchPortfolio(); fetchLayanan(); fetchProduk(); fetchTim(); fetchBerita(); fetchPromo() }, [fetchDepts, fetchPortfolio, fetchLayanan, fetchProduk, fetchTim, fetchBerita, fetchPromo])
+  useEffect(() => { fetchDepts(); fetchPortfolio(); fetchLayanan(); fetchInformasi(); fetchTim(); fetchBerita(); fetchPromo() }, [fetchDepts, fetchPortfolio, fetchLayanan, fetchInformasi, fetchTim, fetchBerita, fetchPromo])
 
   const filteredPortfolio = portfolioData.filter(p => {
     const matchDept = deptFilter === "semua" || p.dept === deptFilter
@@ -218,10 +218,11 @@ export default function AdminDashboard() {
     return matchDept && matchSearch
   })
 
-  const filteredProduk = produkData.filter(p => {
-    const matchDept = deptFilter === "semua" || p.dept === deptFilter
-    const matchSearch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.description?.toLowerCase().includes(search.toLowerCase())
-    return matchDept && matchSearch
+  const filteredInformasi = informasiData.filter(b => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return b.title.toLowerCase().includes(q)
+      || (b.excerpt ?? "").toLowerCase().includes(q)
   })
 
   const filteredBerita = beritaData.filter(b => {
@@ -249,7 +250,7 @@ export default function AdminDashboard() {
       setDeleteTarget(null); deleteRef.current = null
       if (target.table === "portfolio") fetchPortfolio()
       else if (target.table === "layanan") fetchLayanan()
-      else if (target.table === "produk") fetchProduk()
+      else if (target.table === "informasi") fetchInformasi()
       else if (target.table === "berita") fetchBerita()
       else if (target.table === "promo") fetchPromo()
       else fetchTim()
@@ -268,14 +269,14 @@ export default function AdminDashboard() {
   const handleAdd = () => {
     if (tab === "portfolio") { setPfEdit(null); setPfModal(true) }
     else if (tab === "layanan") { setLvEdit(null); setLvModal(true) }
-    else if (tab === "produk") { setPdEdit(null); setPdModal(true) }
+    else if (tab === "informasi") { setInEdit(null); setInModal(true) }
     else if (tab === "berita") { setBrEdit(null); setBrModal(true) }
     else if (tab === "promo") { setPmEdit(null); setPmModal(true) }
     else if (tab === "tim") { setTimEdit(null); setTimModal(true) }
     else { setTipeEdit(null); setTipeModal(true) }
   }
 
-  const isLoading = (tab === "portfolio" && loadingP) || (tab === "layanan" && loadingL) || (tab === "produk" && loadingPr) || (tab === "tim" && loadingT) || (tab === "berita" && loadingB) || (tab === "promo" && loadingPm)
+  const isLoading = (tab === "portfolio" && loadingP) || (tab === "layanan" && loadingL) || (tab === "informasi" && loadingI) || (tab === "tim" && loadingT) || (tab === "berita" && loadingB) || (tab === "promo" && loadingPm)
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans">
@@ -308,7 +309,7 @@ export default function AdminDashboard() {
         {/* Nav */}
         <nav className="flex-1 py-3 px-2.5 space-y-0.5 overflow-y-auto">
           <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 px-2 mb-2">Menu</p>
-          {(["portfolio", "layanan", "produk", "berita", "promo", "tim", "tipe"] as Tab[]).map(t => (
+          {(["portfolio", "layanan", "informasi", "berita", "promo", "tim", "tipe"] as Tab[]).map(t => (
             <button
               key={t}
               onClick={() => switchTab(t)}
@@ -320,19 +321,19 @@ export default function AdminDashboard() {
               {tabIcon(t, 13)}
               {tabLabel(t)}
               <span className={cn("ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-md", tab === t ? "bg-[#ff914d]/20 text-[#ff914d]" : "bg-white/[0.06] text-white/30")}>
-                {t === "portfolio" ? portfolioData.length : t === "layanan" ? layananData.length : t === "produk" ? produkData.length : t === "berita" ? beritaData.length : t === "promo" ? promoData.length : t === "tim" ? timData.length : depts.length}
+                {t === "portfolio" ? portfolioData.length : t === "layanan" ? layananData.length : t === "informasi" ? informasiData.length : t === "berita" ? beritaData.length : t === "promo" ? promoData.length : t === "tim" ? timData.length : depts.length}
               </span>
             </button>
           ))}
 
-          {(tab === "layanan" || tab === "produk") && (
+          {(tab === "layanan" || tab === "informasi") && (
             <div className="pt-2 border-t border-white/[0.05] mt-2">
               <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 px-2 mb-1.5 mt-2">Per Tipe</p>
               {depts.map(d => (
                 <div key={d.value} className="flex items-center justify-between px-2.5 py-0.5">
                   <span className="text-[11px] text-white/30 truncate">{d.label}</span>
                   <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/25 ml-2 flex-shrink-0">
-                    {(tab === "layanan" ? layananData : produkData).filter(l => l.dept === d.value).length}
+                    {(tab === "layanan" ? layananData : informasiData).filter(l => l.dept === d.value).length}
                   </span>
                 </div>
               ))}
@@ -378,7 +379,7 @@ export default function AdminDashboard() {
 
           <h1 className="font-bold text-[14px] flex-1 truncate">{tabLabel(tab)}</h1>
 
-          {(tab === "portfolio" || tab === "layanan" || tab === "produk" || tab === "berita") && (
+          {(tab === "portfolio" || tab === "layanan" || tab === "informasi" || tab === "berita") && (
             <button
               onClick={() => setShowSearch(v => !v)}
               className={cn("p-1.5 rounded-lg transition-all", showSearch ? "text-[#ff914d] bg-[#ff914d]/10" : "text-white/40 hover:text-white/70 hover:bg-white/[0.05]")}
@@ -388,7 +389,7 @@ export default function AdminDashboard() {
           )}
 
           <button
-            onClick={() => { if (tab === "portfolio") fetchPortfolio(); else if (tab === "layanan") fetchLayanan(); else if (tab === "produk") fetchProduk(); else if (tab === "berita") fetchBerita(); else if (tab === "promo") fetchPromo(); else fetchTim() }}
+            onClick={() => { if (tab === "portfolio") fetchPortfolio(); else if (tab === "layanan") fetchLayanan(); else if (tab === "informasi") fetchInformasi(); else if (tab === "berita") fetchBerita(); else if (tab === "promo") fetchPromo(); else fetchTim() }}
             className="p-1.5 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-all"
           >
             <RefreshCw size={14} className={cn(isLoading ? "animate-spin" : "")} />
@@ -404,7 +405,7 @@ export default function AdminDashboard() {
         </header>
 
         {/* Search bar (expandable) */}
-        {showSearch && (tab === "portfolio" || tab === "layanan" || tab === "produk" || tab === "berita") && (
+        {showSearch && (tab === "portfolio" || tab === "layanan" || tab === "informasi" || tab === "berita") && (
           <div className="bg-[#111] border-b border-white/[0.07] px-3 py-2 flex items-center gap-2">
             <Search size={12} className="text-white/25 flex-shrink-0" />
             <input
@@ -419,7 +420,7 @@ export default function AdminDashboard() {
         )}
 
         {/* Dept filter pills */}
-        {(tab === "portfolio" || tab === "layanan" || tab === "produk") && (
+        {(tab === "portfolio" || tab === "layanan" || tab === "informasi") && (
           <div className="bg-[#111] border-b border-white/[0.07] px-3 py-2 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
             {(["semua", ...depts.map(d => d.value)] as DeptFilter[]).map(d => (
               <button
@@ -445,7 +446,7 @@ export default function AdminDashboard() {
             <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-3 overflow-x-auto sm:overflow-visible scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0">
               <StatCard label="Total Portofolio" value={portfolioData.length} color="#ff914d" />
               <StatCard label="Total Layanan" value={layananData.length} color="#34d399" />
-              <StatCard label="Total Produk" value={produkData.length} color="#60a5fa" />
+              <StatCard label="Total Informasi" value={informasiData.length} color="#60a5fa" />
               {depts.map(d => (
                 <StatCard key={d.value} label={`Layanan ${d.label}`} value={layananData.filter(l => l.dept === d.value).length} color={d.color} />
               ))}
@@ -458,10 +459,10 @@ export default function AdminDashboard() {
           <div className="bg-[#111] border border-white/[0.07] rounded-xl overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.07]">
               <p className="font-bold text-[13px] flex-1 truncate">
-                {tab === "portfolio" ? "Daftar Portofolio" : tab === "layanan" ? "Daftar Layanan" : tab === "produk" ? "Daftar Produk" : tab === "berita" ? "Daftar Berita" : tab === "promo" ? "Banner Carousel Beranda" : tab === "tim" ? "Daftar Anggota Tim" : "Kelola Tipe Layanan"}
+                {tab === "portfolio" ? "Daftar Portofolio" : tab === "layanan" ? "Daftar Layanan" : tab === "informasi" ? "Daftar Informasi" : tab === "berita" ? "Daftar Berita" : tab === "promo" ? "Banner Carousel Beranda" : tab === "tim" ? "Daftar Anggota Tim" : "Kelola Tipe Layanan"}
               </p>
               <span className="text-[10.5px] text-white/25 flex-shrink-0">
-                {tab === "portfolio" ? filteredPortfolio.length : tab === "layanan" ? filteredLayanan.length : tab === "produk" ? filteredProduk.length : tab === "berita" ? filteredBerita.length : tab === "promo" ? promoData.length : tab === "tim" ? timData.length : depts.length} item
+                {tab === "portfolio" ? filteredPortfolio.length : tab === "layanan" ? filteredLayanan.length : tab === "informasi" ? filteredInformasi.length : tab === "berita" ? filteredBerita.length : tab === "promo" ? promoData.length : tab === "tim" ? timData.length : depts.length} item
               </span>
             </div>
 
@@ -477,11 +478,11 @@ export default function AdminDashboard() {
                 onEdit={l => { setLvEdit(l); setLvModal(true) }}
                 onDelete={l => { const t = { table: "layanan" as Tab, id: l.id, name: l.title }; deleteRef.current = t; setDeleteTarget(t) }}
               />
-            ) : tab === "produk" ? (
-              <ProdukTable
-                data={filteredProduk} loading={loadingPr} depts={depts}
-                onEdit={p => { setPdEdit(p); setPdModal(true) }}
-                onDelete={p => { const t = { table: "produk" as Tab, id: p.id, name: p.title }; deleteRef.current = t; setDeleteTarget(t) }}
+            ) : tab === "informasi" ? (
+              <InformasiTable
+                data={filteredInformasi} loading={loadingI} depts={depts}
+                onEdit={p => { setInEdit(p); setInModal(true) }}
+                onDelete={p => { const t = { table: "informasi" as Tab, id: p.id, name: p.title }; deleteRef.current = t; setDeleteTarget(t) }}
               />
             ) : tab === "berita" ? (
               <BeritaTable
@@ -514,7 +515,7 @@ export default function AdminDashboard() {
 
       {/* ── MOBILE BOTTOM NAV ──────────────────────────────────── */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#111] border-t border-white/[0.07] flex z-30 safe-area-pb">
-        {(["portfolio", "layanan", "produk", "berita", "promo", "tim", "tipe"] as Tab[]).map(t => (
+        {(["portfolio", "layanan", "informasi", "berita", "promo", "tim", "tipe"] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => switchTab(t)}
@@ -539,8 +540,8 @@ export default function AdminDashboard() {
       <LayananModal open={lvModal} initial={lvEdit} depts={depts} allLayanan={layananData} onClose={() => setLvModal(false)}
         onSaved={() => { setLvModal(false); fetchLayanan(); showToast(lvEdit ? "Layanan diperbarui" : "Layanan ditambahkan") }}
         onError={showToast} />
-      <ProdukModal open={pdModal} initial={pdEdit} depts={depts} onClose={() => setPdModal(false)}
-        onSaved={() => { setPdModal(false); fetchProduk(); showToast(pdEdit ? "Produk diperbarui" : "Produk ditambahkan") }}
+      <InformasiModal open={inModal} initial={inEdit} depts={depts} onClose={() => setInModal(false)}
+        onSaved={() => { setInModal(false); fetchInformasi(); showToast(inEdit ? "Informasi diperbarui" : "Informasi ditambahkan") }}
         onError={showToast} />
       <BeritaModal open={brModal} initial={brEdit} onClose={() => setBrModal(false)}
         onSaved={() => { setBrModal(false); fetchBerita(); showToast(brEdit ? "Berita diperbarui" : "Berita ditambahkan") }}
@@ -1180,17 +1181,17 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
   )
 }
 
-// ── Produk Table ───────────────────────────────────────────────────────────
+// ── Informasi Table ───────────────────────────────────────────────────────────
 function formatIDR(price: number) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(price)
 }
 
-function ProdukTable({ data, loading, onEdit, onDelete, depts }: {
-  data: Produk[]; loading: boolean; depts: LayananDept[]
-  onEdit: (p: Produk) => void; onDelete: (p: Produk) => void
+function InformasiTable({ data, loading, onEdit, onDelete }: {
+  data: Informasi[]; loading: boolean; depts: LayananDept[]
+  onEdit: (p: Informasi) => void; onDelete: (p: Informasi) => void
 }) {
   if (loading) return <TableLoading />
-  if (!data.length) return <TableEmpty label="produk" />
+  if (!data.length) return <TableEmpty label="informasi" />
   return (
     <>
       <div className="hidden lg:block overflow-x-auto">
@@ -1254,9 +1255,9 @@ function ProdukTable({ data, loading, onEdit, onDelete, depts }: {
   )
 }
 
-// ── Produk Modal ───────────────────────────────────────────────────────────
-function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
-  open: boolean; initial: Produk | null; depts: LayananDept[]
+// ── Informasi Modal ───────────────────────────────────────────────────────────
+function InformasiModal({ open, initial, onClose, onSaved, onError }: {
+  open: boolean; initial: Informasi | null; depts: LayananDept[]
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
   const blank = { title: "", slug: "", dept: depts[0]?.value ?? "arcgis", category: "", description: "", image_url: "", file_url: "", price: 0, status: "active" as Status, technologies: "", process: "", specifications: "", meta_title: "", meta_description: "", meta_keywords: "", og_image: "", canonical_url: "" }
@@ -1312,8 +1313,8 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
       meta_keywords: form.meta_keywords ? form.meta_keywords.split("\n").map(s => s.trim()).filter(Boolean) : null,
       og_image: form.og_image || null, canonical_url: form.canonical_url || null }
     const res = initial
-      ? await fetch(`/api/admin/produk?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
-      : await fetch("/api/admin/produk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      ? await fetch(`/api/admin/informasi?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      : await fetch("/api/admin/informasi", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
     setSaving(false)
     if (!res.ok) { onError((await res.json()).error ?? "Save failed", "error"); return }
     const finalUrls = new Set([payload.image_url, payload.og_image].filter(Boolean) as string[])
@@ -1326,14 +1327,14 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
 
   return (
     <Modal open={open} onClose={handleClose} maxW="max-w-2xl">
-      <ModalHeader icon={<Package size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Produk" : "Tambah Produk"} onClose={handleClose} />
+      <ModalHeader icon={<Package size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Informasi" : "Tambah Informasi"} onClose={handleClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
-        <Field label="Nama Produk" required><Input value={form.title} onChange={handleTitle} placeholder="Aplikasi GIS Terintegrasi" /></Field>
+        <Field label="Nama Informasi" required><Input value={form.title} onChange={handleTitle} placeholder="Aplikasi GIS Terintegrasi" /></Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Slug / Href" required hint={`URL: /products/${form.slug || "slug"}`}>
             <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="aplikasi-gis-terintegrasi" />
           </Field>
-          <Field label="Tipe Produk" required>
+          <Field label="Tipe Informasi" required>
             <Select value={form.dept} onChange={handleDeptChange} options={depts.map(d => ({ value: d.value, label: d.label }))} />
           </Field>
         </div>
@@ -1360,13 +1361,13 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
           <Field label="Status"><Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
         </div>
 
-        <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="produk" label="Gambar Preview (SVG/PNG/WebP)" />
+        <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="informasi" label="Gambar Preview (SVG/PNG/WebP)" />
 
-        <Field label="URL Dokumen / File Produk" hint="Link file yang diterima customer (Google Drive, dsb.) — dikirim manual setelah pembelian">
+        <Field label="URL Dokumen / File Informasi" hint="Link file yang diterima customer (Google Drive, dsb.) — dikirim manual setelah pembelian">
           <Input value={form.file_url} onChange={v => set("file_url", v)} placeholder="https://drive.google.com/file/d/…/view" />
         </Field>
 
-        <Field label="Deskripsi"><Textarea value={form.description} onChange={v => set("description", v)} placeholder="Deskripsi produk…" /></Field>
+        <Field label="Deskripsi"><Textarea value={form.description} onChange={v => set("description", v)} placeholder="Deskripsi informasi…" /></Field>
 
         {/* ── SEO & Meta Tag ─────────────────────────── */}
         <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3">
@@ -1393,7 +1394,7 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
         </div>
 
         <div className="h-px bg-white/[0.07] my-1" />
-        <p className="text-[9.5px] font-bold uppercase tracking-widest text-white/25">Detail Tab Produk (opsional)</p>
+        <p className="text-[9.5px] font-bold uppercase tracking-widest text-white/25">Detail Tab Informasi (opsional)</p>
         <Field label="Teknologi (1 per baris)" hint="Muncul sebagai tag di tab Teknologi">
           <Textarea value={form.technologies} onChange={v => set("technologies", v)} placeholder={"AutoCAD 2024\nSolidWorks\nRhino 3D"} />
         </Field>
@@ -1488,7 +1489,7 @@ async function deleteMediaFile(url: string) {
 }
 
 function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG/PNG/WebP)", onTrackChange }: {
-  value: string; onChange: (v: string) => void; folder: "produk" | "layanan" | "portfolio" | "tim" | "berita" | "promo"; label?: string
+  value: string; onChange: (v: string) => void; folder: "informasi" | "layanan" | "portfolio" | "tim" | "berita" | "promo"; label?: string
   // Reports (oldUrl, newUrl) whenever the field's value changes, so the
   // parent modal can decide when it's actually safe to delete the old file
   // (only after the record is saved — never on a cancelled edit).

@@ -55,18 +55,18 @@ export default function Hero({ data }: { data: HeroData }) {
           </div>
 
           {/* Minimalist Trust Badges */}
-          <div className="animate-fade-in-up stagger-5 mt-10 md:mt-16 flex flex-wrap justify-center gap-6 sm:gap-12 pt-6 md:pt-8 border-t border-white/5">
-            <div className="flex flex-col items-center gap-2">
-              <span className="text-2xl font-bold text-white">50+</span>
-              <span className="text-xs text-white/40 uppercase tracking-wider">Proyek Selesai</span>
+          <div className="animate-fade-in-up stagger-5 mt-10 md:mt-16 flex justify-center gap-8 sm:gap-12 pt-6 md:pt-8 border-t border-white/5">
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-xl sm:text-2xl font-bold text-white">50+</span>
+              <span className="text-[10px] sm:text-xs text-white/40 uppercase tracking-wider">Proyek</span>
             </div>
-            <div className="flex flex-col items-center gap-2">
-              <span className="text-2xl font-bold text-white">100%</span>
-              <span className="text-xs text-white/40 uppercase tracking-wider">Tingkat Keberhasilan</span>
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-xl sm:text-2xl font-bold text-white">100%</span>
+              <span className="text-[10px] sm:text-xs text-white/40 uppercase tracking-wider">Keberhasilan</span>
             </div>
-            <div className="flex flex-col items-center gap-2">
-              <span className="text-2xl font-bold text-white">4+</span>
-              <span className="text-xs text-white/40 uppercase tracking-wider">Bidang Keahlian IT</span>
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-xl sm:text-2xl font-bold text-white">4+</span>
+              <span className="text-[10px] sm:text-xs text-white/40 uppercase tracking-wider">Keahlian</span>
             </div>
           </div>
           

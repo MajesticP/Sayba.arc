@@ -33,7 +33,7 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
   const cards = useInView(0.08)
 
   return (
-    <section className="pt-6 pb-10 md:pt-10 md:pb-28 bg-white" id="services">
+    <section className="pt-4 pb-10 md:pt-6 md:pb-20 bg-white" id="services">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}

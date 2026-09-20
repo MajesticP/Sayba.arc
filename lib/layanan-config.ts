@@ -27,70 +27,32 @@ export interface LayananDept {
 
 export const LAYANAN_DEPTS: LayananDept[] = [
   {
-    value: "arcgis",
-    label: "ArcGIS",
-    description: "Departemen GIS & Pemetaan",
-    badgeClass:
-      "bg-[#ff914d]/10 text-[#ff914d] ring-[#ff914d]/20",
-    color: "#ff914d",
-    subCategories: [
-      "Web GIS",
-      "Desktop GIS",
-      "3D Mapping",
-      "Spatial Analysis",
-      "Training & Workshop",
-      "Data Processing",
-    ],
-  },
-  {
-    value: "it",
-    label: "IT",
+    value: "it_konsulting",
+    label: "IT Konsulting",
     description: "Departemen Teknologi Informasi & Digital",
     badgeClass: "bg-blue-400/10 text-blue-400 ring-blue-400/20",
     color: "#60a5fa",
     subCategories: [
       "Web Development",
-      "Mobile App",
-      "Backend & API",
-      "UI/UX Design",
-      "Cloud & DevOps",
-      "Cybersecurity",
+      "Mobile Application",
+      "System Integration",
+      "Machine Learning",
+      "Data Analytics",
     ],
   },
   {
-    value: "kelautan",
-    label: "Data & AI",
-    description: "Departemen Machine Learning & Analisis Data",
+    value: "engineering_konsulting",
+    label: "Engineering Konsulting",
+    description: "Departemen Rekayasa & Rancang Teknik",
     badgeClass: "bg-[#0a6e8a]/10 text-[#0a6e8a] ring-[#0a6e8a]/20",
     color: "#0a6e8a",
     subCategories: [
-      "Machine Learning",
-      "Data Analytics",
-      "AI Integration",
-      "Computer Vision",
-      "Predictive Modeling",
+      "GIS & Pemetaan",
+      "IoT Development",
+      "Firmware Engineering",
+      "Perencanaan Teknis",
     ],
   },
-
-  {
-    value: "softwarejailbreak",
-    label: "Security & Embedded",
-    description: "Departemen Keamanan Siber & Sistem Embedded",
-    badgeClass: "bg-purple-400/10 text-purple-400 ring-purple-400/20",
-    color: "#a78bfa",
-    subCategories: ["IoT Development", "Hardware Interfacing", "Firmware Engineering", "Security Audit"],
-  },
-
-  // ── ADD MORE TYPES HERE ─────────────────────────────────────────────────
-  // Example:
-  // {
-  //   value: "survey",
-  //   label: "Survey & Drone",
-  //   description: "Departemen Survei Lapangan & Fotogrametri",
-  //   badgeClass: "bg-purple-400/10 text-purple-400 ring-purple-400/20",
-  //   color: "#a78bfa",
-  //   subCategories: ["Aerial Photography", "LiDAR Scan", "Topografi", "Peta Drone"],
-  // },
 ]
 
 /** Lookup helpers */

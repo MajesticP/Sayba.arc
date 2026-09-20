@@ -47,7 +47,7 @@ export const ogImage = {
 export const navItems = [
   { label: "Beranda", href: "/" },
   { label: "Layanan", href: "/services" },
-  { label: "Produk", href: "/products" },
+  { label: "Informasi", href: "/informasi" },
   { label: "Portofolio", href: "/portfolio" },
   { label: "Berita", href: "/berita" },
   { label: "Tentang Kami", href: "/about" },
@@ -127,7 +127,7 @@ export const cta = {
 export const footerLinks = [
   { label: "Beranda", href: "/" },
   { label: "Layanan", href: "/services" },
-  { label: "Produk", href: "/products" },
+  { label: "Informasi", href: "/informasi" },
   { label: "Portofolio", href: "/portfolio" },
   { label: "Berita", href: "/berita" },
   { label: "Tentang Kami", href: "/about" },
@@ -150,12 +150,12 @@ export const servicesPage = {
 export const aboutPage = {
   hero: {
     title: "Tentang SAYBA ARC",
-    subtitle: "Agensi digital dan engineering dari Pontianak yang bekerja lintas disiplin untuk klien yang butuh hasil, bukan janji.",
+    subtitle: "Inovator teknologi digital dan engineering yang mendedikasikan keahlian lintas disiplin untuk menghasilkan solusi nyata, tepat sasaran, dan berkelanjutan.",
   },
   mission:
-    "Menghadirkan solusi teknis yang relevan, jujur, dan berkualitas — tanpa overpromise, tanpa inflasi angka, dan tanpa meninggalkan klien setelah proyek selesai.",
+    "Memberikan layanan terintegrasi berkualitas tinggi melalui pendekatan agile, mengadopsi teknologi terdepan, dan memprioritaskan transparansi serta kepuasan mitra kami pada setiap tahap pengerjaan.",
   vision:
-    "Menjadi agensi terpercaya di Indonesia yang dikenal karena hasil nyata yang bisa klien tunjukkan.",
+    "Menjadi pionir agensi digital dan rekayasa teknik di Indonesia yang senantiasa diandalkan untuk mengubah tantangan kompleks menjadi sistem yang intuitif, andal, dan berdampak.",
 }
 
 export const contactPage = {

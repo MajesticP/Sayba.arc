@@ -66,17 +66,21 @@ export type Database = {
         }
         Update: Partial<Database["public"]["Tables"]["layanan"]["Insert"]>
       }
-      produk: {
+      informasi: {
         Row: {
           id: string
           title: string
           slug: string
-          dept: string                  // open string — driven by LAYANAN_DEPTS config (same as layanan)
-          category: string | null
-          description: string | null
-          image_url: string | null       // preview thumbnail (Google Drive link supported)
-          file_url: string | null        // link to the actual document/file the customer receives
-          price: number
+          excerpt: string | null
+          category: string              
+          image_url: string | null
+          author: string
+          body: string | null
+          published_at: string          // date (YYYY-MM-DD)
+          read_minutes: number
+          views: number
+          featured: boolean             
+          tags: string[] | null
           status: "active" | "draft" | "archived"
           meta_title: string | null
           meta_description: string | null
@@ -85,11 +89,11 @@ export type Database = {
           canonical_url: string | null
           created_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["produk"]["Row"], "id" | "created_at"> & {
+        Insert: Omit<Database["public"]["Tables"]["informasi"]["Row"], "id" | "created_at"> & {
           id?: string
           created_at?: string
         }
-        Update: Partial<Database["public"]["Tables"]["produk"]["Insert"]>
+        Update: Partial<Database["public"]["Tables"]["informasi"]["Insert"]>
       }
       berita: {
         Row: {
@@ -171,8 +175,8 @@ export type PortfolioInsert = Database["public"]["Tables"]["portfolio"]["Insert"
 export type Layanan = Database["public"]["Tables"]["layanan"]["Row"]
 export type LayananInsert = Database["public"]["Tables"]["layanan"]["Insert"]
 
-export type Produk = Database["public"]["Tables"]["produk"]["Row"]
-export type ProdukInsert = Database["public"]["Tables"]["produk"]["Insert"]
+export type Informasi = Database["public"]["Tables"]["informasi"]["Row"]
+export type InformasiInsert = Database["public"]["Tables"]["informasi"]["Insert"]
 
 export type Berita = Database["public"]["Tables"]["berita"]["Row"]
 export type BeritaInsert = Database["public"]["Tables"]["berita"]["Insert"]
