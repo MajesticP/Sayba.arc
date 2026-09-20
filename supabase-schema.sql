@@ -186,3 +186,17 @@ create policy "tim_public_read" on tim for select using (status = 'active');
 create policy "tim_auth_write" on tim for insert with check (auth.role() = 'authenticated');
 create policy "tim_auth_update" on tim for update using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 create policy "tim_auth_delete" on tim for delete using (auth.role() = 'authenticated');
+
+-- ============================================================
+-- 9. SETUP STORAGE BUCKET (Media)
+-- ============================================================
+-- Membuat bucket 'media' secara otomatis jika belum ada
+insert into storage.buckets (id, name, public)
+values ('media', 'media', true)
+on conflict (id) do nothing;
+
+-- Mengatur RLS untuk Storage agar gambar bisa diakses publik
+create policy "Media public read" on storage.objects for select using (bucket_id = 'media');
+create policy "Media auth write" on storage.objects for insert with check (bucket_id = 'media' and auth.role() = 'authenticated');
+create policy "Media auth update" on storage.objects for update using (bucket_id = 'media' and auth.role() = 'authenticated');
+create policy "Media auth delete" on storage.objects for delete using (bucket_id = 'media' and auth.role() = 'authenticated');
