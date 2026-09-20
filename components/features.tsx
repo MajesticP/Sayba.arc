@@ -22,7 +22,7 @@ export default function Features({ title, subtitle, items }: FeaturesProps) {
   const grid = useInView(0.08)
 
   return (
-    <section className="py-10 md:py-24 bg-black" id="features">
+    <section className="pt-10 pb-16 md:pt-16 md:pb-24 bg-black" id="features">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div ref={header.ref} className={`text-center mb-8 md:mb-16 transition-all duration-700 ease-out ${header.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>

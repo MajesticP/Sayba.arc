@@ -49,7 +49,7 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
   if (!count) return null
 
   return (
-    <section className="bg-white pt-8 md:pt-16" aria-label="Banner promosi">
+    <section className="bg-white pt-6 md:pt-12" aria-label="Banner promosi">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
           className="relative group rounded-xl md:rounded-3xl overflow-hidden border border-black/10 bg-black shadow-[0_10px_40px_rgba(0,0,0,0.10)]"

@@ -65,18 +65,6 @@ export default function About({ data }: { data: AboutData }) {
                   <StatCard key={index} value={stat.value} label={stat.label} active={left.inView} delay={index * 100} />
                 ))}
               </div>
-              {/* Mini map */}
-              <div className="mt-4 rounded-xl bg-white/[0.04] border border-white/8 p-3 relative overflow-hidden group">
-                <div className="absolute inset-0 opacity-15" style={{ backgroundImage: "linear-gradient(rgba(255,145,77,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,145,77,0.4) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
-                <svg className="w-full h-20 relative z-10 opacity-80" viewBox="0 0 300 100">
-                  <polygon points="30,20 100,10 150,40 120,80 20,70" fill="rgba(255,145,77,0.2)" stroke="rgba(255,145,77,0.6)" strokeWidth="1" />
-                  <polygon points="130,30 220,20 270,60 230,90 100,75" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-                  <circle cx="75" cy="45" r="5" fill="#ff914d" />
-                  <circle cx="75" cy="45" r="10" fill="#ff914d" opacity="0.3"><animate attributeName="r" values="7;16;7" dur="2.5s" repeatCount="indefinite" /><animate attributeName="opacity" values="0.3;0;0.3" dur="2.5s" repeatCount="indefinite" /></circle>
-                  <circle cx="190" cy="55" r="4" fill="white" opacity="0.5" />
-                </svg>
-                <div className="text-[11px] text-white/30 text-center mt-1 relative z-10">Kalimantan Barat, Indonesia</div>
-              </div>
             </div>
             <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-2xl bg-[#ff914d] opacity-15 -z-10 animate-float-up" style={{ animationDuration: "4s" }} />
           </div>

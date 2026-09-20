@@ -26,7 +26,7 @@ export default function NewsHighlight({ articles }: { articles: Berita[] }) {
   if (!articles.length) return null
 
   return (
-    <section className="py-10 md:py-24 bg-white" id="berita">
+    <section className="pt-10 pb-6 md:pt-20 md:pb-10 bg-white" id="berita">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}

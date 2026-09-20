@@ -13,7 +13,7 @@ interface HeroData {
 
 export default function Hero({ data }: { data: HeroData }) {
   return (
-    <section className="relative min-h-[500px] md:min-h-[800px] flex items-center justify-center overflow-hidden bg-black text-center pt-24 pb-16">
+    <section className="relative min-h-[480px] md:min-h-[800px] flex items-center justify-center overflow-hidden bg-black text-center pt-20 md:pt-32 pb-16">
       {/* Subtle minimalist grid background */}
       <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
       
