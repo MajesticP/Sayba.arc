@@ -60,13 +60,14 @@ const servicesFAQ: FAQSectionType = {
 
 export default async function ServicesPage() {
   const [{ data: layananItems, error }, { data: deptsData }] = await Promise.all([
-    supabase
-      .from("layanan")
-      .select("*")
-      .eq("status", "active")
-      .order("created_at", { ascending: true }),
-    supabaseAdmin.from("layanan_depts").select("*").order("sort_order", { ascending: true }),
-  ])
+      supabase
+        .from("layanan")
+        .select("id, title, slug, dept, category, description, image_url, prices, status, featured_order, og_image")
+        .eq("status", "active")
+        .order("created_at", { ascending: true })
+        .limit(100),
+      supabaseAdmin.from("layanan_depts").select("value, label, description, badge_class, color, sub_categories, sort_order").order("sort_order", { ascending: true }),
+    ])
 
   if (error) {
     console.error("Error fetching layanan:", error)

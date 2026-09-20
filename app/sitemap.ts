@@ -22,11 +22,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   const [{ data: layananItems }, { data: informasiItems }, { data: portfolioItems }, { data: beritaItems }] = await Promise.all([
-    supabase.from("layanan").select("slug, created_at, image_url, og_image").eq("status", "active"),
-    supabase.from("informasi").select("slug, published_at, image_url, og_image").eq("status", "active"),
-    supabase.from("portfolio").select("slug, created_at, image_url, og_image").eq("status", "active"),
-    supabase.from("berita").select("slug, published_at, image_url, og_image").eq("status", "active"),
-  ])
+      supabase.from("layanan").select("slug, created_at, image_url, og_image").eq("status", "active").limit(1000),
+      supabase.from("informasi").select("slug, published_at, image_url, og_image").eq("status", "active").limit(1000),
+      supabase.from("portfolio").select("slug, created_at, image_url, og_image").eq("status", "active").limit(1000),
+      supabase.from("berita").select("slug, published_at, image_url, og_image").eq("status", "active").limit(1000),
+    ])
 
   type ItemRow = { slug: string; created_at: string; image_url: string | null; og_image: string | null }
 

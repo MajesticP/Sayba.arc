@@ -21,9 +21,10 @@ export async function GET() {
   if (!user) return unauthorized()
 
   const { data, error } = await supabaseAdmin
-    .from("layanan_depts")
-    .select("*")
-    .order("sort_order", { ascending: true })
+      .from("layanan_depts")
+      .select("value, label, description, badge_class, color, sub_categories, sort_order")
+      .order("sort_order", { ascending: true })
+      .limit(100)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
@@ -40,15 +41,20 @@ export async function GET() {
   return NextResponse.json(data.map(toClient))
 }
 
-// POST /api/admin/tipe
+// POST /api/admin/tipe — validate input
 export async function POST(req: NextRequest) {
   const { user, unauthorized } = await requireAdmin()
   if (!user) return unauthorized()
 
   const body = await req.json()
+  if (!body.value || !body.label) return NextResponse.json({ error: "value & label required" }, { status: 400 })
+  // value becomes a filter key & slug-ish identifier — restrict to safe charset
+  if (!/^[a-z0-9_-]{1,40}$/.test(String(body.value))) return NextResponse.json({ error: "value must be lowercase letters/digits/_/-" }, { status: 400 })
+  if (!Array.isArray(body.subCategories)) return NextResponse.json({ error: "subCategories must be an array" }, { status: 400 })
+
   const { data, error } = await db.from("layanan_depts").insert({
-    value: body.value,
-    label: body.label,
+    value: String(body.value),
+    label: String(body.label),
     description: body.description ?? null,
     badge_class: body.badgeClass,
     color: body.color,

@@ -49,7 +49,7 @@ export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params
 
   const { data: product, error } = await supabase
-    .from("produk").select("*").eq("slug", slug).eq("status", "active").single()
+      .from("produk").select("id, title, slug, dept, category, description, image_url, result_url, features, tech_stack, status, meta_title, meta_description, meta_keywords, og_image, canonical_url, price, technologies, process, specifications, created_at").eq("slug", slug).eq("status", "active").single()
 
   if (error || !product) notFound()
 

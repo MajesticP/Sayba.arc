@@ -46,7 +46,7 @@ export const revalidate = 60
 
 export default async function PortfolioPage() {
   const [{ data: portfolioItems, error }, { data: deptRows }] = await Promise.all([
-    supabase.from("portfolio").select("*").eq("status", "active").order("created_at", { ascending: false }),
+    supabase.from("portfolio").select("id, title, slug, category, dept, description, image_url, result_url, features, tech_stack, status, og_image, created_at").eq("status", "active").order("created_at", { ascending: false }).limit(100),
     supabase.from("layanan_depts").select("value, label, color, badge_class").order("sort_order", { ascending: true }),
   ])
   if (error) console.error("Error fetching portfolio:", error)

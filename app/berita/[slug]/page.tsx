@@ -42,7 +42,7 @@ function absoluteUrl(url: string): string {
 async function getArticle(slug: string): Promise<Berita | null> {
   const { data, error } = await supabase
     .from("berita")
-    .select("*")
+    .select("id, title, slug, excerpt, category, image_url, author, body, published_at, read_minutes, views, featured, tags, status, image_url, og_image, canonical_url, meta_title, meta_description, meta_keywords")
     .eq("slug", slug)
     .eq("status", "active")
     .maybeSingle()
@@ -85,13 +85,13 @@ export default async function BeritaDetailPage({ params }: PageProps) {
   const blocks = parseArticleBody(article.body)
 
   // Artikel lain: kategori sama lebih dulu, lalu sisanya
-  const { data: othersData } = await supabase
-    .from("berita")
-    .select("*")
-    .eq("status", "active")
-    .neq("slug", article.slug)
-    .order("published_at", { ascending: false })
-    .limit(12)
+    const { data: othersData } = await supabase
+      .from("berita")
+      .select("id, title, slug, excerpt, category, image_url, author, published_at, read_minutes, views, featured, tags, status")
+      .eq("status", "active")
+      .neq("slug", article.slug)
+      .order("published_at", { ascending: false })
+      .limit(12)
 
   const others: Berita[] = othersData ?? []
   const related = [

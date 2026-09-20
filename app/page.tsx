@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 export default async function Home() {
   const { data: layananItems, error } = await supabase
     .from("layanan")
-    .select("*")
+    .select("id, title, slug, dept, category, description, image_url, featured_order, prices, status, og_image")
     .eq("status", "active")
     .order("featured_order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false })
@@ -44,14 +44,14 @@ export default async function Home() {
 
   const allLayanan: Layanan[] = layananItems ?? []
 
-  const { data: deptsData } = await supabaseAdmin.from("layanan_depts").select("*").order("sort_order", { ascending: true })
+  const { data: deptsData } = await supabaseAdmin.from("layanan_depts").select("value, label, description, badge_class, color, sub_categories, sort_order").order("sort_order", { ascending: true })
   const depts: LayananDept[] = deptsData && deptsData.length > 0
     ? deptsData.map((r: any) => ({ value: r.value, label: r.label, description: r.description ?? "", badgeClass: r.badge_class, color: r.color, subCategories: r.sub_categories ?? [] }))
     : LAYANAN_DEPTS
 
   const { data: promoData } = await supabase
     .from("promo_banner")
-    .select("*")
+    .select("id, image_url, alt, eyebrow, title, subtitle, cta_text, cta_href, sort_order, status, created_at")
     .eq("status", "active")
     .order("sort_order", { ascending: true })
 
@@ -59,7 +59,7 @@ export default async function Home() {
 
   const { data: beritaData } = await supabase
     .from("berita")
-    .select("*")
+    .select("id, title, slug, excerpt, category, image_url, author, published_at, read_minutes, views, featured, tags, status, og_image")
     .eq("status", "active")
     .order("published_at", { ascending: false })
     .limit(3)

@@ -50,7 +50,7 @@ export default async function ServiceDetailPage({ params }: Props) {
   const { slug } = await params
 
   const { data: service, error } = await supabase
-    .from("layanan").select("*").eq("slug", slug).eq("status", "active").single()
+      .from("layanan").select("id, title, slug, dept, category, description, image_url, icon, prices, status, featured_order, meta_title, meta_description, meta_keywords, og_image, canonical_url, created_at").eq("slug", slug).eq("status", "active").single()
 
   if (error || !service) notFound()
 

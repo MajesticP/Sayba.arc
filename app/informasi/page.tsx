@@ -28,9 +28,10 @@ export const revalidate = 60
 export default async function InformasiPage() {
   const { data, error } = await supabase
     .from("informasi")
-    .select("*")
+    .select("id, title, slug, excerpt, category, image_url, author, published_at, read_minutes, views, featured, tags, status, og_image, meta_title, meta_description, meta_keywords")
     .eq("status", "active")
     .order("published_at", { ascending: false })
+    .limit(50)
 
   if (error) {
     console.error("Error fetching informasi:", error)

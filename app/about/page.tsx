@@ -30,10 +30,11 @@ async function getTeam(): Promise<TimMember[]> {
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
     )
     const { data, error } = await supabase
-      .from("tim")
-      .select("id, name, role, bio, photo_url, github_url, linkedin_url, instagram_url, order_num, status")
-      .eq("status", "active")
-      .order("order_num", { ascending: true })
+          .from("tim")
+          .select("id, name, role, bio, photo_url, github_url, linkedin_url, instagram_url, order_num, status")
+          .eq("status", "active")
+          .order("order_num", { ascending: true })
+          .limit(100)
     if (error || !data?.length) return []
     return data as TimMember[]
   } catch { return [] }
