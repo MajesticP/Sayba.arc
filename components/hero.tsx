@@ -24,13 +24,7 @@ export default function Hero({ data }: { data: HeroData }) {
       {/* Grid */}
       <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "linear-gradient(rgba(255,145,77,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,145,77,0.8) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
 
-      {/* Orbs */}
-      <div className="absolute top-1/4 right-1/3 w-96 h-96 rounded-full bg-[#ff914d] animate-orb-pulse pointer-events-none" style={{ opacity: 0.07 }} />
-      <div className="absolute bottom-1/4 left-1/4 w-64 h-64 rounded-full bg-[#ff914d] animate-orb-pulse-2 pointer-events-none" style={{ animationDelay: "2s", opacity: 0.05 }} />
 
-      {/* Rings — desktop only */}
-      <div className="hidden lg:block absolute top-16 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full border border-[#ff914d]/8 animate-spin-slow pointer-events-none" />
-      <div className="hidden lg:block absolute top-24 left-1/2 -translate-x-1/2 w-[480px] h-[480px] rounded-full border border-[#ff914d]/5 animate-spin-slow pointer-events-none" style={{ animationDirection: "reverse", animationDuration: "30s" }} />
 
       {/* Floating icons — desktop only */}
       <div className="hidden lg:block absolute top-20 right-28 opacity-25 animate-float-side" style={{ animationDuration: "4s" }}>
@@ -90,9 +84,7 @@ export default function Hero({ data }: { data: HeroData }) {
                 <div className="w-full h-full rounded-2xl bg-white/[0.04] border border-white/10 overflow-hidden relative shadow-2xl">
                   <div className="absolute inset-0 opacity-15" style={{ backgroundImage: "linear-gradient(rgba(255,145,77,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,145,77,0.5) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
 
-                  {/* Orbit rings around the logo */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full border border-dashed border-[#ff914d]/25 animate-spin-slow" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] h-[220px] rounded-full border border-[#ff914d]/10" />
+
 
                   {/* Spokes connecting logo to service nodes */}
                   <svg className="absolute inset-0 w-full h-full opacity-50" viewBox="0 0 440 380">
