@@ -1328,17 +1328,17 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
     <Modal open={open} onClose={handleClose} maxW="max-w-2xl">
       <ModalHeader icon={<Package size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Produk" : "Tambah Produk"} onClose={handleClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
-        <Field label="Nama Produk" required><Input value={form.title} onChange={handleTitle} placeholder="Paket Gambar Teknis Kapal (AutoCAD)" /></Field>
+        <Field label="Nama Produk" required><Input value={form.title} onChange={handleTitle} placeholder="Aplikasi GIS Terintegrasi" /></Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Slug / Href" required hint={`URL: /products/${form.slug || "slug"}`}>
-            <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="paket-gambar-teknis-kapal" />
+            <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="aplikasi-gis-terintegrasi" />
           </Field>
           <Field label="Tipe Produk" required>
             <Select value={form.dept} onChange={handleDeptChange} options={depts.map(d => ({ value: d.value, label: d.label }))} />
           </Field>
         </div>
         <Field label="Sub-Kategori" hint="Pilih cepat atau ketik sendiri">
-          <Input value={form.category} onChange={v => set("category", v)} placeholder={selectedDept?.subCategories[0] ?? "Contoh: Desain Kapal…"} />
+          <Input value={form.category} onChange={v => set("category", v)} placeholder={selectedDept?.subCategories[0] ?? "Contoh: Web Development…"} />
           {selectedDept?.subCategories.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {selectedDept.subCategories.map(sc => (
@@ -1379,10 +1379,10 @@ function ProdukModal({ open, initial, onClose, onSaved, onError, depts }: {
             Gambar utama di atas, jadi tidak perlu diunggah terpisah.
           </p>
           <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Nama + SAYBA ARC. Ideal 50–60 karakter.">
-            <Input value={form.meta_title} onChange={v => set("meta_title", v)} placeholder="Paket Gambar Teknis Kapal AutoCAD — SAYBA ARC" />
+            <Input value={form.meta_title} onChange={v => set("meta_title", v)} placeholder="Aplikasi Web GIS — SAYBA ARC" />
           </Field>
           <Field label="Meta Description" hint="Kosongkan untuk otomatis pakai Deskripsi. Ideal 150–160 karakter.">
-            <Textarea value={form.meta_description} onChange={v => set("meta_description", v)} placeholder="Dokumen gambar teknis kapal siap pakai — general arrangement, lines plan…" />
+            <Textarea value={form.meta_description} onChange={v => set("meta_description", v)} placeholder="Solusi aplikasi GIS terintegrasi — peta interaktif, dashboard spasial…" />
           </Field>
           <Field label="Meta Keywords (1 per baris)">
             <Textarea value={form.meta_keywords} onChange={v => set("meta_keywords", v)} placeholder={"gambar teknis kapal\ndokumen autocad kapal\njasa desain kapal"} />

@@ -59,26 +59,26 @@ export const LAYANAN_DEPTS: LayananDept[] = [
   },
   {
     value: "kelautan",
-    label: "Kelautan",
-    description: "Departemen Desain & Perkapalan",
+    label: "Data & AI",
+    description: "Departemen Machine Learning & Analisis Data",
     badgeClass: "bg-[#0a6e8a]/10 text-[#0a6e8a] ring-[#0a6e8a]/20",
     color: "#0a6e8a",
     subCategories: [
-      "Desain Kapal",
-      "Analisis Hidrodinamika",
-      "Survey Batimetri",
-      "Manajemen Pelabuhan",
-      "Konsultasi Kelautan",
+      "Machine Learning",
+      "Data Analytics",
+      "AI Integration",
+      "Computer Vision",
+      "Predictive Modeling",
     ],
   },
 
   {
     value: "softwarejailbreak",
-    label: "Software Jailbreak",
-    description: "Departemen Software & Jailbreak",
+    label: "Security & Embedded",
+    description: "Departemen Keamanan Siber & Sistem Embedded",
     badgeClass: "bg-purple-400/10 text-purple-400 ring-purple-400/20",
     color: "#a78bfa",
-    subCategories: ["Oprek HP", "Custom ROM", "Unlock Bootloader", "Firmware Flash"],
+    subCategories: ["IoT Development", "Hardware Interfacing", "Firmware Engineering", "Security Audit"],
   },
 
   // ── ADD MORE TYPES HERE ─────────────────────────────────────────────────

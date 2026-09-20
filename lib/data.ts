@@ -105,7 +105,7 @@ export const features = [
 export const about = {
   title: "Satu Tim. Banyak Keahlian.",
   description:
-    "SAYBA ARC adalah agensi dari Pontianak yang lahir dari keyakinan bahwa masalah nyata butuh orang yang mau turun tangan langsung. Kami tidak mengunci diri di satu bidang — kami mengerjakan apa yang klien butuhkan, dari pemetaan, sistem informasi dan rancangan perkapalan hingga kebutuhan engineer lainnya.",
+    "SAYBA ARC adalah agensi dari Pontianak yang lahir dari keyakinan bahwa masalah nyata butuh orang yang mau turun tangan langsung. Kami tidak mengunci diri di satu bidang — kami mengerjakan apa yang klien butuhkan, dari pembuatan aplikasi, website, machine learning, pemetaan GIS, hingga kebutuhan IT dan engineering lainnya.",
   stats: [
     { value: "50+", label: "Proyek Selesai" },
     { value: "2025", label: "Tahun Berdiri" },
