@@ -28,9 +28,10 @@ function useInView(threshold = 0.1) {
 }
 
 export default function Services({ allLayanan, depts }: { allLayanan: Layanan[]; depts: LayananDept[] }) {
-  if (!allLayanan.length) return null
   const header = useInView()
   const cards = useInView(0.08)
+
+  if (!allLayanan || !allLayanan.length) return null
 
   return (
     <section className="pt-4 pb-10 md:pt-6 md:pb-20 bg-white" id="services">
@@ -59,9 +60,9 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
           </div>
         </div>
 
-        {/* Cards — mobile: swipeable carousel, desktop: grid */}
-        <div ref={cards.ref} className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mb-2 sm:grid sm:grid-cols-2 xl:grid-cols-3 sm:gap-4 md:gap-5 sm:overflow-visible sm:pb-0 sm:mb-0 scrollbar-hide">
-          {allLayanan.slice(0, 3).map((service, i) => {
+        {/* Cards — mobile: swipeable carousel, desktop: stack (long cards) */}
+        <div ref={cards.ref} className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mb-2 sm:flex-col sm:gap-4 md:gap-5 sm:overflow-visible sm:pb-0 sm:mb-0 scrollbar-hide">
+          {allLayanan.slice(0, 4).map((service, i) => {
             const deptCfg = depts.find(d => d.value === service.dept)
             const color = deptCfg?.color ?? "#888"
             const deptLabel = deptCfg?.label ?? service.dept
@@ -69,14 +70,14 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
 
             return (
               <Link key={service.id} href={service.slug ? `/services/${service.slug}` : "#"}
-                className={`group relative transition-all duration-400 hover:-translate-y-1 hover:shadow-2xl overflow-hidden rounded-2xl border border-black/10 flex-shrink-0 w-[86vw] sm:w-auto snap-center flex flex-col ${cards.inView ? "animate-card-reveal" : "opacity-0"}`}
+                className={`group relative transition-all duration-400 hover:-translate-y-1 hover:shadow-2xl overflow-hidden rounded-2xl border border-black/10 flex-shrink-0 w-[86vw] sm:w-full snap-center flex flex-col sm:flex-row bg-white ${cards.inView ? "animate-card-reveal" : "opacity-0"}`}
                 style={{
                   "--card-color": color,
                   animationDelay: `${i * 120}ms`,
                 } as React.CSSProperties}>
 
                 {/* Image — hard-capped height, disamakan dengan halaman Layanan (160px) */}
-                <div className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "160px" }}>
+                <div className="relative w-full sm:w-[35%] bg-black/5 overflow-hidden shrink-0" style={{ height: "180px", minHeight: "100%" }}>
                   {imgSrc ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={imgSrc} alt={service.title} className="w-full object-cover transition-transform duration-600 group-hover:scale-105 block"
@@ -95,15 +96,15 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
 
                 {/* Content — hard-capped at remaining space */}
                 <div
-                  className="flex flex-col p-4 bg-white group-hover:bg-black/[0.01] transition-colors duration-300 flex-1"
+                  className="flex flex-col p-4 sm:p-6 lg:p-8 bg-white group-hover:bg-black/[0.01] transition-colors duration-300 flex-1"
                 >
                   <span className="text-[9px] font-bold uppercase tracking-widest mb-1 flex-shrink-0 line-clamp-1" style={{ color }}>
                     {deptLabel}{service.category ? ` · ${service.category}` : ""}
                   </span>
-                  <h3 className="text-[14px] font-black text-black mb-1.5 leading-snug group-hover:text-black/80 transition-colors flex-shrink-0 line-clamp-2">
+                  <h3 className="text-[15px] sm:text-[18px] lg:text-[20px] font-black text-black mb-2 leading-snug group-hover:text-black/80 transition-colors flex-shrink-0 line-clamp-2">
                     {service.title}
                   </h3>
-                  <p className="text-black/45 text-[12px] leading-relaxed line-clamp-3">
+                  <p className="text-black/45 text-[12px] sm:text-[13px] leading-relaxed line-clamp-3 sm:line-clamp-4">
                     {service.description ?? ""}
                   </p>
                   <div className="mt-auto pt-1 flex items-center gap-1.5 text-[10.5px] font-bold flex-shrink-0" style={{ color }}>

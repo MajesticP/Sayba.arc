@@ -34,8 +34,8 @@ export default async function Home() {
     .from("layanan")
     .select("*")
     .eq("status", "active")
-    .not("featured_order", "is", null)
-    .order("featured_order", { ascending: true })
+    .order("featured_order", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: false })
     .limit(3)
 
   if (error) {

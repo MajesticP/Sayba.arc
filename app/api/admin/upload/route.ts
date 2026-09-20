@@ -22,9 +22,9 @@ const MAX_INPUT_SIZE = 4.5 * 1024 * 1024 // 4.5 MB
 // longgar supaya foto dan banner selebar 1600px tetap tajam — anggaran lama
 // 50 KB membuat gambar besar terlihat lembek.
 const TARGET_SIZE = 500 * 1024 // 500 KB
-const ALLOWED_FOLDERS = ["produk", "layanan", "portfolio", "tim", "berita", "promo"]
+const ALLOWED_FOLDERS = ["informasi", "layanan", "portfolio", "tim", "berita", "promo"]
 // path = "<folder>/<sha256-of-contents>.<ext>" — matches what POST generates below.
-const MEDIA_PATH_RE = /^(produk|layanan|portfolio|tim|berita|promo)\/[a-f0-9]{64}\.(svg|png|webp)$/
+const MEDIA_PATH_RE = /^(informasi|layanan|portfolio|tim|berita|promo)\/[a-f0-9]{64}\.(svg|png|webp)$/
 
 type ImgKind = "svg" | "png" | "webp"
 

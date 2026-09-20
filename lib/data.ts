@@ -55,12 +55,12 @@ export const navItems = [
 ]
 
 export const hero = {
-  title: "Solusi Digital & Engineering oleh SAYBA ARC",
+  title: "Solusi IT & Engineering oleh SAYBA ARC",
   subtitle:
-    "Web & aplikasi, GIS & pemetaan, data & machine learning, hingga rancang teknik — SAYBA ARC adalah mitra satu atap untuk beragam kebutuhan digital dan engineering Anda, dikerjakan dalam satu tim.",
+    "Engineering Consultant untuk Desain Rancang Bangun, Pemetaan, AutoCAD 2D/3D, dan IT Consultant untuk Website, Aplikasi Desktop, Mobile, serta Machine Learning — kami mitra satu atap untuk beragam kebutuhan Anda.",
   primaryButton: { text: "Jelajahi Layanan Kami", href: "/services" },
   secondaryButton: { text: "Lihat Portofolio", href: "/portfolio" },
-  badge: "Multidisiplin · Berbasis di Pontianak",
+  badge: "Engineering & IT Konsultan · Berbasis di Pontianak",
 }
 
 export const features = [
@@ -103,9 +103,9 @@ export const features = [
 ]
 
 export const about = {
-  title: "Satu Tim. Banyak Keahlian.",
+  title: "Satu Tim. Dua Pilar Keahlian.",
   description:
-    "SAYBA ARC adalah agensi dari Pontianak yang lahir dari keyakinan bahwa masalah nyata butuh orang yang mau turun tangan langsung. Kami tidak mengunci diri di satu bidang — kami mengerjakan apa yang klien butuhkan, dari pembuatan aplikasi, website, machine learning, pemetaan GIS, hingga kebutuhan IT dan engineering lainnya.",
+    "SAYBA ARC adalah konsultan dari Pontianak yang berfokus pada dua bidang utama. Engineering Consultant yang menangani Desain Rancang Bangun, Pemetaan Spasial, dan perancangan 2D/3D. Serta IT Consultant yang membangun Website modern, Aplikasi Mobile/Desktop, hingga pengembangan Machine Learning. Semua dikerjakan oleh tim profesional kami.",
   stats: [
     { value: "50+", label: "Proyek Selesai" },
     { value: "2025", label: "Tahun Berdiri" },

@@ -29,8 +29,8 @@ create policy "layanan_depts_public_read" on layanan_depts for select using (tru
 
 -- Isi Data Default untuk 2 Kategori Layanan
 insert into layanan_depts (value, label, description, badge_class, color, sub_categories, sort_order) values
-('it_konsulting', 'IT Konsulting', 'Departemen Teknologi Informasi & Digital', 'bg-blue-400/10 text-blue-400 ring-blue-400/20', '#60a5fa', ARRAY['Web Development', 'Mobile Application', 'System Integration', 'Machine Learning', 'Data Analytics'], 0),
-('engineering_konsulting', 'Engineering Konsulting', 'Departemen Rekayasa & Rancang Teknik', 'bg-[#0a6e8a]/10 text-[#0a6e8a] ring-[#0a6e8a]/20', '#0a6e8a', ARRAY['GIS & Pemetaan', 'IoT Development', 'Firmware Engineering', 'Perencanaan Teknis'], 1);
+('it_konsulting', 'IT Consultant', 'Berfokus pada pengembangan Website, Desktop App, Mobile App & Machine Learning', 'bg-blue-400/10 text-blue-400 ring-blue-400/20', '#60a5fa', ARRAY['Website', 'Desktop App', 'Mobile App', 'Machine Learning'], 0),
+('engineering_konsulting', 'Engineering Consultant', 'Berfokus pada Desain Rancang Bangun, Pemetaan Spasial, dan AutoCAD 2D/3D', 'bg-[#0a6e8a]/10 text-[#0a6e8a] ring-[#0a6e8a]/20', '#0a6e8a', ARRAY['Pemetaan', 'Gambar 2D/3D', 'Desain Rancang Bangun'], 1);
 
 -- 3. TABEL LAYANAN
 create table layanan (

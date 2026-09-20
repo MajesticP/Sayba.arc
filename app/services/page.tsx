@@ -13,12 +13,12 @@ import ServicesClient from "./services-client"
 import { generateBreadcrumbSchema } from "@/lib/structured-data"
 import type { FAQSection as FAQSectionType } from "@/lib/faq-types"
 
-const desc = "Jasa IT Konsulting dan Engineering Konsulting dari SAYBA ARC — pengembangan web, aplikasi, machine learning, GIS, IoT, dan solusi digital end-to-end di Indonesia."
+const desc = "SAYBA ARC — Solusi terintegrasi Engineering Consultant (Desain Rancang Bangun, Pemetaan, AutoCAD 2D/3D) dan IT Consultant (Website, Desktop, Mobile, Machine Learning) dari Pontianak."
 
 export const metadata: Metadata = {
   title: `Layanan IT & Engineering Konsulting — ${siteConfig.name}`,
   description: desc,
-  keywords: ["IT Konsulting", "Engineering Konsulting", "Jasa Web Development Indonesia", "Machine Learning", "GIS Pemetaan", "IoT", "SAYBA ARC", "Pontianak"],
+  keywords: ["Engineering Consultant", "IT Consultant", "Desain Rancang Bangun", "Pemetaan", "AutoCAD 3D", "Website", "Machine Learning", "Pontianak", "SAYBA ARC"],
   alternates: { canonical: `${siteConfig.url}/services` },
   openGraph: {
     title: `Layanan IT & Engineering Konsulting — ${siteConfig.name}`,
@@ -36,28 +36,24 @@ const servicesFAQ: FAQSectionType = {
   description: "Hal-hal yang sering ditanyakan klien sebelum bekerja sama dengan SAYBA ARC.",
   items: [
     {
-      question: "Apa saja yang termasuk layanan IT Konsulting?",
-      answer: "Layanan IT Konsulting kami mencakup pengembangan website, aplikasi mobile, sistem informasi terintegrasi, machine learning, data analytics, serta konsultasi arsitektur dan infrastruktur teknologi.",
+      question: "Apa saja ruang lingkup Engineering Consultant?",
+      answer: "Layanan Engineering Consultant kami mencakup perancangan desain teknik (Rancang Bangun), Pemetaan (GIS & Spatial Analysis), Gambar Kerja 2D dan 3D (AutoCAD, dsb), serta perencanaan strategis bidang teknik. Fokus kami mengubah data lapangan menjadi rancangan akurat.",
     },
     {
-      question: "Apa perbedaan IT Konsulting dan Engineering Konsulting?",
-      answer: "IT Konsulting berfokus pada solusi perangkat lunak dan digital — website, aplikasi, ML, dan analitik data. Engineering Konsulting berfokus pada rekayasa teknik seperti pemetaan GIS, pengembangan IoT, firmware engineering, dan perencanaan teknis.",
+      question: "Apa yang membedakan IT Consultant di SAYBA ARC?",
+      answer: "Layanan IT Consultant kami difokuskan pada pengembangan perangkat lunak (Website, Desktop App, Mobile App) dan penerapan AI/Machine Learning. Kami bekerja end-to-end dari analisis arsitektur hingga deployment produksi yang andal.",
+    },
+    {
+      question: "Apakah memungkinkan proyek menggabungkan IT dan Engineering?",
+      answer: "Sangat bisa. Kami memiliki tim multidisiplin. Contohnya, pembuatan dashboard web (IT) yang menampilkan peta digital interaktif hasil survei pemetaan (Engineering) dalam satu platform terintegrasi.",
     },
     {
       question: "Berapa lama proses pengerjaan proyek?",
-      answer: "Timeline bervariasi sesuai skala proyek. Website company profile umumnya 2-4 minggu, aplikasi custom 1-3 bulan, dan proyek GIS/pemetaan tergantung luas area. Kami memberikan estimasi yang jelas di awal sebelum pekerjaan dimulai.",
+      answer: "Bergantung pada kompleksitas. Proyek pembuatan website umumnya memakan waktu 2-4 minggu. Proyek pemetaan atau rancang bangun bisa bervariasi dari hitungan minggu hingga bulan sesuai skala. Jadwal disepakati transparan di awal.",
     },
     {
-      question: "Apakah ada konsultasi awal gratis?",
-      answer: "Ya. Kami menyediakan sesi konsultasi awal tanpa biaya untuk memahami kebutuhan Anda, menilai kelayakan teknis, dan memberikan rekomendasi solusi yang tepat sebelum kontrak dimulai.",
-    },
-    {
-      question: "Bagaimana sistem pembayaran proyeknya?",
-      answer: "Umumnya terbagi menjadi beberapa termin: down payment di awal, pembayaran bertahap sesuai progres, dan pelunasan saat serah terima. Detail pembayaran disepakati bersama sebelum proyek dimulai.",
-    },
-    {
-      question: "Apakah tersedia dukungan teknis setelah proyek selesai?",
-      answer: "Ya. Setiap proyek mendapat masa garansi maintenance. Setelahnya, kami menawarkan paket dukungan teknis berkelanjutan sesuai kebutuhan Anda.",
+      question: "Bagaimana sistem komunikasi selama proyek berlangsung?",
+      answer: "Kami menggunakan pendekatan transparan dengan laporan berkala (mingguan) dan meeting evaluasi. Kami memastikan setiap perubahan dan progres selalu Anda ketahui tanpa ada istilah teknis yang disembunyikan.",
     },
   ],
 }
@@ -106,9 +102,9 @@ export default async function ServicesPage() {
       <PageHero
         image="/banners/services-1920x600.webp"
         imageMobile="/banners/services-mobile-900x450.webp"
-        eyebrow="IT & Engineering Konsulting"
+        eyebrow="Engineering & IT Consultant"
         title="Layanan Kami"
-        subtitle="Dikerjakan langsung oleh tim internal — tanpa subkontrak, tanpa hand-off ke pihak ketiga."
+        subtitle="Dari Desain Rancang Bangun hingga Pengembangan Software — dikerjakan langsung oleh tim internal tanpa subkontrak."
       />
 
       <ServicesClient allLayanan={allLayanan} allDepts={depts} />
