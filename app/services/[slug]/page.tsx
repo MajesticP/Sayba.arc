@@ -120,7 +120,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="board-area min-h-screen flex flex-col">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}

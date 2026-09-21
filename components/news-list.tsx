@@ -4,7 +4,7 @@ import { useMemo, useState } from "react"
 import Link from "next/link"
 import { ArrowRight, Clock, Eye, Search, X } from "lucide-react"
 import PageTransition from "@/components/page-transition"
-import CuttingBoardBackground from "@/components/cutting-board-bg"
+import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
 import type { Berita } from "@/lib/database.types"
 import type { KategoriItem } from "@/lib/kategori"
 import { formatNewsDate } from "@/lib/news-data"
@@ -88,11 +88,11 @@ export default function NewsList({
   return (
     <>
       {/* ══ HERO ══ */}
-      <section className="relative bg-navy overflow-hidden">
+      <BoardSection dark id="berita-hero" panelClassName="relative overflow-hidden">
         <CuttingBoardBackground tone="dark" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-[100px] pb-14 md:pt-36 md:pb-20">
-          <p className="animate-fade-in stagger-1 text-[12px] font-medium text-orange mb-4">
+          <p className="animate-fade-in stagger-1 text-[12px] font-bold text-orange-soft mb-4">
             Berita
           </p>
           <h1 className="animate-blur-in stagger-2 text-[28px] leading-[1.15] sm:text-4xl lg:text-[46px] font-bold text-ice tracking-tight mb-4 max-w-3xl">
@@ -127,10 +127,10 @@ export default function NewsList({
             )}
           </div>
         </div>
-      </section>
+      </BoardSection>
 
       {/* ══ ISI ══ */}
-      <section className="relative z-10 -mt-6 md:-mt-10 rounded-t-[28px] md:rounded-t-[40px] bg-ice flex-1 pb-14 md:pb-24">
+      <BoardSection id="berita-list" panelClassName="panel-top-pad">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-14">
 
           {/* ── Belum ada berita ── */}
@@ -143,7 +143,7 @@ export default function NewsList({
               </p>
               <Link
                 href="/informasi"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-navy text-ice text-[13.5px] font-semibold hover:bg-navy-700 transition-colors"
+                className="btn-outline"
               >
                 Buka Informasi
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -181,7 +181,7 @@ export default function NewsList({
                 href={`/berita/${featured.slug}`}
                 className="group block bg-navy rounded-2xl md:rounded-3xl overflow-hidden mb-10 md:mb-14 p-6 md:p-9 hover:shadow-2xl transition-all duration-200"
               >
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-orange mb-3">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-orange-soft mb-3">
                   Sorotan
                 </p>
                 <h2 className="text-[19px] md:text-[26px] font-bold text-ice leading-snug mb-3 group-hover:text-orange-soft transition-colors max-w-3xl">
@@ -193,7 +193,7 @@ export default function NewsList({
                   </p>
                 )}
                 <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 text-[11.5px] text-ice/70">
-                  <span className="text-orange font-medium">{catOf(featured.category).label}</span>
+                  <span className="text-orange-soft font-semibold">{catOf(featured.category).label}</span>
                   <span aria-hidden="true">·</span>
                   <span>{formatNewsDate(featured.published_at)}</span>
                   <span aria-hidden="true">·</span>
@@ -230,7 +230,7 @@ export default function NewsList({
                   setSearch("")
                   setActiveCategory("semua")
                 }}
-                className="px-5 py-2.5 rounded-xl bg-navy text-ice text-[13px] font-semibold hover:bg-navy-700 transition-colors"
+                className="btn-outline"
               >
                 Tampilkan semua berita
               </button>
@@ -310,7 +310,7 @@ export default function NewsList({
             </div>
           )}
         </div>
-      </section>
+      </BoardSection>
     </>
   )
 }

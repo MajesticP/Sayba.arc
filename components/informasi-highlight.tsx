@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { ArrowRight, Clock, FileText } from "lucide-react"
 import { useInView } from "@/hooks/use-in-view"
+import { BoardSection } from "@/components/cutting-board-bg"
 import type { Informasi } from "@/lib/database.types"
 import type { KategoriItem } from "@/lib/kategori"
 import { formatInformasiDate } from "@/lib/informasi-data"
@@ -14,6 +15,9 @@ import { formatInformasiDate } from "@/lib/informasi-data"
  * dengan garis ukur, bukan kartu bergambar. Alasannya, dokumen teknis dibaca
  * karena judulnya, bukan karena fotonya. Bentuk daftar juga memberi variasi
  * komposisi di beranda sehingga dua section tidak terasa kembar.
+ *
+ * Setiap baris daftar adalah kartu tersendiri, jadi tidak ada teks yang jatuh
+ * langsung di atas permukaan panel tanpa bingkai.
  */
 export default function InformasiHighlight({
   articles,
@@ -32,22 +36,22 @@ export default function InformasiHighlight({
     kategori.find((k) => k.slug.toLowerCase() === slug.toLowerCase())?.label ?? slug
 
   return (
-    <section className="py-10 md:py-24" id="informasi">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <BoardSection id="informasi" aria-labelledby="informasi-heading" panelClassName="panel-top-pad">
+      <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
 
         <div
           ref={header.ref}
-          className={`mb-7 md:mb-12 transition-all duration-700 ease-out ${
+          className={`mb-6 md:mb-10 transition-all duration-700 ease-out ${
             header.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
             <div>
-              <p className="text-[12px] font-semibold text-orange-text mb-2">Informasi</p>
-              <h2 className="text-[22px] leading-tight md:text-[36px] font-bold text-navy">
+              <p className="text-[12px] font-bold text-orange-text mb-2">Informasi</p>
+              <h2 id="informasi-heading" className="text-[22px] leading-tight md:text-[34px] font-bold text-navy">
                 Panduan &amp; Standar Kerja
               </h2>
-              <p className="text-slate-brand text-[13.5px] md:text-base mt-2 max-w-md">
+              <p className="text-slate-brand text-[13.5px] md:text-[15px] mt-2 max-w-md leading-relaxed">
                 Acuan yang kami pakai sehari-hari, terbuka untuk Anda baca.
               </p>
             </div>
@@ -61,12 +65,12 @@ export default function InformasiHighlight({
           </div>
         </div>
 
-        <div ref={list.ref} className="border-t border-ice-line">
+        <div ref={list.ref} className="space-y-2.5 md:space-y-3">
           {articles.map((article, i) => (
             <Link
               key={article.id}
               href={`/informasi/${article.slug}`}
-              className={`group grid grid-cols-[auto_1fr_auto] items-start gap-4 md:gap-6 py-5 md:py-6 border-b border-ice-line transition-all duration-500 hover:bg-white/70 px-1 md:px-3 ${
+              className={`group grid grid-cols-[auto_1fr] md:grid-cols-[auto_1fr_auto] items-start gap-4 md:gap-6 rounded-xl md:rounded-2xl border border-ice-line bg-white px-4 md:px-6 py-4 md:py-5 transition-all duration-500 hover:border-orange/45 hover:bg-ice-dim/60 ${
                 list.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
               }`}
               style={{ transitionDelay: `${i * 90}ms` }}
@@ -82,7 +86,7 @@ export default function InformasiHighlight({
 
               <span className="min-w-0">
                 <span className="flex items-center gap-2.5 flex-wrap mb-1.5">
-                  <span className="text-[11.5px] font-semibold text-orange-text">
+                  <span className="text-[11.5px] font-bold text-orange-text">
                     {labelOf(article.category)}
                   </span>
                   <span aria-hidden="true" className="text-slate-brand">·</span>
@@ -91,36 +95,39 @@ export default function InformasiHighlight({
                     {article.read_minutes} mnt baca
                   </span>
                 </span>
-                <span className="block text-[16px] md:text-[18px] font-bold text-navy leading-snug group-hover:text-orange-text transition-colors line-clamp-2">
+                <span className="block text-[15.5px] md:text-[17px] font-bold text-navy leading-snug group-hover:text-orange-text transition-colors line-clamp-2">
                   {article.title}
                 </span>
                 {article.excerpt && (
-                  <span className="block text-[13.5px] text-slate-brand leading-relaxed line-clamp-2 mt-1.5">
+                  <span className="block text-[13px] text-slate-brand leading-relaxed line-clamp-2 mt-1.5">
                     {article.excerpt}
                   </span>
                 )}
+                <span className="block md:hidden text-[11.5px] text-slate-brand mt-2">
+                  {formatInformasiDate(article.published_at)}
+                </span>
               </span>
 
-              <span className="pt-1 text-[12px] text-slate-brand whitespace-nowrap hidden md:block">
-                {formatInformasiDate(article.published_at)}
+              <span className="hidden md:flex items-center gap-3 pt-1 shrink-0">
+                <span className="text-[12px] text-slate-brand whitespace-nowrap">
+                  {formatInformasiDate(article.published_at)}
+                </span>
+                <ArrowRight className="w-4 h-4 text-slate-brand group-hover:text-orange-text group-hover:translate-x-0.5 transition-all" aria-hidden="true" />
               </span>
             </Link>
           ))}
         </div>
 
-        <div className="mt-6 md:mt-10 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-slate-brand text-[13.5px] text-center sm:text-left">
+        <div className="mt-6 md:mt-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-ice-line">
+          <p className="text-slate-brand text-[13.5px] text-center sm:text-left leading-relaxed">
             Butuh dokumen yang belum ada di daftar?
           </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-navy text-ice text-[13.5px] font-semibold hover:bg-navy-700 transition-colors"
-          >
+          <Link href="/contact" className="btn-outline w-full sm:w-auto shrink-0">
             Tanyakan ke tim kami
-            <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
           </Link>
         </div>
       </div>
-    </section>
+    </BoardSection>
   )
 }

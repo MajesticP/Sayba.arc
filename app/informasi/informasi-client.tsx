@@ -17,7 +17,7 @@ import {
   X,
 } from "lucide-react"
 import PageTransition from "@/components/page-transition"
-import CuttingBoardBackground from "@/components/cutting-board-bg"
+import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
 import type { Informasi } from "@/lib/database.types"
 import type { KategoriItem } from "@/lib/kategori"
 import { formatInformasiDate } from "@/lib/informasi-data"
@@ -102,11 +102,11 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
   return (
     <>
       {/* ══ HERO ══ */}
-      <section className="relative bg-navy overflow-hidden">
+      <BoardSection dark id="informasi-hero" panelClassName="relative overflow-hidden">
         <CuttingBoardBackground tone="dark" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-[100px] pb-14 md:pt-36 md:pb-20">
-          <p className="animate-fade-in stagger-1 text-[12px] font-medium text-orange mb-4">
+          <p className="animate-fade-in stagger-1 text-[12px] font-bold text-orange-soft mb-4">
             Informasi
           </p>
           <h1 className="animate-blur-in stagger-2 text-[28px] leading-[1.15] sm:text-4xl lg:text-[44px] font-bold text-ice tracking-tight mb-4 max-w-3xl">
@@ -141,10 +141,10 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
             )}
           </div>
         </div>
-      </section>
+      </BoardSection>
 
       {/* ══ ISI ══ */}
-      <section className="relative z-10 -mt-6 md:-mt-10 rounded-t-[28px] md:rounded-t-[40px] bg-ice flex-1 pb-14 md:pb-24">
+      <BoardSection id="informasi-list" panelClassName="panel-top-pad">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-14">
 
           {/* ── Belum ada dokumen sama sekali ── */}
@@ -160,7 +160,7 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
               </p>
               <Link
                 href="/contact"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-navy text-ice text-[14px] font-semibold hover:bg-navy-700 transition-colors"
+                className="btn-outline"
               >
                 Hubungi Kami
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -198,7 +198,7 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
                 href={`/informasi/${featured.slug}`}
                 className="group block bg-navy rounded-2xl md:rounded-3xl overflow-hidden mb-10 md:mb-14 p-6 md:p-9 hover:shadow-2xl transition-all duration-200"
               >
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-orange mb-3">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-orange-soft mb-3">
                   Sorotan
                 </p>
                 <h2 className="text-[18px] md:text-[24px] font-bold text-ice leading-snug mb-3 group-hover:text-orange-soft transition-colors max-w-3xl">
@@ -210,7 +210,7 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
                   </p>
                 )}
                 <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 text-[11px] text-ice/70">
-                  <span className="text-orange font-medium">{catOf(featured.category).label}</span>
+                  <span className="text-orange-soft font-semibold">{catOf(featured.category).label}</span>
                   <span aria-hidden="true">·</span>
                   <span>{formatInformasiDate(featured.published_at)}</span>
                   <span aria-hidden="true">·</span>
@@ -280,7 +280,7 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
                   setSearch("")
                   setActiveCategory("semua")
                 }}
-                className="px-5 py-2.5 rounded-xl bg-navy text-ice text-[13px] font-semibold hover:bg-navy-700 transition-colors"
+                className="btn-outline"
               >
                 Tampilkan semua dokumen
               </button>
@@ -373,7 +373,7 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
                         </span>
                         <ChevronDown
                           className={`w-4 h-4 shrink-0 mt-0.5 transition-transform ${
-                            isOpen ? "rotate-180 text-orange" : "text-slate-brand"
+                            isOpen ? "rotate-180 text-orange-text" : "text-slate-brand"
                           }`}
                           aria-hidden="true"
                         />
@@ -390,7 +390,7 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
             </section>
           )}
         </div>
-      </section>
+      </BoardSection>
     </>
   )
 }

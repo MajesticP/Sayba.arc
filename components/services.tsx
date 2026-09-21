@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { ArrowRight, Check } from "lucide-react"
+import { BoardSection } from "@/components/cutting-board-bg"
 import type { Layanan } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
 import { getDept } from "@/lib/layanan-config"
@@ -10,6 +11,9 @@ import { getDept } from "@/lib/layanan-config"
  * Layanan bersifat TERPUSAT: tidak ada paket, tidak ada tingkat harga.
  * Klien menghubungi kami, lingkup dan biaya disusun per proyek. Karena itu
  * tidak ada kartu harga di sini, hanya lingkup pekerjaan dan tautan ke detail.
+ *
+ * Setiap departemen dibungkus kartu tersendiri di dalam panel, jadi tidak ada
+ * teks yang jatuh langsung di atas permukaan panel tanpa bingkai.
  */
 
 /** Link Google Drive → proxy gambar lokal */
@@ -31,17 +35,17 @@ export default function Services({
   depts: LayananDept[]
 }) {
   return (
-    <section className="py-10 md:py-24" id="layanan">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <BoardSection id="layanan" aria-labelledby="layanan-heading" panelClassName="panel-top-pad">
+      <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
 
-        <div className="mb-7 md:mb-12">
-          <p className="text-[12px] font-semibold text-orange-text mb-2">Layanan</p>
+        <div className="mb-6 md:mb-10">
+          <p className="text-[12px] font-bold text-orange-text mb-2">Layanan</p>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <h2 className="text-[22px] leading-tight md:text-[36px] font-bold text-navy">
+              <h2 id="layanan-heading" className="text-[22px] leading-tight md:text-[34px] font-bold text-navy">
                 Dua Departemen, Satu Standar Kerja
               </h2>
-              <p className="text-slate-brand text-[13.5px] md:text-base mt-2 max-w-xl">
+              <p className="text-slate-brand text-[13.5px] md:text-[15px] mt-2 max-w-xl leading-relaxed">
                 Setiap pekerjaan disusun per proyek: lingkup, jadwal, dan biaya
                 disepakati tertulis sebelum mulai. Tidak ada paket tetap, karena
                 kebutuhan tiap klien berbeda.
@@ -63,13 +67,13 @@ export default function Services({
           {depts.map((dept) => {
             const items = allLayanan.filter((l) => l.dept === dept.value)
             return (
-              <div key={dept.value} className="bg-white rounded-2xl border border-ice-line overflow-hidden">
+              <div key={dept.value} className="bg-white rounded-2xl border border-ice-line overflow-hidden flex flex-col">
                 <div className="bg-navy px-5 md:px-7 py-5 md:py-6">
                   <h3 className="text-[17px] md:text-[20px] font-bold text-ice">{dept.label}</h3>
-                  <p className="text-ice/75 text-[13px] leading-relaxed mt-1.5">{dept.description}</p>
+                  <p className="text-ice/80 text-[13px] leading-relaxed mt-1.5">{dept.description}</p>
                 </div>
 
-                <div className="p-5 md:p-7">
+                <div className="p-5 md:p-7 flex-1 flex flex-col">
                   <ul className="space-y-2.5">
                     {dept.scope.map((s) => (
                       <li key={s} className="flex items-start gap-2.5 text-[14px] text-ink leading-relaxed">
@@ -80,45 +84,66 @@ export default function Services({
                   </ul>
 
                   {/* Kalau ada layanan terbit di departemen ini, tampilkan
-                      tautan langsung ke halaman detailnya. */}
-                  {items.length > 0 && (
-                    <div className="mt-6 pt-5 border-t border-ice-line space-y-2">
-                      <p className="text-[11.5px] font-semibold text-slate-brand uppercase tracking-wider">
-                        Sudah kami kerjakan
-                      </p>
-                      {items.map((item) => {
-                        const img = gdriveToImg(item.image_url)
-                        return (
-                          <Link
-                            key={item.id}
-                            href={`/services/${item.slug}`}
-                            className="group flex items-center gap-3.5 p-2 -mx-2 rounded-xl hover:bg-ice-dim transition-colors"
-                          >
-                            {/* Foto 1:1 di kiri, seperti di halaman layanan */}
-                            <span className="relative w-12 h-12 rounded-lg overflow-hidden bg-ice-dim shrink-0">
-                              {img ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={img} alt="" loading="lazy" className="card-img-fill" />
-                              ) : (
-                                <span className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-brand">
-                                  {item.title.charAt(0)}
-                                </span>
-                              )}
-                            </span>
-                            <span className="min-w-0 flex-1">
-                              <span className="block text-[14px] font-semibold text-navy group-hover:text-orange-text transition-colors line-clamp-1">
-                                {item.title}
+                      tautan langsung ke halaman detailnya. Bagian ini ditaruh
+                      di bawah (mt-auto) supaya kedua kartu tetap sejajar
+                      walau jumlah lingkupnya berbeda. */}
+                  {items.length > 0 ? (
+                    <div className="mt-auto pt-6">
+                      <div className="pt-5 border-t border-ice-line space-y-2">
+                        <p className="text-[11.5px] font-bold text-slate-brand uppercase tracking-wider">
+                          Sudah kami kerjakan
+                        </p>
+                        {items.map((item) => {
+                          const img = gdriveToImg(item.image_url)
+                          return (
+                            <Link
+                              key={item.id}
+                              href={`/services/${item.slug}`}
+                              className="group flex items-center gap-3.5 p-2 -mx-2 rounded-xl hover:bg-ice-dim transition-colors"
+                            >
+                              {/* Foto 1:1 di kiri, seperti di halaman layanan */}
+                              <span className="relative w-12 h-12 rounded-lg overflow-hidden bg-ice-dim shrink-0">
+                                {img ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={img} alt="" loading="lazy" className="card-img-fill" />
+                                ) : (
+                                  <span className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-brand">
+                                    {item.title.charAt(0)}
+                                  </span>
+                                )}
                               </span>
-                              {item.category && (
-                                <span className="block text-[11.5px] text-slate-brand line-clamp-1 mt-0.5">
-                                  {item.category}
+                              <span className="min-w-0 flex-1">
+                                <span className="block text-[14px] font-semibold text-navy group-hover:text-orange-text transition-colors line-clamp-1">
+                                  {item.title}
                                 </span>
-                              )}
-                            </span>
-                            <ArrowRight className="w-4 h-4 text-slate-brand group-hover:text-orange-text group-hover:translate-x-0.5 transition-all shrink-0" aria-hidden="true" />
-                          </Link>
-                        )
-                      })}
+                                {item.category && (
+                                  <span className="block text-[11.5px] text-slate-brand line-clamp-1 mt-0.5">
+                                    {item.category}
+                                  </span>
+                                )}
+                              </span>
+                              <ArrowRight className="w-4 h-4 text-slate-brand group-hover:text-orange-text group-hover:translate-x-0.5 transition-all shrink-0" aria-hidden="true" />
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Departemen belum punya layanan terbit: katakan apa adanya
+                       dan beri satu tindakan, jangan biarkan kartu menggantung. */
+                    <div className="mt-auto pt-6">
+                      <div className="pt-5 border-t border-ice-line">
+                        <p className="text-[12.5px] text-slate-brand leading-relaxed mb-3">
+                          Lingkup di atas bisa langsung ditanyakan. Kami susun penawaran per proyek.
+                        </p>
+                        <Link
+                          href="/contact"
+                          className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-orange-text hover:text-navy transition-colors group"
+                        >
+                          Tanyakan lingkup ini
+                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+                        </Link>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -127,20 +152,17 @@ export default function Services({
           })}
         </div>
 
-        <div className="mt-8 md:mt-12 flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-ice-line">
-          <p className="text-slate-brand text-[13.5px] text-center sm:text-left max-w-lg">
+        <div className="mt-6 md:mt-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-ice-line">
+          <p className="text-slate-brand text-[13.5px] text-center sm:text-left max-w-lg leading-relaxed">
             Belum yakin lingkupnya? Kirim kebutuhan Anda, kami susun Kerangka Acuan Kerja
             beserta rincian biaya.
           </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange text-navy text-[13.5px] font-bold hover:bg-orange-soft transition-colors shrink-0"
-          >
+          <Link href="/contact" className="btn-solid w-full sm:w-auto shrink-0">
             Minta penawaran
-            <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
           </Link>
         </div>
       </div>
-    </section>
+    </BoardSection>
   )
 }

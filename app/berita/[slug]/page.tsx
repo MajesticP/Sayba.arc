@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { BoardSection } from "@/components/cutting-board-bg"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { siteConfig, navItems, footerLinks, socialLinks } from "@/lib/data"
@@ -132,7 +133,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
   ])
 
   return (
-    <main className="min-h-screen flex flex-col bg-platinum">
+    <main className="board-area min-h-screen flex flex-col bg-ice">
       {/* Penghitung tampilan: naik saat halaman dibuka atau di-refresh */}
       <ViewCounter table="berita" slug={article.slug} />
 
@@ -148,24 +149,28 @@ export default async function BeritaDetailPage({ params }: PageProps) {
       <Header navItems={navItems} />
 
       {/* ══ JUDUL ARTIKEL ══ */}
-      <section className="bg-carbon">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-[96px] pb-10 md:pt-32 md:pb-14">
+      <BoardSection dark id="judul-artikel" panelClassName="relative">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 lg:px-10 pt-20 pb-10 md:pt-28 md:pb-14">
           <nav
-            className="flex items-center gap-1.5 text-[12px] text-steel mb-6 flex-wrap"
+            className="flex items-center gap-1.5 text-[12px] text-orange-soft mb-6 flex-wrap"
             aria-label="Breadcrumb"
           >
-            <Link href="/" className="hover:text-platinum transition-colors">
+            <Link href="/" className="hover:text-ice transition-colors">
               Beranda
             </Link>
             <span aria-hidden="true">/</span>
-            <Link href="/berita" className="hover:text-platinum transition-colors">
+            <Link href="/berita" className="hover:text-ice transition-colors">
               Berita
             </Link>
           </nav>
 
+          {/* Badge kategori: warna kategori dipakai sebagai GARIS tepi saja,
+              teksnya ice di atas bidang navy sehingga kontrasnya 13.44:1
+              berapa pun warna kategorinya. Warna kategori mentah tidak bisa
+              dipakai sebagai latar berteks terang: sebagian gagal kontras. */}
           <span
-            className="inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider text-ice mb-4"
-            style={{ backgroundColor: color }}
+            className="inline-block px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider text-ice mb-4"
+            style={{ boxShadow: `inset 0 0 0 1.5px ${color}` }}
           >
             {catLabel}
           </span>
@@ -186,12 +191,12 @@ export default async function BeritaDetailPage({ params }: PageProps) {
             <span>{article.read_minutes} menit baca</span>
           </div>
         </div>
-      </section>
+      </BoardSection>
 
       {/* ══ ISI ══ */}
-      <article className="relative z-10 -mt-6 md:-mt-8 rounded-t-[28px] md:rounded-t-[40px] bg-platinum flex-1 pb-14 md:pb-20">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-12">
-          <figure className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-ice-line bg-platinum-dim mb-8 md:mb-10">
+      <BoardSection id="isi-artikel" as="article" panelClassName="panel-top-pad">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 lg:px-10 pb-10 md:pb-16">
+          <figure className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-ice-line bg-ice-dim mb-8 md:mb-10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={heroImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
           </figure>
@@ -201,7 +206,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
               block.startsWith("## ") ? (
                 <h2
                   key={i}
-                  className="text-[17px] md:text-[22px] font-bold text-carbon mt-9 mb-4 pb-2 border-b border-ice-line leading-snug"
+                  className="text-[17px] md:text-[22px] font-bold text-navy mt-9 mb-4 pb-2 border-b border-ice-line leading-snug"
                 >
                   {block.slice(3)}
                 </h2>
@@ -230,32 +235,29 @@ export default async function BeritaDetailPage({ params }: PageProps) {
           )}
 
           {/* Ajakan */}
-          <div className="mt-9 rounded-2xl bg-carbon p-6 md:p-8">
-            <h2 className="text-[17px] md:text-[20px] font-bold text-platinum mb-2">
+          <div className="mt-9 rounded-2xl bg-navy p-6 md:p-8">
+            <h2 className="text-[17px] md:text-[20px] font-bold text-ice mb-2">
               Ada pekerjaan teknis yang sedang direncanakan?
             </h2>
-            <p className="text-steel text-[14px] md:text-[15px] leading-relaxed mb-5 max-w-lg">
+            <p className="text-orange-soft text-[14px] md:text-[15px] leading-relaxed mb-5 max-w-lg">
               Ceritakan lingkupnya. Kami bantu petakan kebutuhan dan langkah pertamanya.
             </p>
-            <Link
-              href="/contact"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-powder text-carbon text-[14px] font-semibold hover:bg-white transition-colors"
-            >
+            <Link href="/contact" className="btn-solid">
               Hubungi Kami
             </Link>
           </div>
         </div>
-      </article>
+      </BoardSection>
 
       {/* ══ ARTIKEL LAIN ══ */}
       {related.length > 0 && (
-        <section className="bg-platinum-dim py-12 md:py-16 border-t border-ice-line">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <BoardSection id="artikel-lain" panelClassName="panel-top-pad">
+          <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
             <div className="flex items-baseline justify-between gap-3 mb-5">
-              <h2 className="text-[18px] md:text-2xl font-bold text-carbon">Artikel Lainnya</h2>
+              <h2 className="text-[18px] md:text-2xl font-bold text-navy">Artikel Lainnya</h2>
               <Link
                 href="/berita"
-                className="text-[13px] font-semibold text-slate-brand hover:text-carbon transition-colors"
+                className="text-[13px] font-semibold text-slate-brand hover:text-navy transition-colors"
               >
                 Lihat semua
               </Link>
@@ -266,9 +268,9 @@ export default async function BeritaDetailPage({ params }: PageProps) {
                 <Link
                   key={item.id}
                   href={`/berita/${item.slug}`}
-                  className="group flex flex-col bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-steel hover:shadow-lg transition-all duration-200"
+                  className="group flex flex-col bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-lg transition-all duration-200"
                 >
-                  <div className="relative w-full aspect-[16/10] overflow-hidden bg-platinum-dim">
+                  <div className="relative w-full aspect-[16/10] overflow-hidden bg-ice-dim">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={gdriveToImg(item.image_url)}
@@ -278,7 +280,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
                     />
                   </div>
                   <div className="p-4">
-                    <h3 className="text-[14px] font-bold text-carbon leading-snug line-clamp-2 mb-2 group-hover:text-slate-brand transition-colors">
+                    <h3 className="text-[14px] font-bold text-navy leading-snug line-clamp-2 mb-2 group-hover:text-slate-brand transition-colors">
                       {item.title}
                     </h3>
                     <div className="text-[11px] text-slate-brand">
@@ -289,9 +291,10 @@ export default async function BeritaDetailPage({ params }: PageProps) {
               ))}
             </div>
           </div>
-        </section>
+        </BoardSection>
       )}
 
+      <div className="h-4 md:h-6" aria-hidden="true" />
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />
     </main>
   )

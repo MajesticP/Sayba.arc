@@ -8,7 +8,7 @@ import {
   ChevronRight,
   MessageSquare,
 } from "lucide-react"
-import CuttingBoardBackground from "@/components/cutting-board-bg"
+import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
 import ProcessFlow from "@/components/process-flow"
 import type { ContentBlock, Layanan } from "@/lib/database.types"
 
@@ -45,7 +45,7 @@ export default function ServiceDetailClient({ service, deptLabel, categoryLabel,
   return (
     <>
       {/* ══ HERO ══ */}
-      <section className="relative bg-navy overflow-hidden">
+      <BoardSection dark id="service-hero" panelClassName="relative overflow-hidden">
         <CuttingBoardBackground tone="dark" />
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-[96px] pb-12 md:pt-32 md:pb-16">
@@ -58,7 +58,7 @@ export default function ServiceDetailClient({ service, deptLabel, categoryLabel,
           </nav>
 
           <div className="flex items-center gap-2.5 flex-wrap mb-3">
-            <p className="text-[12px] font-medium text-orange">{deptLabel}</p>
+            <p className="text-[12px] font-bold text-orange-soft">{deptLabel}</p>
             {categoryLabel && (
               <>
                 <span aria-hidden="true" className="text-ice/60">·</span>
@@ -82,23 +82,23 @@ export default function ServiceDetailClient({ service, deptLabel, categoryLabel,
               href={`https://wa.me/6287721916495?text=${waText}`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange text-navy text-[14px] font-bold hover:bg-orange-soft transition-colors"
+              className="btn-solid"
             >
               <MessageSquare className="w-4 h-4" aria-hidden="true" />
               Diskusikan Layanan Ini
             </a>
             <Link
               href="/services"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-ice/25 text-ice text-[14px] font-semibold hover:bg-ice/[0.08] transition-colors"
+              className="btn-quiet"
             >
               Layanan Lain
             </Link>
           </div>
         </div>
-      </section>
+      </BoardSection>
 
       {/* ══ ISI ══ */}
-      <section className="relative z-10 -mt-6 md:-mt-10 rounded-t-[28px] md:rounded-t-[40px] bg-ice pb-14 md:pb-24">
+      <BoardSection id="service-body" panelClassName="panel-top-pad">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-14">
 
           {/* Gambar utama: hanya bila ada */}
@@ -215,7 +215,7 @@ export default function ServiceDetailClient({ service, deptLabel, categoryLabel,
                 href={`https://wa.me/6287721916495?text=${waText}`}
                 target="_blank"
                 rel="noreferrer"
-                className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-orange text-navy text-[14px] font-bold hover:bg-orange-soft transition-colors"
+                className="btn-solid shrink-0"
               >
                 Hubungi via WhatsApp
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -265,7 +265,7 @@ export default function ServiceDetailClient({ service, deptLabel, categoryLabel,
             </section>
           )}
         </div>
-      </section>
+      </BoardSection>
     </>
   )
 }

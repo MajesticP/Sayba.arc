@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { BoardSection } from "@/components/cutting-board-bg"
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import {
@@ -166,7 +167,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
       </div>
 
       {/* ══ HERO: pita terang, beda dari banner halaman lain ══ */}
-      <section className="relative overflow-hidden border-b" style={{ backgroundColor: ICE, borderColor: ICE_LINE }}>
+      <BoardSection id="kepala-informasi" panelClassName="relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.5] pointer-events-none"
           style={{
@@ -176,7 +177,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
           }}
         />
 
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-[92px] pb-10 md:pt-32 md:pb-16">
+        <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 lg:px-10 pt-20 pb-9 md:pt-28 md:pb-14">
           <PageTransition>
             {/* Breadcrumb */}
             <nav className="flex items-center gap-1.5 text-[11.5px] mb-5 flex-wrap" style={{ color: SLATE }} aria-label="Breadcrumb">
@@ -263,11 +264,11 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
             </div>
           </PageTransition>
         </div>
-      </section>
+      </BoardSection>
 
       {/* ══ ISI: dua kolom ══ */}
-      <section className="flex-1 bg-white py-8 md:py-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <BoardSection id="isi-informasi" panelClassName="panel-top-pad">
+        <div className="px-5 sm:px-7 lg:px-10 pb-8 md:pb-14">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
 
             {/* ── Kiri: isi dokumen ── */}
@@ -361,7 +362,6 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
               {/* CTA */}
               <div className="mt-9 rounded-2xl p-6 md:p-8 relative overflow-hidden" style={{ backgroundColor: NAVY }}>
                 <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: ORANGE }} />
-                <div className="absolute -top-16 right-0 w-56 h-56 rounded-full opacity-[0.12] blur-3xl pointer-events-none" style={{ backgroundColor: ORANGE }} />
 
                 <div className="relative z-10">
                   <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: "rgba(240,122,38,0.15)", border: "1px solid rgba(240,122,38,0.3)" }}>
@@ -381,7 +381,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                       )}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-bold transition-opacity hover:opacity-90"
+                      className="btn-solid"
                       style={{ backgroundColor: ORANGE, color: NAVY }}
                     >
                       Tanya via WhatsApp
@@ -523,7 +523,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
 
           </div>
         </div>
-      </section>
+      </BoardSection>
     </>
   )
 }

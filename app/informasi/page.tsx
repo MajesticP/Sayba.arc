@@ -47,7 +47,7 @@ export default async function InformasiPage() {
     kategoriDb.length > 0 ? kategoriDb : kategoriDariDokumen(articles.map((a) => a.category))
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="board-area min-h-screen flex flex-col">
       <Header navItems={navItems} />
       <InformasiClient initialArticles={articles} kategori={kategori} />
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />

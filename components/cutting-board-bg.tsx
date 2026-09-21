@@ -9,7 +9,7 @@
  *  - `variant="page"`, latar HALAMAN PENUH, dipasang sekali di layout.
  *    Posisinya fixed sehingga meja potong tetap di tempatnya saat halaman
  *    digulir. Section di atasnya mengambang sebagai panel (lihat
- *    `.board-panel`), jadi tepi meja tetap terlihat di sela-sela section
+ *    `BoardSection`), jadi tepi meja tetap terlihat di sela-sela section
  *    dan latar terasa konsisten dari atas sampai bawah halaman.
  *
  *  - `variant="section"`, latar untuk satu section gelap (hero, CTA).
@@ -79,24 +79,64 @@ export default function CuttingBoardBackground({
 }
 
 /**
- * BoardSection: panel yang mengambang di atas meja potong.
+ * BoardSection: satu section sebagai lembar kerja yang mengambang di atas meja.
  *
- * Dipakai untuk membungkus section di beranda. Tepi kiri dan kanan sengaja
- * diberi jarak supaya permukaan meja tetap terlihat, sehingga latar terasa
- * menyatu dari atas sampai bawah halaman.
+ * Dipakai untuk membungkus section di beranda dan halaman lain. Celah kiri
+ * dan kanan sengaja dibiarkan terbuka supaya permukaan meja tetap terlihat,
+ * sehingga latar terasa menyatu dari atas sampai bawah halaman. Panelnya
+ * solid, bukan transparan, supaya teks selalu terbaca di atas permukaan yang
+ * pasti dan tidak ada warna teks yang jatuh di atas warna yang salah.
+ *
+ * `dots` menampilkan titik jendela di pojok kiri atas, penanda bahwa lembar
+ * ini bisa dipindah di atas meja.
  */
 export function BoardSection({
   children,
   className = "",
+  panelClassName = "",
   id,
+  dots = true,
+  dark = false,
+  as: Tag = "section",
+  labelledBy,
 }: {
   children: React.ReactNode
+  /** Kelas tambahan untuk pembungkus terluar (jarak antar section). */
   className?: string
+  /** Kelas tambahan untuk panelnya sendiri (mis. warna latar berbeda). */
+  panelClassName?: string
   id?: string
+  /** Titik jendela di pojok panel. Matikan untuk panel yang bukan lembar kerja. */
+  dots?: boolean
+  /** Panel bernada gelap. Dipakai bila satu section memang perlu berat. */
+  dark?: boolean
+  as?: "section" | "div" | "article"
+  labelledBy?: string
 }) {
   return (
-    <div id={id} className="px-3 md:px-5 lg:px-6">
-      <div className={`board-panel overflow-hidden ${className}`}>{children}</div>
+    <div className={`board-slot ${className}`}>
+      <Tag
+        id={id}
+        aria-labelledby={labelledBy}
+        className={`board-panel ${dark ? "board-panel-dark" : ""} ${panelClassName}`}
+      >
+        {dots && (
+          <span className="panel-dots" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+        )}
+        {/* Sapuan pisau potong saat panel masuk layar. Statis di browser
+            yang belum mendukung animasi berbasis gulir. */}
+        <span className="panel-sweep pointer-events-none absolute inset-x-0 top-0 z-10 h-px" aria-hidden="true">
+          <span
+            className="block h-full w-1/3"
+            style={{ background: "linear-gradient(90deg, transparent, var(--orange), transparent)", opacity: 0.5 }}
+          />
+        </span>
+        {children}
+      </Tag>
     </div>
   )
 }

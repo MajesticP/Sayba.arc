@@ -4,7 +4,7 @@ import { useMemo, useState } from "react"
 import Link from "next/link"
 import { ArrowRight, ImageIcon, Search } from "lucide-react"
 import PageTransition from "@/components/page-transition"
-import CuttingBoardBackground from "@/components/cutting-board-bg"
+import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
 import type { Layanan } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
 import { getDeptColor } from "@/lib/layanan-config"
@@ -79,11 +79,11 @@ export default function ServicesClient({ allLayanan, depts, kategori }: Props) {
   return (
     <>
       {/* ══ HERO: pita gelap dengan kisi meja potong ══ */}
-      <section className="relative bg-navy overflow-hidden">
+      <BoardSection dark id="services-hero" panelClassName="relative overflow-hidden">
         <CuttingBoardBackground tone="dark" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-[100px] pb-14 md:pt-36 md:pb-20">
-          <p className="animate-fade-in stagger-1 text-[12px] font-medium text-orange mb-4">
+          <p className="animate-fade-in stagger-1 text-[12px] font-bold text-orange-soft mb-4">
             Layanan
           </p>
           <h1 className="animate-blur-in stagger-2 text-[28px] leading-[1.15] sm:text-4xl lg:text-[44px] font-bold text-ice tracking-tight mb-4 max-w-3xl">
@@ -94,10 +94,10 @@ export default function ServicesClient({ allLayanan, depts, kategori }: Props) {
             menangani.
           </p>
         </div>
-      </section>
+      </BoardSection>
 
       {/* ══ DAFTAR LAYANAN ══ */}
-      <section className="relative z-10 -mt-6 md:-mt-10 rounded-t-[28px] md:rounded-t-[40px] bg-ice pb-14 md:pb-24">
+      <BoardSection id="services-list" panelClassName="panel-top-pad">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-14">
 
           {/* ── Filter departemen + pencarian ── */}
@@ -149,7 +149,7 @@ export default function ServicesClient({ allLayanan, depts, kategori }: Props) {
                 <button
                   type="button"
                   onClick={() => setQuery("")}
-                  className="px-5 py-2.5 rounded-xl bg-navy text-ice text-[13px] font-semibold hover:bg-navy-700 transition-colors"
+                  className="btn-outline"
                 >
                   Tampilkan semua layanan
                 </button>
@@ -218,7 +218,7 @@ export default function ServicesClient({ allLayanan, depts, kategori }: Props) {
                 </div>
                 <Link
                   href="/contact"
-                  className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-orange text-navy text-[14px] font-bold hover:bg-orange-soft transition-colors"
+                  className="btn-solid shrink-0"
                 >
                   Diskusikan Kebutuhan
                   <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -227,7 +227,7 @@ export default function ServicesClient({ allLayanan, depts, kategori }: Props) {
             </div>
           </div>
         </div>
-      </section>
+      </BoardSection>
     </>
   )
 }

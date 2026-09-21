@@ -8,6 +8,7 @@ import PageTransition from "@/components/page-transition"
 import { supabase } from "@/lib/supabase"
 import type { Portfolio } from "@/lib/database.types"
 import { ArrowRight } from "lucide-react"
+import { BoardSection } from "@/components/cutting-board-bg"
 
 export const metadata: Metadata = {
   title: `Portofolio: ${siteConfig.name}`,
@@ -59,7 +60,7 @@ export default async function PortfolioPage() {
   const fallback: DeptConfig = { value: "unknown", label: "DEPT", color: "#000000" }
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="board-area min-h-screen flex flex-col">
       <Header navItems={navItems} />
 
       {/* Hero */}
@@ -72,11 +73,25 @@ export default async function PortfolioPage() {
       />
 
       {/* Grid */}
-      <section className="py-6 md:py-20 bg-white flex-1">
+      <BoardSection id="portofolio" panelClassName="panel-top-pad">
         <PageTransition delay={100}>
-          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
             {items.length === 0 ? (
-              <p className="text-center text-black/40 py-16">Belum ada portofolio yang tersedia.</p>
+              /* Keadaan kosong yang jujur: sebutkan sebabnya dan beri satu
+                 tindakan, bukan sekadar "belum ada data". */
+              <div className="text-center py-14 md:py-20 max-w-md mx-auto">
+                <p className="text-navy font-bold text-[16px] md:text-[18px] mb-2">
+                  Portofolio sedang disiapkan
+                </p>
+                <p className="text-slate-brand text-[13.5px] leading-relaxed mb-6">
+                  Katalog proyek belum kami tampilkan di sini. Sementara itu, Anda bisa
+                  melihat lingkup pekerjaan kami atau langsung menanyakan proyek serupa.
+                </p>
+                <div className="btn-row justify-center">
+                  <Link href="/services" className="btn-solid">Lihat layanan</Link>
+                  <Link href="/contact" className="btn-quiet">Tanya proyek serupa</Link>
+                </div>
+              </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
                 {items.map((item) => {
@@ -95,19 +110,20 @@ export default async function PortfolioPage() {
               </div>
             )}
 
-            <div className="mt-8 md:mt-16 text-center">
-              <p className="text-black/40 text-[12px] mb-3">Tertarik dengan proyek serupa?</p>
-              <Link
-                href="/contact"
-                className="inline-block px-5 py-2.5 rounded-xl font-semibold bg-navy text-ice hover:bg-orange hover:text-navy transition-all duration-200 text-[13px]"
-              >
+            <div className="mt-8 md:mt-14 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-ice-line">
+              <p className="text-slate-brand text-[13.5px] text-center sm:text-left leading-relaxed">
+                Tertarik dengan proyek serupa?
+              </p>
+              <Link href="/contact" className="btn-solid w-full sm:w-auto shrink-0">
                 Diskusikan Proyek Anda
+                <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
               </Link>
             </div>
           </div>
         </PageTransition>
-      </section>
+      </BoardSection>
 
+      <div className="h-4 md:h-6" aria-hidden="true" />
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />
     </main>
   )
@@ -124,7 +140,7 @@ function PortfolioCard({ item, thumbnail, dept, hexToRgba }: {
   return (
     <Link
       href={`/portfolio/${item.slug}`}
-      className="portfolio-card group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden rounded-xl border border-black/8 w-full flex flex-col"
+      className="portfolio-card group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden rounded-2xl border border-ice-line bg-white w-full flex flex-col"
       style={{
         "--dept-color": color,
         "--dept-color-30": hexToRgba(color, 0.3),
@@ -148,17 +164,22 @@ function PortfolioCard({ item, thumbnail, dept, hexToRgba }: {
             className="w-full h-full flex items-center justify-center"
             style={{ backgroundColor: hexToRgba(color, 0.08) }}
           >
-            <span className="text-3xl opacity-20">🗂️</span>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-slate-brand">
+              {dept.label}
+            </span>
           </div>
         )}
 
         {/* Dept badge */}
-        <div className="absolute top-2 left-2">
+        <div className="absolute top-2.5 left-2.5">
+          {/* Label departemen: warna dept jadi garis tepi saja, teksnya navy
+              di atas bidang putih supaya selalu lolos kontras apa pun warna
+              departemennya. */}
           <span
-            className="text-[9px] font-bold px-2 py-0.5 rounded-full text-white backdrop-blur-sm"
-            style={{ backgroundColor: hexToRgba(color, 0.88) }}
+            className="inline-flex items-center text-[10.5px] font-bold px-2.5 py-1 rounded-full text-navy"
+            style={{ backgroundColor: "rgba(255,255,255,0.94)", boxShadow: `inset 0 0 0 1.5px ${color}` }}
           >
-            {dept.label.toUpperCase()}
+            {dept.label}
           </span>
         </div>
 
@@ -172,31 +193,27 @@ function PortfolioCard({ item, thumbnail, dept, hexToRgba }: {
       >
         {item.category && (
           <span
-            className="inline-flex text-[9px] font-bold px-1.5 py-0.5 rounded-full w-fit mb-1 flex-shrink-0"
-            style={{ backgroundColor: hexToRgba(color, 0.1), color }}
+            className="inline-flex text-[10.5px] font-bold px-2.5 py-1 rounded-full w-fit mb-2 flex-shrink-0 text-navy"
+            style={{ backgroundColor: hexToRgba(color, 0.14) }}
           >
             {item.category}
           </span>
         )}
 
-        <h3 className="text-[14px] font-bold text-black mb-1.5 leading-snug line-clamp-2 flex-shrink-0">
+        <h3 className="text-[14.5px] font-bold text-navy mb-1.5 leading-snug line-clamp-2 flex-shrink-0">
           {item.title}
         </h3>
 
         {item.description && (
-          <p
-            className="text-black/50 text-[12px] leading-relaxed line-clamp-3"
-          >
+          <p className="text-slate-brand text-[12.5px] leading-relaxed line-clamp-3">
             {item.description}
           </p>
         )}
 
-        <div
-          className="mt-auto flex items-center gap-1 text-[10px] font-semibold flex-shrink-0 pt-1"
-          style={{ color }}
-        >
+        {/* Tautan detail: teks selalu navy, warna dept hanya pada ikon. */}
+        <div className="mt-auto flex items-center gap-1 text-[11.5px] font-bold text-navy flex-shrink-0 pt-3">
           Lihat Detail
-          <ArrowRight size={10} className="transition-transform duration-200 group-hover:translate-x-1" />
+          <ArrowRight size={12} className="transition-transform duration-200 group-hover:translate-x-1" style={{ color }} />
         </div>
       </div>
     </Link>

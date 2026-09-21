@@ -2,10 +2,23 @@
 
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
-import CuttingBoardBackground from "@/components/cutting-board-bg"
+import { ArrowRight, Mail } from "lucide-react"
+import { BoardSection } from "@/components/cutting-board-bg"
 
 interface CTAData { title: string; subtitle: string; buttonText: string; buttonHref: string }
 
+/**
+ * CTA: ajakan terakhir sebelum footer.
+ *
+ * Panelnya sengaja TERANG, bukan navy. Footer tepat di bawahnya bernyawa navy,
+ * dan dua bidang navy yang berdampingan membuat keduanya menyatu sehingga
+ * footer tampak lebih tinggi daripada yang sebenarnya. Permukaan terang di
+ * antara keduanya memberi batas yang jelas dan menjaga tinggi footer terbaca
+ * apa adanya.
+ *
+ * Aksen orange dipakai pada garis dan tombol saja, tidak pada teks di atas
+ * latar terang, karena orange mentah gagal kontras bila dipakai menulis.
+ */
 export default function CTA({ data }: { data: CTAData }) {
   const ref = useRef<HTMLDivElement>(null)
   const [inView, setInView] = useState(false)
@@ -16,28 +29,48 @@ export default function CTA({ data }: { data: CTAData }) {
   }, [])
 
   return (
-    <section className="py-10 md:py-24 bg-ice-dim" id="cta">
-      <div ref={ref} className={`max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`}>
-        <div className="bg-navy rounded-2xl md:rounded-3xl p-7 md:p-16 text-center relative overflow-hidden">
-          <CuttingBoardBackground tone="dark" />
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-steel/60 to-transparent" />
-          <div className={`absolute top-0 left-1/2 -translate-x-1/2 h-1 bg-orange rounded-full transition-all duration-1000 ${inView ? "w-28" : "w-0"}`} style={{ transitionDelay: "400ms" }} />
+    <BoardSection id="cta" aria-labelledby="cta-heading" panelClassName="panel-top-pad">
+      <div ref={ref} className="px-5 sm:px-8 lg:px-12 py-2 md:py-6">
+        <div className="text-center max-w-2xl mx-auto">
 
-          <div className="relative z-10">
-            <h2 className={`text-[22px] md:text-5xl font-bold text-ice mb-2 md:mb-4 leading-tight transition-all duration-700 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`} style={{ transitionDelay: "200ms" }}>
-              {data.title}
-            </h2>
-            <p className={`text-orange text-[13px] md:text-lg mb-6 md:mb-10 max-w-2xl mx-auto transition-all duration-700 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`} style={{ transitionDelay: "320ms" }}>
-              {data.subtitle}
-            </p>
-            <div className={`transition-all duration-700 ${inView ? "opacity-100 scale-100" : "opacity-0 scale-95"}`} style={{ transitionDelay: "440ms" }}>
-              <Link href={data.buttonHref} className="inline-block px-8 py-3.5 rounded-xl font-bold text-[15px] bg-orange text-navy hover:bg-orange transition-all duration-200 hover:shadow-2xl hover:shadow-powder/30 hover:scale-105 active:scale-95">
-                {data.buttonText}
-              </Link>
-            </div>
+          {/* Garis ukur sebagai penanda mulai, bukan dekorasi: menandai bahwa
+              bagian ini adalah penutup halaman. */}
+          <div className="flex items-center justify-center gap-2 max-w-[200px] mx-auto mb-6 md:mb-7" aria-hidden="true">
+            <span className="h-px flex-1 bg-orange/45" />
+            <span className="w-1.5 h-1.5 rounded-full bg-orange" />
+            <span className="h-px flex-1 bg-orange/45" />
+          </div>
+
+          <h2
+            id="cta-heading"
+            className={`text-[23px] md:text-[38px] font-bold text-navy mb-3 leading-tight transition-all duration-700 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+            style={{ transitionDelay: "120ms" }}
+          >
+            {data.title}
+          </h2>
+
+          <p
+            className={`text-slate-brand text-[14px] md:text-[16px] leading-relaxed mb-7 md:mb-9 transition-all duration-700 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+            style={{ transitionDelay: "240ms" }}
+          >
+            {data.subtitle}
+          </p>
+
+          <div
+            className={`btn-row justify-center transition-all duration-700 ${inView ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+            style={{ transitionDelay: "360ms" }}
+          >
+            <Link href={data.buttonHref} className="btn-solid">
+              {data.buttonText}
+              <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
+            </Link>
+            <Link href="/contact" className="btn-quiet">
+              <Mail className="w-4 h-4 shrink-0" aria-hidden="true" />
+              Kirim email
+            </Link>
           </div>
         </div>
       </div>
-    </section>
+    </BoardSection>
   )
 }

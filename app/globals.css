@@ -26,6 +26,11 @@
   --ice-dim: #ebeff5;   /* section pembeda (sedikit lebih gelap) */
   --ice-line: #d8e0ea;  /* garis pemisah di latar terang */
 
+  /* ── Permukaan panel melayang ── */
+  --panel: #ffffff;           /* lembar kerja yang mengambang di atas meja */
+  --panel-line: #e2e8f0;      /* garis tepi panel */
+  --panel-shadow: rgba(17, 42, 70, 0.10); /* bayangan panel, diturunkan dari navy */
+
   /* ── Warna pendukung (diturunkan dari palet inti, hue dipertahankan) ── */
   --slate: #5a5c62;       /* teks sekunder di latar terang, 6.17:1 di ice */
   --orange-text: #b45610; /* orange sbg TEKS di latar terang, 4.53:1 di ice */
@@ -240,17 +245,146 @@
   background-size: 28px 28px, 28px 28px, 140px 140px, 140px 140px;
 }
 
-/* Panel yang mengambang di atas meja. Section memakai ini supaya tepi
-   meja tetap terlihat dan latar konsisten sepanjang halaman. */
+/* Garis ukur tepi meja: garis putus-putus tipis di kiri dan kanan layar.
+   Menegaskan bahwa lembar kerja mengambang di atas permukaan meja, bukan
+   menempel di dinding. Statis, tanpa gerakan, tidak pernah menutupi teks. */
+.board-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(to bottom, rgba(17, 42, 70, 0.15) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(to bottom, rgba(17, 42, 70, 0.15) 0 1px, transparent 1px 9px);
+  background-size: 1px 100%, 1px 100%;
+  background-position: 15px 0, calc(100% - 15px) 0;
+  background-repeat: no-repeat;
+}
+
+/* ── Panel melayang: satu section = satu lembar kerja di atas meja ──
+   Warna sengaja solid (bukan transparan) supaya teks selalu terbaca di
+   atas permukaan yang pasti. Celah kiri-kanan dibiarkan terbuka sehingga
+   permukaan meja tetap terlihat dan latar terasa satu dari atas ke bawah. */
 .board-panel {
   position: relative;
-  background-color: var(--ice);
-  border: 1px solid var(--ice-line);
-  border-radius: 20px;
+  background-color: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: 18px;
+  box-shadow:
+    0 1px 2px rgba(17, 42, 70, 0.04),
+    0 10px 28px -18px var(--panel-shadow);
+  overflow: hidden;
+  /* Timeline gulir: dipakai anak-anaknya untuk animasi yang bergerak
+     mengikuti posisi gulir, bukan animasi berjalan terus. */
+  view-timeline-name: --panel-enter;
+  view-timeline-axis: block;
 }
 @media (min-width: 768px) {
-  .board-panel { border-radius: 28px; }
+  .board-panel { border-radius: 26px; }
 }
+
+/* Panel bernada gelap: dipakai bila satu section memang perlu berat. */
+.board-panel-dark {
+  background-color: var(--navy);
+  border-color: var(--navy-600);
+  box-shadow:
+    0 1px 2px rgba(17, 42, 70, 0.10),
+    0 14px 34px -20px rgba(17, 42, 70, 0.55);
+}
+
+/* Jarak atas area meja. Header adalah kapsul yang mengambang di atas
+   segalanya; tanpa jarak ini, lembar pertama tertutup kapsul dan titik
+   jendelanya tidak terlihat. Dengan jarak ini, kapsul duduk di atas
+   permukaan meja dan lembar pertama mulai persis di bawahnya, seperti
+   jendela yang duduk di bawah bilah menu. */
+.board-area { padding-top: 78px; }
+@media (min-width: 768px) { .board-area { padding-top: 90px; } }
+
+/* Celah meja di kiri-kanan panel. Lebar celah sengaja cukup supaya garis
+   ukur tepi tetap terlihat di layar lebar. */
+.board-slot {
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+@media (min-width: 640px) {
+  .board-slot { padding-left: 18px; padding-right: 18px; padding-top: 6px; padding-bottom: 6px; }
+}
+@media (min-width: 768px) {
+  .board-slot { padding-left: 28px; padding-right: 28px; padding-top: 8px; padding-bottom: 8px; }
+}
+@media (min-width: 1024px) {
+  .board-slot { padding-left: 42px; padding-right: 42px; padding-top: 10px; padding-bottom: 10px; }
+}
+@media (min-width: 1280px) {
+  .board-slot { padding-left: 56px; padding-right: 56px; }
+}
+@media (min-width: 1536px) {
+  .board-slot { padding-left: 72px; padding-right: 72px; }
+}
+
+/* Bilah judul panel: strip tipis di bagian atas, tempat titik jendela
+   berada. Fungsinya memisahkan kepala panel dari isinya, seperti bilah
+   judul jendela. Warnanya sangat tipis supaya tidak menjadi bidang kedua. */
+.board-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 40px;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(17, 42, 70, 0.035), rgba(17, 42, 70, 0.012));
+  border-bottom: 1px solid rgba(17, 42, 70, 0.06);
+}
+@media (min-width: 768px) {
+  .board-panel::before { height: 50px; }
+}
+.board-panel-dark::before {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Titik jendela di pojok panel. Menandai panel sebagai lembar kerja yang
+   bisa dipindah di atas meja: satu titik memakai warna aksen supaya panel
+   aktif terbaca sekilas, dua sisanya netral supaya tidak jadi lampu lalu
+   lintas. Titiknya statis, tanpa denyut dan tanpa cahaya. */
+.panel-dots {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+.panel-dots i {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--ice-line);
+}
+.panel-dots i:first-child { background-color: var(--orange); }
+@media (min-width: 768px) {
+  .panel-dots { top: 20px; left: 22px; gap: 7px; }
+  .panel-dots i { width: 9px; height: 9px; }
+}
+/* Di panel gelap, titik netral harus terang supaya tetap terlihat. */
+.board-panel-dark .panel-dots i { background-color: rgba(244, 246, 249, 0.22); }
+.board-panel-dark .panel-dots i:first-child { background-color: var(--orange); }
+
+/* Ruang di bawah titik supaya konten panel tidak bertabrakan dengannya. */
+.panel-top-pad { padding-top: 52px; }
+@media (min-width: 768px) {
+  .panel-top-pad { padding-top: 68px; }
+}
+
+/* Sapuan pisau potong: satu garis tipis melintas sekali saat panel masuk
+   layar. Gerakannya mengikuti posisi gulir, bukan berjalan terus-menerus,
+   jadi ia menandai momen "lembar ini baru dibuka" lalu berhenti. */
+.panel-sweep { opacity: 0; }
 
 /* Tanda registrasi sudut, seperti tanda potong di meja cetak */
 .reg-mark { position: absolute; width: 22px; height: 22px; pointer-events: none; }
@@ -335,8 +469,34 @@
 .stagger-5 { animation-delay: 350ms; }
 .stagger-6 { animation-delay: 420ms; }
 
+/* ── Gerak yang mengikuti gulir (scroll-driven) ──────────────────────────
+   Bukan animasi berjalan terus: posisinya ditentukan oleh posisi gulir
+   pembaca. Panel naik sedikit saat masuk layar, dan sapuan pisau potong
+   melintas sekali di momen yang sama. Browser yang belum mendukung
+   animation-timeline cukup menampilkan panel tanpa gerakan tambahan. */
+@keyframes panelRise {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .board-panel {
+      animation: panelRise linear both;
+      animation-timeline: --panel-enter;
+      animation-range: entry 0% entry 28%;
+    }
+    .panel-sweep {
+      animation: sweepAcross linear both;
+      animation-timeline: --panel-enter;
+      animation-range: entry 12% entry 62%;
+    }
+  }
+}
+
 /* Hormati preferensi pengguna: matikan semua gerakan */
 @media (prefers-reduced-motion: reduce) {
+  .panel-sweep { opacity: 0 !important; animation: none !important; }
+  .board-panel { animation: none !important; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
@@ -366,6 +526,82 @@ img { max-width: 100%; height: auto; display: block; }
 
 .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
 header { padding-top: env(safe-area-inset-top); }
+
+/* ════════════════════════════════════════════════════════════════════════
+   Tombol situs publik
+   Satu sistem untuk seluruh halaman. Tinggi seragam, target sentuh aman,
+   dan melebar penuh di ponsel supaya mudah ditekan dengan jempol.
+   ════════════════════════════════════════════════════════════════════════ */
+.btn-solid,
+.btn-outline,
+.btn-quiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 46px;
+  padding: 0.7rem 1.35rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+@media (min-width: 768px) {
+  .btn-solid, .btn-outline, .btn-quiet { min-height: 50px; padding: 0.8rem 1.6rem; font-size: 0.9375rem; }
+}
+/* Di ponsel, tombol berdampingan dibagi rata supaya tidak ada yang terpotong */
+.btn-row { display: flex; flex-direction: column; gap: 0.625rem; }
+@media (min-width: 640px) {
+  .btn-row { flex-direction: row; align-items: center; }
+}
+.btn-row > .btn-solid,
+.btn-row > .btn-outline,
+.btn-row > .btn-quiet { width: 100%; }
+@media (min-width: 640px) {
+  .btn-row > .btn-solid,
+  .btn-row > .btn-outline,
+  .btn-row > .btn-quiet { width: auto; }
+}
+
+/* Tombol utama: aksen orange. Teks navy, 5.21:1 di atas orange. */
+.btn-solid {
+  background-color: var(--orange);
+  color: var(--navy);
+}
+.btn-solid:hover { background-color: var(--orange-soft); transform: translateY(-1px); }
+.btn-solid:active { transform: translateY(0); }
+
+/* Tombol kedua: bidang navy. Teks ice, 13.44:1. */
+.btn-outline {
+  background-color: var(--navy);
+  color: var(--ice);
+  border: 1px solid var(--navy);
+}
+.btn-outline:hover { background-color: var(--navy-700); border-color: var(--navy-700); transform: translateY(-1px); }
+.btn-outline:active { transform: translateY(0); }
+
+/* Tombol tenang: hanya garis. Untuk tindakan sekunder di latar terang. */
+.btn-quiet {
+  background-color: transparent;
+  color: var(--navy);
+  border: 1px solid var(--ice-line);
+}
+.btn-quiet:hover { background-color: var(--ice-dim); border-color: var(--slate); }
+
+/* Di atas permukaan gelap, tombol tenang memakai garis terang. */
+.board-panel-dark .btn-quiet,
+.on-dark .btn-quiet {
+  color: var(--ice);
+  border-color: rgba(244, 246, 249, 0.3);
+}
+.board-panel-dark .btn-quiet:hover,
+.on-dark .btn-quiet:hover {
+  background-color: rgba(244, 246, 249, 0.1);
+  border-color: rgba(244, 246, 249, 0.55);
+}
 
 /* ════════════════════════════════════════════════════════════════════════
    Tombol admin (panel gelap)

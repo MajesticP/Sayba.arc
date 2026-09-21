@@ -90,7 +90,7 @@ export default async function Home() {
   const localBusinessSchema = generateLocalBusinessSchema()
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="board-area min-h-screen flex flex-col">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
@@ -101,13 +101,25 @@ export default async function Home() {
       />
 
       <Header navItems={navItems} />
+
+      {/* Setiap section adalah satu lembar kerja yang mengambang di atas meja
+          potong. Celah kiri-kanan tiap panel dibiarkan terbuka (lihat
+          `.board-slot`), jadi permukaan meja terlihat menyambung dari lembar
+          pertama sampai lembar terakhir. Jarak antar lembar dibuat tipis
+          supaya terbaca sebagai satu tumpukan, bukan halaman terpisah. */}
       <Hero data={hero} />
       <PromoCarousel slides={promoBanners} interval={6000} />
       <Services allLayanan={allLayanan} depts={LAYANAN_DEPTS} />
       <InformasiHighlight articles={informasiTerbaru} kategori={kategoriInfo} />
       <NewsHighlight articles={beritaTerbaru} kategori={kategoriBeritaList} />
       <About data={about} />
+      {/* CTA: lembar terang terakhir. Footer di bawahnya navy, dan permukaan
+          terang inilah yang memisahkan keduanya supaya tinggi footer terbaca
+          apa adanya. */}
       <CTA data={cta} />
+      {/* Jarak sebelum footer: memberi ruang meja di bawah lembar terakhir. */}
+      <div className="h-4 md:h-6" aria-hidden="true" />
+
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />
     </main>
   )

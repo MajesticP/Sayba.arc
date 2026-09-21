@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { ArrowRight, MapPin } from "lucide-react"
-import CuttingBoardBackground from "@/components/cutting-board-bg"
+import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
 
 interface HeroData {
   title: string
@@ -21,26 +21,34 @@ const FACTS = [
   { value: "100%", label: "Berkas sumber" },
 ]
 
+/**
+ * Hero: lembar pertama di atas meja potong.
+ *
+ * Panel bernada gelap, bukan latar penuh. Alasannya, permukaan meja harus
+ * tetap terlihat di kiri-kanan lembar pertama supaya aturan "semua section
+ * mengambang di atas satu meja" terbaca sejak layar pertama. Padding atas
+ * sengaja besar karena header kapsul mengambang di atas panel ini.
+ */
 export default function Hero({ data }: { data: HeroData }) {
   return (
-    <section className="relative overflow-hidden bg-navy">
+    <BoardSection dark id="beranda" panelClassName="pt-24 md:pt-36">
       <CuttingBoardBackground tone="dark" />
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-[104px] pb-16 md:pt-40 md:pb-24 text-center">
+      <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 lg:px-10 pb-14 md:pb-20 text-center">
         {data.badge && (
-          <p className="animate-fade-in stagger-1 inline-flex items-center gap-2 px-3 py-1 rounded-full border border-ice/15 bg-ice/[0.04] text-[12px] font-medium text-ice/80 mb-6">
-            <MapPin className="w-3.5 h-3.5 text-orange" aria-hidden="true" />
+          <p className="animate-fade-in stagger-1 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-ice/20 bg-ice/[0.06] text-[12px] md:text-[12.5px] font-medium text-ice/85 mb-5 md:mb-7">
+            <MapPin className="w-3.5 h-3.5 text-orange-soft shrink-0" aria-hidden="true" />
             {data.badge}
           </p>
         )}
 
-        <h1 className="animate-blur-in stagger-2 text-[28px] leading-[1.15] sm:text-4xl lg:text-[48px] font-bold tracking-tight text-ice mb-5">
+        <h1 className="animate-blur-in stagger-2 text-[27px] leading-[1.16] sm:text-[36px] lg:text-[46px] font-bold tracking-tight text-ice mb-5">
           {data.title}
         </h1>
 
         {/* Garis dimensi seperti pada gambar teknik: menandai lebar kolom teks.
             Fungsinya membingkai judul, bukan dekorasi. */}
-        <div className="animate-draw-line stagger-3 flex items-center justify-center gap-2 max-w-xs mx-auto mb-5" aria-hidden="true">
+        <div className="animate-draw-line stagger-3 flex items-center justify-center gap-2 max-w-xs mx-auto mb-5 md:mb-6" aria-hidden="true">
           <span className="h-2 w-px bg-orange/60" />
           <span className="h-px flex-1 bg-orange/40" />
           <span className="w-1.5 h-1.5 rounded-full bg-orange" />
@@ -48,22 +56,16 @@ export default function Hero({ data }: { data: HeroData }) {
           <span className="h-2 w-px bg-orange/60" />
         </div>
 
-        <p className="animate-fade-in-up stagger-4 text-[14px] md:text-lg leading-relaxed text-ice/75 max-w-2xl mx-auto mb-8">
+        <p className="animate-fade-in-up stagger-4 text-[14px] md:text-[17px] leading-relaxed text-ice/80 max-w-2xl mx-auto mb-8 md:mb-10">
           {data.subtitle}
         </p>
 
-        <div className="animate-fade-in-up stagger-5 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 mb-12">
-          <Link
-            href={data.primaryButton.href}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-orange text-navy text-[14px] font-bold hover:bg-orange-soft transition-colors"
-          >
+        <div className="animate-fade-in-up stagger-5 btn-row justify-center max-w-md sm:max-w-none mx-auto mb-12 md:mb-16">
+          <Link href={data.primaryButton.href} className="btn-solid">
             {data.primaryButton.text}
-            <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
           </Link>
-          <Link
-            href={data.secondaryButton.href}
-            className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-ice/25 text-ice text-[14px] font-semibold hover:bg-ice/[0.08] transition-colors"
-          >
+          <Link href={data.secondaryButton.href} className="btn-quiet">
             {data.secondaryButton.text}
           </Link>
         </div>
@@ -71,21 +73,21 @@ export default function Hero({ data }: { data: HeroData }) {
         {/* Spesifikasi ringkas, disusun seperti kolom lembar data teknik */}
         <div className="animate-fade-in stagger-6 relative max-w-2xl mx-auto">
           <div className="rule-line text-ice/70" aria-hidden="true" />
-          <dl className="grid grid-cols-3 gap-4 pt-5">
+          <dl className="grid grid-cols-3 gap-2 sm:gap-4 pt-5">
             {FACTS.map((fact) => (
-              <div key={fact.label} className="text-center">
+              <div key={fact.label} className="text-center px-1">
                 <dt className="sr-only">{fact.label}</dt>
                 <dd>
-                  <span className="block text-[20px] md:text-2xl font-bold text-ice tabular-nums">
+                  <span className="block text-[19px] sm:text-[22px] md:text-2xl font-bold text-ice tabular-nums leading-none">
                     {fact.value}
                   </span>
-                  <span className="block text-[11px] text-ice/65 mt-0.5">{fact.label}</span>
+                  <span className="block text-[10.5px] sm:text-[11px] text-ice/70 mt-1.5 leading-tight">{fact.label}</span>
                 </dd>
               </div>
             ))}
           </dl>
         </div>
       </div>
-    </section>
+    </BoardSection>
   )
 }

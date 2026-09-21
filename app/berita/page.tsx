@@ -46,7 +46,7 @@ export default async function BeritaPage() {
     kategoriDb.length > 0 ? kategoriDb : kategoriDariDokumen(articles.map((a) => a.category))
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="board-area min-h-screen flex flex-col">
       <Header navItems={navItems} />
       <NewsList initialArticles={articles} kategori={kategori} />
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />

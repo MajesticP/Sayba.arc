@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { BoardSection } from "@/components/cutting-board-bg"
 import { notFound } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -66,13 +67,17 @@ export default async function PortfolioSlugPage({ params }: Props) {
   ])
 
   const thumbnail = resolveThumbnail(item.image_url)
-  const isArcgis = item.dept === "arcgis"
-  const accent = isArcgis ? "#f07a26" : "#112a46"
+  // Warna departemen dipakai sebagai FILL dan garis saja. Sebagai teks di
+  // latar terang ia bisa gagal kontras (orange 2.79:1), jadi teks selalu
+  // memakai warna palet yang aman. Dept lama 'arcgis' tidak dipakai lagi;
+  // dua departemen yang berlaku adalah it_konsulting dan engineering_konsulting.
+  const isEngineering = item.dept === "engineering_konsulting"
+  const accent = isEngineering ? "#f07a26" : "#112a46"
   const features: string[] = item.features ?? []
   const techStack: string[] = item.tech_stack ?? []
 
   return (
-    <main className="min-h-screen flex flex-col bg-white">
+    <main className="board-area min-h-screen flex flex-col">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(portfolioSchema) }}
@@ -83,24 +88,25 @@ export default async function PortfolioSlugPage({ params }: Props) {
       />
       <Header navItems={navItems} />
 
-      <div className="flex-1 pt-[72px] md:pt-20">
-        {/* Breadcrumb */}
-        <div className="border-b border-ice-line bg-ice">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
-            <nav className="flex items-center gap-1.5 text-[12.5px] text-slate-brand">
+      <div className="flex-1">
+        {/* Breadcrumb: panel tipis tersendiri, jadi ia juga bagian dari
+            tumpukan lembar, bukan bilah yang menempel di tepi layar. */}
+        <BoardSection id="breadcrumb" className="pb-0" panelClassName="py-3">
+          <div className="px-5 sm:px-7 lg:px-10">
+            <nav className="flex items-center gap-1.5 text-[12.5px] text-slate-brand flex-wrap" aria-label="Breadcrumb">
               <Link href="/" className="hover:text-navy transition-colors">Beranda</Link>
               <ChevronRight size={13} />
               <Link href="/portfolio" className="hover:text-navy transition-colors">Portofolio</Link>
               <ChevronRight size={13} />
-              <span className="text-navy font-medium truncate max-w-[200px]">{item.title}</span>
+              <span className="text-navy font-semibold truncate max-w-[200px]">{item.title}</span>
             </nav>
           </div>
-        </div>
+        </BoardSection>
 
         {/* Hero Section - two column */}
-        <section className="py-10 md:py-20">
+        <BoardSection id="hero-proyek" panelClassName="panel-top-pad">
           <PageTransition>
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
                 {/* Left: Content */}
@@ -109,8 +115,8 @@ export default async function PortfolioSlugPage({ params }: Props) {
                     className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-6"
                     style={{ backgroundColor: `${accent}15` }}
                   >
-                    {isArcgis
-                      ? <Map size={20} style={{ color: accent }} />
+                    {isEngineering
+                      ? <Map size={20} style={{ color: "#b45610" }} />
                       : <Globe size={20} style={{ color: accent }} />
                     }
                   </div>
@@ -120,9 +126,12 @@ export default async function PortfolioSlugPage({ params }: Props) {
                   </h1>
 
                   {item.category && (
-                    <p className="text-sm font-semibold mb-3 md:mb-5" style={{ color: accent }}>
+                    <span
+                      className="inline-block text-[11px] font-bold px-2.5 py-1 rounded-full text-navy mb-3 md:mb-5"
+                      style={{ backgroundColor: `${accent}1f`, boxShadow: `inset 0 0 0 1.5px ${accent}` }}
+                    >
                       {item.category}
-                    </p>
+                    </span>
                   )}
 
                   <p className="text-slate-brand text-[14px] md:text-[15px] leading-relaxed mb-5 md:mb-8">
@@ -135,17 +144,13 @@ export default async function PortfolioSlugPage({ params }: Props) {
                         href={item.result_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-ice text-[13.5px] transition-opacity duration-200 hover:opacity-90"
-                        style={{ backgroundColor: accent }}
+                        className={`btn-solid ${isEngineering ? "" : "!bg-navy !text-ice hover:!bg-navy-700"}`}
                       >
                         Lihat Hasil Proyek
-                        <ExternalLink size={14} />
+                        <ExternalLink size={14} className="shrink-0" />
                       </a>
                     )}
-                    <Link
-                      href="/contact"
-                      className="inline-flex items-center gap-2 px-5 md:px-7 py-2.5 md:py-3.5 rounded-xl font-semibold border border-ice-line text-navy text-[13.5px] hover:border-orange transition-all duration-200"
-                    >
+                    <Link href="/contact" className="btn-quiet">
                       Diskusikan Proyek Serupa
                     </Link>
                   </div>
@@ -185,8 +190,8 @@ export default async function PortfolioSlugPage({ params }: Props) {
                         className="w-full h-full flex flex-col items-center justify-center gap-3"
                         style={{ backgroundColor: `${accent}08` }}
                       >
-                        {isArcgis
-                          ? <Map size={40} style={{ color: accent, opacity: 0.25 }} />
+                        {isEngineering
+                          ? <Map size={40} style={{ color: "#b45610", opacity: 0.35 }} />
                           : <Globe size={40} style={{ color: accent, opacity: 0.25 }} />
                         }
                         <span className="text-[13px] text-slate-brand">Belum ada gambar</span>
@@ -198,20 +203,21 @@ export default async function PortfolioSlugPage({ params }: Props) {
               </div>
             </div>
           </PageTransition>
-        </section>
+        </BoardSection>
 
         {/* Feature + Tech Tabs */}
         {(features.length > 0 || techStack.length > 0) && (
-          <section className="pb-12 md:pb-20">
+          <BoardSection id="detail-proyek" panelClassName="panel-top-pad">
             <PageTransition delay={150}>
-              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
                 <FeatureTabs features={features} techStack={techStack} accent={accent} />
               </div>
             </PageTransition>
-          </section>
+          </BoardSection>
         )}
       </div>
 
+      <div className="h-4 md:h-6" aria-hidden="true" />
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />
     </main>
   )

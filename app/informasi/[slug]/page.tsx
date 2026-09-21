@@ -109,7 +109,7 @@ export default async function InformasiDetailPage({ params }: PageProps) {
   ])
 
   return (
-    <main className="min-h-screen flex flex-col bg-platinum">
+    <main className="board-area min-h-screen flex flex-col bg-ice">
       {/* Penghitung tampilan: naik saat halaman dibuka atau di-refresh */}
       <ViewCounter table="informasi" slug={article.slug} />
 

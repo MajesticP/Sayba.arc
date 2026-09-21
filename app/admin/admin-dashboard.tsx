@@ -3,13 +3,7 @@
 import { useEffect, useState, useCallback, useRef, useId } from "react"
 import type { Portfolio, PortfolioInsert, Layanan, Informasi, Berita, PromoBanner, ContentBlock, LayananFAQ, ProcessStep, KategoriScope } from "@/lib/database.types"
 import { LAYANAN_DEPTS as DEFAULT_DEPTS, type LayananDept } from "@/lib/layanan-config"
-import {
-  LayoutGrid, Layers, Settings, Plus, Pencil, Trash2,
-  RefreshCw, Search, X, Save, ChevronDown, ChevronUp, ExternalLink,
-  Map, CheckCircle, AlertCircle, Loader2, Tag, Users, ImageIcon,
-  Menu, Newspaper, GalleryHorizontalEnd, ListOrdered,
-  Heading, AlignLeft, ImagePlus, Info,
-} from "lucide-react"
+import { LayoutGrid, Layers, Settings, Plus, Pencil, Trash2, RefreshCw, Search, X, Save, ChevronDown, ChevronUp, ExternalLink, Map, CheckCircle, AlertCircle, Loader2, Tag, Users, ImageIcon, Menu, Newspaper, GalleryHorizontalEnd, ListOrdered, Heading, AlignLeft, ImagePlus, Info, AlertTriangle, Star } from "lucide-react"
 import { cn } from "@/lib/utils"
 /**
  * Slug dari judul: huruf kecil, tanda baca dibuang, spasi jadi tanda hubung.
@@ -775,7 +769,7 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
                   <div className="flex items-center gap-1.5">
                     <p className="text-[13px] font-medium text-white">{l.title}</p>
                     {l.featured_order !== null && l.featured_order !== undefined && (
-                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-powder/15 text-powder text-[9px] font-bold">★ #{l.featured_order}</span>
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-powder/15 text-powder text-[9px] font-bold"><Star size={9} className="inline -mt-px" aria-hidden="true" /> #{l.featured_order}</span>
                     )}
                   </div>
                   {l.description && <p className="text-[11px] text-white/30 mt-0.5 max-w-[200px] truncate">{l.description}</p>}
@@ -826,7 +820,7 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
             <div className="flex items-center gap-1.5 truncate">
               <p className="text-[13px] font-medium text-white truncate">{l.title}</p>
               {l.featured_order !== null && l.featured_order !== undefined && (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-powder/15 text-powder text-[9px] font-bold flex-shrink-0">★ #{l.featured_order}</span>
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-powder/15 text-powder text-[9px] font-bold flex-shrink-0"> #{l.featured_order}</span>
               )}
             </div>
             {l.description && <p className="text-[11px] text-white/30 mt-0.5 line-clamp-1">{l.description}</p>}
@@ -1309,7 +1303,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
                 >
                   <span>{v === null ? "Tidak Unggulan" : `Posisi #${v}`}</span>
                   {isTaken && !isSelected && (
-                    <span className="block text-[9px] font-normal opacity-70 truncate max-w-[100px]">⚠ {takenBy!.title}</span>
+                    <span className="block text-[9px] font-normal opacity-70 truncate max-w-[100px]">{takenBy!.title}</span>
                   )}
                   {isTaken && isSelected && (
                     <span className="block text-[9px] font-normal opacity-80 truncate max-w-[100px]">akan geser: {takenBy!.title}</span>
@@ -1324,7 +1318,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
                 const conflict = allLayanan.find(l => l.featured_order === form.featured_order && l.id !== initial?.id)
                 return conflict ? (
                   <div className="flex items-start gap-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-3 py-2">
-                    <span className="text-yellow-400 text-[11px] flex-shrink-0 mt-0.5">⚠</span>
+                    <AlertTriangle size={12} className="text-yellow-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                     <p className="text-[11px] text-yellow-400/90 leading-relaxed">
                       Posisi #{form.featured_order} sudah dipakai oleh <span className="font-bold">"{conflict.title}"</span>. Menyimpan akan memindahkan layanan tersebut keluar dari unggulan.
                     </p>
