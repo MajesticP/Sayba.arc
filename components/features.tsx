@@ -32,7 +32,7 @@ export default function Features({ title, subtitle, items }: FeaturesProps) {
           <p className="text-steel text-[13px] md:text-base max-w-2xl mx-auto">{subtitle}</p>
         </div>
 
-        <div ref={grid.ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        <div ref={grid.ref} className="grid grid-cols-2 md:grid-cols-3 gap-2.5 md:gap-5">
           {items.map((feature, index) => (
             <div key={index}
               className={`group bg-white/[0.04] hover:bg-white/[0.08] border border-white/8 hover:border-powder/35 rounded-xl p-3.5 md:p-6 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-powder/5 ${grid.inView ? "animate-fade-in-up" : "opacity-0"}`}

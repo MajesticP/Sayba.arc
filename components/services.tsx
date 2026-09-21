@@ -6,8 +6,6 @@ import { DynamicIcon } from "@/lib/dynamic-icon"
 import type { Layanan } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
 
-import ThreeCard from "./three-card"
-
 function gdriveToImg(url: string): string {
   if (!url) return url
   if (url.startsWith("/api/gdrive-img")) return url

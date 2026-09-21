@@ -90,7 +90,7 @@ export default function ApplicationDetailClient({ slug }: { slug: string }) {
       buttons.push({
         text: btnText,
         link: applicationData[`Button ${btnIndex} Link`] || "/contact",
-        color: applicationData[`Button ${btnIndex} Color`] || applicationData["Button Color"] || "#ea580c",
+        color: applicationData[`Button ${btnIndex} Color`] || applicationData["Button Color"] || "#ff914d",
         textColor: applicationData[`Button ${btnIndex} Text Color`] || "#ffffff",
       })
       btnIndex++
@@ -187,7 +187,7 @@ export default function ApplicationDetailClient({ slug }: { slug: string }) {
   const bgColor = applicationData["Background Color"] || "#ffffff"
   const titleColor = applicationData["Title Color"] || "#313030"
   const textColor = applicationData["Text Color"] || "#666666"
-  const buttonColor = applicationData["Button Color"] || getValue("Header Button Color") || "#ea580c"
+  const buttonColor = applicationData["Button Color"] || getValue("Header Button Color") || "#ff914d"
   const cardColor = applicationData["Card Color"] || "#f8f8f8"
 
   const customTabs = parseCustomTabs()

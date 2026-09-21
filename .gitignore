@@ -11,3 +11,7 @@ _*.txt
 _*.cjs
 _*.py
 _*.json
+
+# Berkas sementara & artefak CLI Supabase
+supabase/.temp/
+_probe*.ts

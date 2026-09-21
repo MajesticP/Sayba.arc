@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { siteConfig, hero, features, about, cta, navItems, footerLinks, socialLinks, ogImage } from "@/lib/data"
 import Header from "@/components/header"
-import Hero3D from "@/components/hero-3d"
+import Hero from "@/components/hero"
 import PromoCarousel from "@/components/promo-carousel"
 import NewsHighlight from "@/components/news-highlight"
 import Services from "@/components/services"

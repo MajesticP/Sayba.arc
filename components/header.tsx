@@ -72,13 +72,13 @@ export default function Header({ navItems, ctaText, ctaHref }: HeaderProps) {
                 <span className="hidden md:block w-8" aria-hidden="true" />
               )}
 
-                    {/* Mobile toggle */}
-                    <button
-                      onClick={() => setIsOpen(!isOpen)}
-                      className="md:hidden w-9 h-9 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/5 transition-colors"
-                      aria-label="Toggle menu"
-                      aria-expanded={isOpen}
-                    >
+              {/* Mobile toggle */}
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="md:hidden w-9 h-9 rounded-full flex items-center justify-center text-black/60 hover:text-black hover:bg-black/5 transition-colors"
+                aria-label="Toggle menu"
+                aria-expanded={isOpen}
+              >
                 {isOpen
                   ? <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>

@@ -7,6 +7,7 @@ import { formatNewsDate, getCategoryColor, getCategoryLabel } from "@/lib/news-d
 
 const FALLBACK_IMG = "/berita/berita-1-800x500.png"
 
+/** Link Google Drive → proxy gambar lokal, sama seperti layanan/informasi */
 function gdriveToImg(url: string | null): string {
   if (!url) return FALLBACK_IMG
   if (url.startsWith("/api/gdrive-img")) return url
@@ -21,16 +22,17 @@ export default function NewsHighlight({ articles }: { articles: Berita[] }) {
   const header = useInView()
   const cards = useInView({ threshold: 0.08 })
 
+  // Belum ada artikel terbit — sembunyikan section-nya, sama seperti Services
   if (!articles.length) return null
 
   return (
-    <section className="pt-8 pb-16 md:pt-16 md:pb-28 bg-black" id="berita">
+    <section className="py-10 md:py-24 bg-white" id="berita">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header — H2 (section ini top-level di beranda) */}
         <div
           ref={header.ref}
-          className={`mb-8 md:mb-16 transition-all duration-700 ease-out ${header.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+          className={`mb-7 md:mb-12 transition-all duration-700 ease-out ${header.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-platinum-dim mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-slate-brand" aria-hidden="true" />
@@ -61,7 +63,7 @@ export default function NewsHighlight({ articles }: { articles: Berita[] }) {
         {/* Kartu — judul tiap kartu H3, di bawah H2 section */}
         <div
           ref={cards.ref}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+          className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mb-2 scrollbar-hide sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 md:gap-6 sm:overflow-visible sm:pb-0 sm:mb-0"
         >
           {articles.map((article, i) => (
             <Link
@@ -76,10 +78,10 @@ export default function NewsHighlight({ articles }: { articles: Berita[] }) {
                   src={gdriveToImg(article.image_url)}
                   alt={article.title}
                   loading="lazy"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <span
-                  className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.15em] text-white shadow"
+                  className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest text-white shadow"
                   style={{ backgroundColor: getCategoryColor(article.category) }}
                 >
                   {getCategoryLabel(article.category)}
@@ -128,7 +130,7 @@ export default function NewsHighlight({ articles }: { articles: Berita[] }) {
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-carbon text-platinum text-[13px] font-semibold hover:bg-steel hover:text-carbon transition-colors duration-200 active:scale-95"
           >
             Buka Halaman Berita
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </Link>
