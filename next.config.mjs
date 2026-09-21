@@ -1,5 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Halaman /products sudah digantikan /informasi — arahkan tautan lama
+  // supaya tidak ada pengunjung atau mesin pencari yang mendarat di 404.
+  async redirects() {
+    return [
+      { source: '/products', destination: '/informasi', permanent: true },
+      { source: '/products/:slug', destination: '/informasi/:slug', permanent: true },
+    ]
+  },
   // TypeScript errors must be fixed — never suppress them in production builds
   images: {
     unoptimized: true,

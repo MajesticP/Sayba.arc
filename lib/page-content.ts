@@ -3,7 +3,7 @@
  * Menyediakan FAQ dan content default untuk setiap tipe halaman detail
  * 
  * Struktur:
- * - Default FAQ untuk setiap tipe (services, applications, products)
+ * - Default FAQ untuk setiap tipe (services, applications, informasi)
  * - Bisa di-override per slug di halaman masing-masing
  * - Hybrid approach: central data + manual override support
  */
@@ -99,28 +99,29 @@ const applicationsFAQMap: Record<string, FAQSection> = {
 }
 
 /**
- * Contoh FAQ default untuk Products
+ * Contoh FAQ default untuk Informasi (dokumen teknis)
  */
-const productsFAQMap: Record<string, FAQSection> = {
-  // Contoh: slug untuk software license
-  "software-license": {
-    title: "FAQ - Software License",
+const informasiFAQMap: Record<string, FAQSection> = {
+  // Contoh: slug untuk dokumen standar teknis
+  "standar-format-deliverable-cad-gis": {
+    title: "FAQ - Standar Deliverable CAD & GIS",
     description:
-      "Informasi lengkap tentang lisensi software kami dan bagaimana cara menggunakannya dengan optimal.",
+      "Informasi lengkap tentang standar format berkas, sistem proyeksi, dan struktur layer yang kami pakai.",
     items: [
       {
-        question: "Berapa lama durasi lisensi?",
-        answer: "Lisensi kami tersedia dalam periode 1 bulan, 1 tahun, atau 3 tahun sesuai kebutuhan Anda.",
+        question: "Format berkas apa saja yang diserahkan?",
+        answer:
+          "DWG/DXF untuk AutoCAD, SHP/File Geodatabase untuk GIS, GeoTIFF untuk raster, serta PDF resolusi tinggi siap cetak.",
       },
       {
-        question: "Apakah lisensi bisa dipindahkan ke device lain?",
+        question: "Sistem koordinat apa yang dipakai?",
         answer:
-          "Ya, lisensi dapat dipindahkan. Silakan hubungi support kami untuk proses transfer yang mudah.",
+          "Datum WGS 1984 / SRGI 2013 dengan proyeksi UTM Zona 49S/50N atau TM-3° sesuai standar instansi terkait.",
       },
       {
-        question: "Apa yang termasuk dalam renewal?",
+        question: "Apakah metadata ikut disertakan?",
         answer:
-          "Renewal mencakup akses ke versi terbaru, security updates, dan support teknis berkelanjutan.",
+          "Ya. Setiap deliverable geospasial dilengkapi metadata berstandar FGDC/ISO 19115 dan atribut yang terisi lengkap.",
       },
     ],
   },
@@ -129,12 +130,12 @@ const productsFAQMap: Record<string, FAQSection> = {
 /**
  * Fungsi untuk mendapatkan FAQ berdasarkan type dan slug
  * 
- * @param type - 'services' | 'applications' | 'products'
+ * @param type - 'services' | 'applications' | 'informasi'
  * @param slug - URL slug dari halaman
  * @returns FAQSection dengan fallback ke DEFAULT_FAQ_SECTION
  */
 export function getFAQForSlug(
-  type: "services" | "applications" | "products",
+  type: "services" | "applications" | "informasi",
   slug: string,
 ): FAQSection {
   let faqMap: Record<string, FAQSection>
@@ -146,8 +147,8 @@ export function getFAQForSlug(
     case "applications":
       faqMap = applicationsFAQMap
       break
-    case "products":
-      faqMap = productsFAQMap
+    case "informasi":
+      faqMap = informasiFAQMap
       break
   }
 
@@ -167,6 +168,6 @@ export function addApplicationFAQ(slug: string, faq: FAQSection): void {
   applicationsFAQMap[slug] = faq
 }
 
-export function addProductFAQ(slug: string, faq: FAQSection): void {
-  productsFAQMap[slug] = faq
+export function addInformasiFAQ(slug: string, faq: FAQSection): void {
+  informasiFAQMap[slug] = faq
 }

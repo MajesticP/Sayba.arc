@@ -1,75 +1,48 @@
 -- ============================================================
--- SAYBA ARC — FULL SUPABASE RESET & SETUP
--- Copy seluruh teks ini dan jalankan di SQL Editor Supabase
--- WARNING: Ini akan mereset database ke kondisi awal (bersih)
+-- SAYBA ARC — Supabase Schema
+-- Jalankan di: Supabase Dashboard → SQL Editor
 -- ============================================================
 
--- 1. DROP SEMUA TABEL (Pembersihan Total)
-drop table if exists informasi cascade;
-drop table if exists produk cascade; -- jaga-jaga jika masih ada
-drop table if exists berita cascade;
-drop table if exists portfolio cascade;
-drop table if exists layanan cascade;
-drop table if exists promo_banner cascade;
-drop table if exists tim cascade;
-drop table if exists layanan_depts cascade;
-
--- 2. TABEL DEPARTEMEN LAYANAN (Kategori Utama)
-create table layanan_depts (
-  value           text primary key,
-  label           text not null,
-  description     text,
-  badge_class     text,
-  color           text,
-  sub_categories  text[] default '{}',
-  sort_order      integer default 0
+-- Tabel Portfolio
+create table if not exists portfolio (
+  id          uuid        default gen_random_uuid() primary key,
+  title       text        not null,
+  slug        text        unique not null,
+  category    text,
+  dept        text        not null default 'arcgis' check (dept in ('arcgis', 'it')),
+  description text,
+  image_url   text,
+  status      text        not null default 'active' check (status in ('active', 'draft', 'archived')),
+  created_at  timestamptz default now()
 );
-alter table layanan_depts enable row level security;
-create policy "layanan_depts_public_read" on layanan_depts for select using (true);
 
--- Isi Data Default untuk 2 Kategori Layanan
-insert into layanan_depts (value, label, description, badge_class, color, sub_categories, sort_order) values
-('it_konsulting', 'IT Consultant', 'Berfokus pada pengembangan Website, Desktop App, Mobile App & Machine Learning', 'bg-blue-400/10 text-blue-400 ring-blue-400/20', '#60a5fa', ARRAY['Website', 'Desktop App', 'Mobile App', 'Machine Learning'], 0),
-('engineering_konsulting', 'Engineering Consultant', 'Berfokus pada Desain Rancang Bangun, Pemetaan Spasial, dan AutoCAD 2D/3D', 'bg-[#0a6e8a]/10 text-[#0a6e8a] ring-[#0a6e8a]/20', '#0a6e8a', ARRAY['Pemetaan', 'Gambar 2D/3D', 'Desain Rancang Bangun'], 1);
+-- Tabel Layanan
+create table if not exists layanan (
+  id          uuid        default gen_random_uuid() primary key,
+  title       text        not null,
+  slug        text        unique not null,
+  dept        text        not null default 'arcgis' check (dept in ('arcgis', 'it', 'kelautan')),
+  description text,
+  icon        text        default 'map',
+  status      text        not null default 'active' check (status in ('active', 'draft', 'archived')),
+  created_at  timestamptz default now()
+);
 
--- 3. TABEL LAYANAN
-create table layanan (
+-- Tabel Informasi (pengganti Produk)
+create table if not exists informasi (
   id              uuid default gen_random_uuid() primary key,
   title           text not null,
   slug            text unique not null,
-  dept            text not null references layanan_depts(value) on delete cascade,
-  category        text,
-  description     text,
-  icon            text default 'map',
+  excerpt         text,
+  category        text not null default 'umum',
   image_url       text,
-  prices          jsonb,
-  status          text not null default 'active' check (status in ('active', 'draft', 'archived')),
-  featured_order  integer,
-  meta_title      text,
-  meta_description text,
-  meta_keywords   text[],
-  og_image        text,
-  canonical_url   text,
-  created_at      timestamptz default now()
-);
-alter table layanan enable row level security;
-create policy "layanan_public_read" on layanan for select using (true);
-create policy "layanan_auth_write" on layanan for insert with check (auth.role() = 'authenticated');
-create policy "layanan_auth_update" on layanan for update using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "layanan_auth_delete" on layanan for delete using (auth.role() = 'authenticated');
-
--- 4. TABEL PORTFOLIO
-create table portfolio (
-  id              uuid default gen_random_uuid() primary key,
-  title           text not null,
-  slug            text unique not null,
-  category        text,
-  dept            text not null references layanan_depts(value) on delete cascade,
-  description     text,
-  image_url       text,
-  result_url      text,
-  features        text[],
-  tech_stack      text[],
+  author          text not null default 'Tim SAYBA ARC',
+  body            text,
+  published_at    date not null default current_date,
+  read_minutes    integer not null default 3,
+  views           integer not null default 0,
+  featured        boolean not null default false,
+  tags            text[],
   status          text not null default 'active' check (status in ('active', 'draft', 'archived')),
   meta_title      text,
   meta_description text,
@@ -78,125 +51,79 @@ create table portfolio (
   canonical_url   text,
   created_at      timestamptz default now()
 );
+
+create index if not exists informasi_published_at_idx on informasi (published_at desc);
+create index if not exists informasi_status_idx       on informasi (status);
+
+-- Run this in Supabase SQL Editor if the table already exists:
+-- ALTER TABLE layanan DROP CONSTRAINT IF EXISTS layanan_dept_check;
+-- ALTER TABLE layanan ADD CONSTRAINT layanan_dept_check CHECK (dept IN ('arcgis', 'it', 'kelautan'));
+
+-- Enable RLS (Row Level Security)
 alter table portfolio enable row level security;
-create policy "portfolio_public_read" on portfolio for select using (true);
-create policy "portfolio_auth_write" on portfolio for insert with check (auth.role() = 'authenticated');
-create policy "portfolio_auth_update" on portfolio for update using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "portfolio_auth_delete" on portfolio for delete using (auth.role() = 'authenticated');
-
--- 5. TABEL INFORMASI (Pengganti Produk)
-create table informasi (
-  id              uuid default gen_random_uuid() primary key,
-  title           text not null,
-  slug            text unique not null,
-  excerpt         text,
-  category        text not null default 'umum',
-  image_url       text,
-  author          text not null default 'Tim SAYBA ARC',
-  body            text,
-  published_at    date not null default current_date,
-  read_minutes    integer not null default 3,
-  views           integer not null default 0,
-  featured        boolean not null default false,
-  tags            text[],
-  status          text not null default 'active' check (status in ('active', 'draft', 'archived')),
-  meta_title      text,
-  meta_description text,
-  meta_keywords   text[],
-  og_image        text,
-  canonical_url   text,
-  created_at      timestamptz default now()
-);
-create index informasi_published_at_idx on informasi (published_at desc);
-create index informasi_status_idx on informasi (status);
+alter table layanan   enable row level security;
 alter table informasi enable row level security;
-create policy "informasi_public_read" on informasi for select using (true);
-create policy "informasi_auth_write" on informasi for insert with check (auth.role() = 'authenticated');
-create policy "informasi_auth_update" on informasi for update using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "informasi_auth_delete" on informasi for delete using (auth.role() = 'authenticated');
 
--- 6. TABEL BERITA
-create table berita (
-  id              uuid default gen_random_uuid() primary key,
-  title           text not null,
-  slug            text unique not null,
-  excerpt         text,
-  category        text not null default 'umum',
-  image_url       text,
-  author          text not null default 'Tim SAYBA ARC',
-  body            text,
-  published_at    date not null default current_date,
-  read_minutes    integer not null default 3,
-  views           integer not null default 0,
-  featured        boolean not null default false,
-  tags            text[],
-  status          text not null default 'active' check (status in ('active', 'draft', 'archived')),
-  meta_title      text,
-  meta_description text,
-  meta_keywords   text[],
-  og_image        text,
-  canonical_url   text,
-  created_at      timestamptz default now()
-);
-create index berita_published_at_idx on berita (published_at desc);
-create index berita_status_idx on berita (status);
-alter table berita enable row level security;
-create policy "berita_public_read" on berita for select using (true);
-create policy "berita_auth_write" on berita for insert with check (auth.role() = 'authenticated');
-create policy "berita_auth_update" on berita for update using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "berita_auth_delete" on berita for delete using (auth.role() = 'authenticated');
+-- ── Portfolio policies ────────────────────────────────────────────────────
+-- Anyone (including anonymous visitors) may read active/published rows.
+create policy "portfolio_public_read" on portfolio
+  for select using (true);
 
--- 7. TABEL PROMO BANNER
-create table promo_banner (
-  id              uuid default gen_random_uuid() primary key,
-  image_url       text not null,
-  alt             text not null,
-  eyebrow         text,
-  title           text,
-  subtitle        text,
-  cta_text        text,
-  cta_href        text,
-  sort_order      integer not null default 0,
-  status          text not null default 'active' check (status in ('active', 'draft')),
-  created_at      timestamptz default now()
-);
-alter table promo_banner enable row level security;
-create policy "promo_banner_public_read" on promo_banner for select using (status = 'active');
-create policy "promo_banner_auth_write" on promo_banner for insert with check (auth.role() = 'authenticated');
-create policy "promo_banner_auth_update" on promo_banner for update using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "promo_banner_auth_delete" on promo_banner for delete using (auth.role() = 'authenticated');
+-- Only signed-in admin users may insert, update, or delete rows.
+create policy "portfolio_auth_write" on portfolio
+  for insert
+  with check (auth.role() = 'authenticated');
 
--- 8. TABEL TIM
-create table tim (
-  id              uuid default gen_random_uuid() primary key,
-  name            text not null,
-  role            text not null,
-  bio             text,
-  photo_url       text,
-  github_url      text,
-  linkedin_url    text,
-  instagram_url   text,
-  dept            text check (dept in ('lingkungan', 'it', 'kelautan')),
-  order_num       integer not null default 0,
-  status          text not null default 'active' check (status in ('active', 'draft')),
-  created_at      timestamptz default now()
-);
-alter table tim enable row level security;
-create policy "tim_public_read" on tim for select using (status = 'active');
-create policy "tim_auth_write" on tim for insert with check (auth.role() = 'authenticated');
-create policy "tim_auth_update" on tim for update using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "tim_auth_delete" on tim for delete using (auth.role() = 'authenticated');
+create policy "portfolio_auth_update" on portfolio
+  for update
+  using  (auth.role() = 'authenticated')
+  with check (auth.role() = 'authenticated');
 
--- ============================================================
--- 9. SETUP STORAGE BUCKET (Media)
--- ============================================================
--- Membuat bucket 'media' secara otomatis jika belum ada
-insert into storage.buckets (id, name, public)
-values ('media', 'media', true)
-on conflict (id) do nothing;
+create policy "portfolio_auth_delete" on portfolio
+  for delete
+  using (auth.role() = 'authenticated');
 
--- Mengatur RLS untuk Storage agar gambar bisa diakses publik
-create policy "Media public read" on storage.objects for select using (bucket_id = 'media');
-create policy "Media auth write" on storage.objects for insert with check (bucket_id = 'media' and auth.role() = 'authenticated');
-create policy "Media auth update" on storage.objects for update using (bucket_id = 'media' and auth.role() = 'authenticated');
-create policy "Media auth delete" on storage.objects for delete using (bucket_id = 'media' and auth.role() = 'authenticated');
+-- ── Layanan policies ──────────────────────────────────────────────────────
+create policy "layanan_public_read" on layanan
+  for select using (true);
+
+create policy "layanan_auth_write" on layanan
+  for insert
+  with check (auth.role() = 'authenticated');
+
+create policy "layanan_auth_update" on layanan
+  for update
+  using  (auth.role() = 'authenticated')
+  with check (auth.role() = 'authenticated');
+
+create policy "layanan_auth_delete" on layanan
+  for delete
+  using (auth.role() = 'authenticated');
+
+-- ── Informasi policies ────────────────────────────────────────────────────
+create policy "informasi_public_read" on informasi
+  for select using (true);
+
+create policy "informasi_auth_write" on informasi
+  for insert
+  with check (auth.role() = 'authenticated');
+
+create policy "informasi_auth_update" on informasi
+  for update
+  using  (auth.role() = 'authenticated')
+  with check (auth.role() = 'authenticated');
+
+create policy "informasi_auth_delete" on informasi
+  for delete
+  using (auth.role() = 'authenticated');
+
+-- Seed data contoh (opsional, hapus jika tidak perlu)
+insert into portfolio (title, slug, category, dept, description, status) values
+  ('Sistem Pemetaan Tata Ruang Kota', 'sistem-pemetaan-tata-ruang-kota', 'ArcGIS Online', 'arcgis', 'Pengembangan sistem web GIS untuk visualisasi tata ruang kota berbasis ArcGIS Online dengan integrasi data BIG.', 'active'),
+  ('Platform Monitoring Infrastruktur', 'platform-monitoring-infrastruktur', 'Web App', 'it', 'Aplikasi web full-stack untuk monitoring dan pelaporan kondisi infrastruktur jalan di Kalimantan Barat.', 'active'),
+  ('Aplikasi Survey Lapangan', 'aplikasi-survey-lapangan', 'GIS Mobile', 'arcgis', 'Solusi pengumpulan data lapangan berbasis Survey123 untuk instansi pemerintah daerah.', 'active');
+
+insert into layanan (title, slug, dept, description, icon, status) values
+  ('Pengembangan ArcGIS', 'arcgis-development', 'arcgis', 'Aplikasi GIS kustom berbasis platform ArcGIS dari Esri — mulai dari Web AppBuilder, Experience Builder, hingga otomasi geoprocessing berbasis Python.', 'map', 'active'),
+  ('Solusi Web GIS', 'web-gis', 'arcgis', 'Peta web interaktif, dasbor spasial, serta integrasi ArcGIS Online dan Enterprise.', 'globe', 'active'),
+  ('Pengembangan Web & Mobile', 'it-development', 'it', 'Aplikasi web dan mobile full-stack menggunakan framework modern — React, Next.js, Node.js.', 'code', 'active');

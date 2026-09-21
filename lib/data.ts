@@ -55,12 +55,12 @@ export const navItems = [
 ]
 
 export const hero = {
-  title: "Solusi Cerdas Engineering & IT",
+  title: "Solusi Digital & Engineering oleh SAYBA ARC",
   subtitle:
-    "Membangun Masa Depan Anda. Kami menyediakan layanan komprehensif mulai dari Desain Rancang Bangun, Pemetaan Canggih, hingga Inovasi Website, Aplikasi, dan Machine Learning.",
+    "Web & aplikasi, GIS & pemetaan, data & machine learning, hingga rancang teknik — SAYBA ARC adalah mitra satu atap untuk beragam kebutuhan digital dan engineering Anda, dikerjakan dalam satu tim.",
   primaryButton: { text: "Jelajahi Layanan Kami", href: "/services" },
   secondaryButton: { text: "Lihat Portofolio", href: "/portfolio" },
-  badge: "Inovasi Engineering & IT Terdepan",
+  badge: "Multidisiplin · Berbasis di Pontianak",
 }
 
 export const features = [
@@ -103,9 +103,9 @@ export const features = [
 ]
 
 export const about = {
-  title: "Satu Tim. Dua Pilar Keahlian.",
+  title: "Satu Tim. Banyak Keahlian.",
   description:
-    "SAYBA ARC adalah konsultan dari Pontianak yang berfokus pada dua bidang utama. Engineering Consultant yang menangani Desain Rancang Bangun, Pemetaan Spasial, dan perancangan 2D/3D. Serta IT Consultant yang membangun Website modern, Aplikasi Mobile/Desktop, hingga pengembangan Machine Learning. Semua dikerjakan oleh tim profesional kami.",
+    "SAYBA ARC adalah agensi dari Pontianak yang lahir dari keyakinan bahwa masalah nyata butuh orang yang mau turun tangan langsung. Kami tidak mengunci diri di satu bidang — kami mengerjakan apa yang klien butuhkan, dari pemetaan, sistem informasi dan rancangan perkapalan hingga kebutuhan engineer lainnya.",
   stats: [
     { value: "50+", label: "Proyek Selesai" },
     { value: "2025", label: "Tahun Berdiri" },
@@ -150,12 +150,12 @@ export const servicesPage = {
 export const aboutPage = {
   hero: {
     title: "Tentang SAYBA ARC",
-    subtitle: "Inovator teknologi digital dan engineering yang mendedikasikan keahlian lintas disiplin untuk menghasilkan solusi nyata, tepat sasaran, dan berkelanjutan.",
+    subtitle: "Agensi digital dan engineering dari Pontianak yang bekerja lintas disiplin untuk klien yang butuh hasil, bukan janji.",
   },
   mission:
-    "Memberikan layanan terintegrasi berkualitas tinggi melalui pendekatan agile, mengadopsi teknologi terdepan, dan memprioritaskan transparansi serta kepuasan mitra kami pada setiap tahap pengerjaan.",
+    "Menghadirkan solusi teknis yang relevan, jujur, dan berkualitas — tanpa overpromise, tanpa inflasi angka, dan tanpa meninggalkan klien setelah proyek selesai.",
   vision:
-    "Menjadi pionir agensi digital dan rekayasa teknik di Indonesia yang senantiasa diandalkan untuk mengubah tantangan kompleks menjadi sistem yang intuitif, andal, dan berdampak.",
+    "Menjadi agensi terpercaya di Indonesia yang dikenal karena hasil nyata yang bisa klien tunjukkan.",
 }
 
 export const contactPage = {
@@ -168,5 +168,5 @@ export const contactPage = {
     { icon: "map-pin", label: "Lokasi", value: siteConfig.address, href: "#" },
   ],
   whatsappLink:
-    "https://wa.me/6287721916495?text=Halo%20Saya%20Tertarik%20Pada%20%5Bjenis%20produk/jasa%5D%20%5BJasa%20nya%20mis%20:%20Autocad%203D%5D%20%0A%3E%20Sayba%20Arc",
+    "https://wa.me/6287721916495?text=Halo%20Saya%20Tertarik%20Pada%20%5Bjenis%20layanan%5D%20%5Bmis%20:%20Pemetaan%20GIS%5D%20%0A%3E%20Sayba%20Arc",
 }

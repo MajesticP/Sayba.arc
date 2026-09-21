@@ -32,7 +32,7 @@ Diganti dengan **menimpa file**, pertahankan nama filenya.
 | File | Dipakai di |
 |---|---|
 | `services-1920x600.webp` | `/services` — Layanan |
-| `products-1920x600.webp` | `/products` — Produk |
+| `products-1920x600.webp` | Cadangan — halaman `/informasi` kini memakai hero sendiri |
 | `portfolio-1920x600.webp` | `/portfolio` — Portofolio |
 | `berita-1920x600.webp` | `/berita` — Berita |
 | `about-1920x600.webp` | `/about` — Tentang Kami |

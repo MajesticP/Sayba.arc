@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { newsCategories, getCategoryLabel, slugifyTitle } from "@/lib/news-data"
+import { informasiCategories, getInformasiCategoryLabel } from "@/lib/informasi-data"
 
 // Dept config is now persisted in Supabase via /api/admin/tipe
 
@@ -44,8 +45,7 @@ function gdriveToImg(url: string): string {
 }
 
 type DeptFilter = "semua" | string
-// DB stores status as text; we accept string to avoid type mismatches
-type Status = string
+type Status = "active" | "draft" | "archived"
 type Toast = { id: number; msg: string; type: "success" | "error" }
 
 function slugify(s: string) {
@@ -59,12 +59,10 @@ const STATUS_CLASS: Record<Status, string> = {
   archived: "bg-white/5 text-white/30 ring-white/10",
 }
 
-// Type casting for status strings coming from DB
-function StatusBadge({ status }: { status: string }) {
-  const safeStatus = (["active", "draft", "archived"].includes(status) ? status : "draft") as Status
+function StatusBadge({ status }: { status: Status }) {
   return (
-    <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1", STATUS_CLASS[safeStatus])}>
-      {STATUS_LABEL[safeStatus]}
+    <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1", STATUS_CLASS[status])}>
+      {STATUS_LABEL[status]}
     </span>
   )
 }
@@ -733,9 +731,9 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
                   )}
                 </td>
                 <td className="px-4 py-3">
-                  {Array.isArray(l.prices) && l.prices.length > 0 ? (
+                  {l.prices && l.prices.length > 0 ? (
                     <div className="flex flex-col gap-0.5">
-                      {(l.prices as unknown as PriceTier[]).map((t, i) => (
+                      {(l.prices as PriceTier[]).map((t, i) => (
                         <span key={i} className="text-[10px] text-white/40">
                           <span className="text-white/60 font-medium">{t.name}</span> — {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(t.price)}
                         </span>
@@ -776,9 +774,9 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
                 </div>
               )}
             </div>
-            {Array.isArray(l.prices) && l.prices.length > 0 && (
-                          <div className="flex gap-2 mt-1 flex-wrap">
-                            {(l.prices as unknown as PriceTier[]).map((t, i) => (
+            {l.prices && l.prices.length > 0 && (
+              <div className="flex gap-2 mt-1 flex-wrap">
+                {(l.prices as PriceTier[]).map((t, i) => (
                   <span key={i} className="text-[10px] text-white/30">{t.name}: {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(t.price)}</span>
                 ))}
               </div>
@@ -863,7 +861,7 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Kategori"><Input value={form.category ?? ""} onChange={v => set("category", v)} placeholder="Web GIS…" /></Field>
-          <Field label="Status"><Select value={form.status ?? "active"} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
+          <Field label="Status"><Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
         </div>
         <Field label="Deskripsi"><Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi singkat proyek…" /></Field>
 
@@ -978,8 +976,8 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
     stagedUploads.current.clear()
     replacedUrls.current.clear()
     if (initial) {
-          const i = initial as any
-          setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", icon: initial.icon ?? "map", image_url: i.image_url ?? "", status: (["active", "draft", "archived"].includes(initial.status) ? initial.status : "active") as Status, prices: (initial.prices as unknown as PriceTier[]) ?? DEFAULT_TIERS, featured_order: initial.featured_order ?? null,
+      const i = initial as any
+      setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", icon: initial.icon ?? "map", image_url: i.image_url ?? "", status: initial.status, prices: (initial.prices as PriceTier[]) ?? DEFAULT_TIERS, featured_order: initial.featured_order ?? null,
         meta_title: i.meta_title ?? "", meta_description: i.meta_description ?? "", meta_keywords: Array.isArray(i.meta_keywords) ? i.meta_keywords.join("\n") : "", og_image: i.og_image ?? "", canonical_url: i.canonical_url ?? "" })
       setSlugManual(true)
     } else { setForm(blank); setSlugManual(false) }
@@ -1054,7 +1052,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Icon (Lucide)" hint="Nama dari lucide.dev"><Input value={form.icon ?? ""} onChange={v => set("icon", v)} placeholder="map, globe, code…" /></Field>
-          <Field label="Status"><Select value={form.status ?? "active"} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
+          <Field label="Status"><Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
         </div>
 
         <SvgUploadField value={(form as any).image_url ?? ""} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="layanan" />
@@ -1213,7 +1211,7 @@ function InformasiTable({ data, loading, onEdit, onDelete }: {
                   {b.excerpt && <p className="text-[11px] text-white/30 mt-0.5 max-w-[260px] truncate">{b.excerpt}</p>}
                 </td>
                 <td className="px-4 py-3">
-                  <span className="inline-flex items-center gap-1 text-[10px] text-white/35"><Tag size={8} />{getCategoryLabel(b.category)}</span>
+                  <span className="inline-flex items-center gap-1 text-[10px] text-white/35"><Tag size={8} />{getInformasiCategoryLabel(b.category)}</span>
                 </td>
                 <td className="px-4 py-3"><code className="text-[10px] bg-[#181818] text-white/40 px-1.5 py-0.5 rounded-md">/informasi/{b.slug}</code></td>
                 <td className="px-4 py-3">
@@ -1248,7 +1246,7 @@ function InformasiTable({ data, loading, onEdit, onDelete }: {
             {b.excerpt && <p className="text-[11px] text-white/30 mt-0.5 line-clamp-1">{b.excerpt}</p>}
             <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
               {b.featured && <span className="text-[8.5px] font-black uppercase tracking-widest text-[#ff914d] bg-[#ff914d]/10 border border-[#ff914d]/25 px-1.5 py-0.5 rounded-md">Sorotan</span>}
-              <span className="text-[10px] text-white/35">{getCategoryLabel(b.category)}</span>
+              <span className="text-[10px] text-white/35">{getInformasiCategoryLabel(b.category)}</span>
               <StatusBadge status={b.status} />
               <span className="text-[10px] text-white/40">{beritaDateLabel(b.published_at)}</span>
             </div>
@@ -1266,8 +1264,8 @@ function InformasiModal({ open, initial, onClose, onSaved, onError }: {
 }) {
   const today = new Date().toISOString().slice(0, 10)
   const blank = {
-    title: "", slug: "", excerpt: "", category: newsCategories[0]?.slug ?? "gis", image_url: "",
-    author: "Redaksi SAYBA ARC", body: "", published_at: today, read_minutes: 3, views: 0,
+    title: "", slug: "", excerpt: "", category: informasiCategories[0]?.slug ?? "panduan", image_url: "",
+    author: "Tim SAYBA ARC", body: "", published_at: today, read_minutes: 3, views: 0,
     featured: false, tags: "", status: "active" as Status,
     meta_title: "", meta_description: "", meta_keywords: "", og_image: "", canonical_url: "",
   }
@@ -1316,7 +1314,7 @@ function InformasiModal({ open, initial, onClose, onSaved, onError }: {
     setSaving(true)
     const payload = {
       title: form.title, slug: form.slug, excerpt: form.excerpt || null, category: form.category,
-      image_url: form.image_url || null, author: form.author || "Redaksi SAYBA ARC", body: form.body || null,
+      image_url: form.image_url || null, author: form.author || "Tim SAYBA ARC", body: form.body || null,
       published_at: form.published_at || today,
       read_minutes: Number(form.read_minutes) || 1,
       views: Number(form.views) || 0,
@@ -1352,7 +1350,7 @@ function InformasiModal({ open, initial, onClose, onSaved, onError }: {
             <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="pemetaan-partisipatif-desa" />
           </Field>
           <Field label="Kategori" required>
-            <Select value={form.category} onChange={v => set("category", v)} options={newsCategories.map(c => ({ value: c.slug, label: c.label }))} />
+            <Select value={form.category} onChange={v => set("category", v)} options={informasiCategories.map(c => ({ value: c.slug, label: c.label }))} />
           </Field>
         </div>
 
@@ -2300,7 +2298,7 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
         image_url: initial.image_url, alt: initial.alt, eyebrow: initial.eyebrow ?? "",
         title: initial.title ?? "", subtitle: initial.subtitle ?? "",
         cta_text: initial.cta_text ?? "", cta_href: initial.cta_href ?? "",
-        sort_order: initial.sort_order, status: (["active", "draft"].includes(initial.status) ? initial.status : "active") as "active" | "draft",
+        sort_order: initial.sort_order, status: initial.status,
       })
     } else { setForm({ ...blank, sort_order: nextOrder }) }
   // eslint-disable-next-line react-hooks/exhaustive-deps

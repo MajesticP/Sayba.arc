@@ -27,32 +27,70 @@ export interface LayananDept {
 
 export const LAYANAN_DEPTS: LayananDept[] = [
   {
-    value: "it_konsulting",
-    label: "IT Konsulting",
+    value: "arcgis",
+    label: "ArcGIS",
+    description: "Departemen GIS & Pemetaan",
+    badgeClass:
+      "bg-[#ff914d]/10 text-[#ff914d] ring-[#ff914d]/20",
+    color: "#ff914d",
+    subCategories: [
+      "Web GIS",
+      "Desktop GIS",
+      "3D Mapping",
+      "Spatial Analysis",
+      "Training & Workshop",
+      "Data Processing",
+    ],
+  },
+  {
+    value: "it",
+    label: "IT",
     description: "Departemen Teknologi Informasi & Digital",
     badgeClass: "bg-blue-400/10 text-blue-400 ring-blue-400/20",
     color: "#60a5fa",
     subCategories: [
       "Web Development",
-      "Mobile Application",
-      "System Integration",
-      "Machine Learning",
-      "Data Analytics",
+      "Mobile App",
+      "Backend & API",
+      "UI/UX Design",
+      "Cloud & DevOps",
+      "Cybersecurity",
     ],
   },
   {
-    value: "engineering_konsulting",
-    label: "Engineering Konsulting",
-    description: "Departemen Rekayasa & Rancang Teknik",
+    value: "kelautan",
+    label: "Kelautan",
+    description: "Departemen Desain & Perkapalan",
     badgeClass: "bg-[#0a6e8a]/10 text-[#0a6e8a] ring-[#0a6e8a]/20",
     color: "#0a6e8a",
     subCategories: [
-      "GIS & Pemetaan",
-      "IoT Development",
-      "Firmware Engineering",
-      "Perencanaan Teknis",
+      "Desain Kapal",
+      "Analisis Hidrodinamika",
+      "Survey Batimetri",
+      "Manajemen Pelabuhan",
+      "Konsultasi Kelautan",
     ],
   },
+
+  {
+    value: "softwarejailbreak",
+    label: "Software Jailbreak",
+    description: "Departemen Software & Jailbreak",
+    badgeClass: "bg-purple-400/10 text-purple-400 ring-purple-400/20",
+    color: "#a78bfa",
+    subCategories: ["Oprek HP", "Custom ROM", "Unlock Bootloader", "Firmware Flash"],
+  },
+
+  // ── ADD MORE TYPES HERE ─────────────────────────────────────────────────
+  // Example:
+  // {
+  //   value: "survey",
+  //   label: "Survey & Drone",
+  //   description: "Departemen Survei Lapangan & Fotogrametri",
+  //   badgeClass: "bg-purple-400/10 text-purple-400 ring-purple-400/20",
+  //   color: "#a78bfa",
+  //   subCategories: ["Aerial Photography", "LiDAR Scan", "Topografi", "Peta Drone"],
+  // },
 ]
 
 /** Lookup helpers */

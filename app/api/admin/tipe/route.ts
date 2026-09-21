@@ -7,8 +7,10 @@ const db = supabaseAdmin as any
 
 // Default seed data — mirrors layanan-config.ts
 const DEFAULT_SEED = [
-  { value: "it_konsulting", label: "IT Konsulting", description: "Departemen Teknologi Informasi & Digital", badge_class: "bg-blue-400/10 text-blue-400 ring-blue-400/20", color: "#60a5fa", sub_categories: ["Web Development","Mobile Application","System Integration","Machine Learning","Data Analytics"], sort_order: 0 },
-  { value: "engineering_konsulting", label: "Engineering Konsulting", description: "Departemen Rekayasa & Rancang Teknik", badge_class: "bg-[#0a6e8a]/10 text-[#0a6e8a] ring-[#0a6e8a]/20", color: "#0a6e8a", sub_categories: ["GIS & Pemetaan","IoT Development","Firmware Engineering","Perencanaan Teknis"], sort_order: 1 },
+  { value: "arcgis", label: "ArcGIS", description: "Departemen GIS & Pemetaan", badge_class: "bg-[#ff914d]/10 text-[#ff914d] ring-[#ff914d]/20", color: "#ff914d", sub_categories: ["Web GIS","Desktop GIS","3D Mapping","Spatial Analysis","Training & Workshop","Data Processing"], sort_order: 0 },
+  { value: "it", label: "IT", description: "Departemen Teknologi Informasi & Digital", badge_class: "bg-blue-400/10 text-blue-400 ring-blue-400/20", color: "#60a5fa", sub_categories: ["Web Development","Mobile App","Backend & API","UI/UX Design","Cloud & DevOps","Cybersecurity"], sort_order: 1 },
+  { value: "kelautan", label: "Kelautan", description: "Departemen Desain & Perkapalan", badge_class: "bg-[#0a6e8a]/10 text-[#0a6e8a] ring-[#0a6e8a]/20", color: "#0a6e8a", sub_categories: ["Desain Kapal","Analisis Hidrodinamika","Survey Batimetri","Manajemen Pelabuhan","Konsultasi Kelautan"], sort_order: 2 },
+  { value: "softwarejailbreak", label: "Software Jailbreak", description: "Departemen Software & Jailbreak", badge_class: "bg-purple-400/10 text-purple-400 ring-purple-400/20", color: "#a78bfa", sub_categories: ["Oprek HP","Custom ROM","Unlock Bootloader","Firmware Flash"], sort_order: 3 },
 ]
 
 function toClient(row: any) {
@@ -21,10 +23,9 @@ export async function GET() {
   if (!user) return unauthorized()
 
   const { data, error } = await supabaseAdmin
-      .from("layanan_depts")
-      .select("value, label, description, badge_class, color, sub_categories, sort_order")
-      .order("sort_order", { ascending: true })
-      .limit(100)
+    .from("layanan_depts")
+    .select("*")
+    .order("sort_order", { ascending: true })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
@@ -41,20 +42,15 @@ export async function GET() {
   return NextResponse.json(data.map(toClient))
 }
 
-// POST /api/admin/tipe — validate input
+// POST /api/admin/tipe
 export async function POST(req: NextRequest) {
   const { user, unauthorized } = await requireAdmin()
   if (!user) return unauthorized()
 
   const body = await req.json()
-  if (!body.value || !body.label) return NextResponse.json({ error: "value & label required" }, { status: 400 })
-  // value becomes a filter key & slug-ish identifier — restrict to safe charset
-  if (!/^[a-z0-9_-]{1,40}$/.test(String(body.value))) return NextResponse.json({ error: "value must be lowercase letters/digits/_/-" }, { status: 400 })
-  if (!Array.isArray(body.subCategories)) return NextResponse.json({ error: "subCategories must be an array" }, { status: 400 })
-
   const { data, error } = await db.from("layanan_depts").insert({
-    value: String(body.value),
-    label: String(body.label),
+    value: body.value,
+    label: body.label,
     description: body.description ?? null,
     badge_class: body.badgeClass,
     color: body.color,

@@ -72,28 +72,27 @@ export function generateServiceSchema(service: {
   }
 }
 
-export function generateProductSchema(product: {
-  name: string
+export function generateInformasiSchema(article: {
+  headline: string
   description: string
   url: string
   image?: string
-  price?: string
-  currency?: string
+  datePublished?: string
+  author?: string
 }) {
   return {
     "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name,
-    description: product.description,
-    url: product.url,
-    image: product.image || "https://sayba.id/Sayba%20Arc.png",
-    offers: {
-      "@type": "Offer",
-      priceCurrency: product.currency || "IDR",
-      price: product.price || "Contact us",
-      availability: "https://schema.org/InStock",
+    "@type": "TechArticle",
+    headline: article.headline,
+    description: article.description,
+    url: article.url,
+    image: article.image || "https://sayba.id/Sayba%20Arc.png",
+    datePublished: article.datePublished,
+    author: {
+      "@type": "Organization",
+      name: article.author || "SAYBA ARC",
     },
-    manufacturer: {
+    publisher: {
       "@type": "Organization",
       name: "SAYBA ARC",
       url: "https://sayba.id",
@@ -187,11 +186,11 @@ export function generateServiceDetailMetadata(options: {
   }
 }
 
-export function generateProductDetailMetadata(options: {
+export function generateInformasiDetailMetadata(options: {
   title: string
   description: string
   slug: string
-  productTitle: string
+  articleTitle: string
   keywords?: string[]
   ogImage?: string
   canonicalUrl?: string
@@ -201,24 +200,24 @@ export function generateProductDetailMetadata(options: {
     title: options.title,
     description: options.description,
     keywords: options.keywords && options.keywords.length > 0 ? options.keywords : [
-      options.productTitle,
-      `produk ${options.productTitle.toLowerCase()}`,
+      options.articleTitle,
+      `informasi ${options.articleTitle.toLowerCase()}`,
       "SAYBA ARC",
-      "digital solutions",
+      "dokumen teknis",
       "indonesia",
     ],
-    canonical: options.canonicalUrl || `https://sayba.id/products/${options.slug}`,
+    canonical: options.canonicalUrl || `https://sayba.id/informasi/${options.slug}`,
     openGraph: {
       title: options.title,
       description: options.description,
-      url: `https://sayba.id/products/${options.slug}`,
-      type: "website" as const,
+      url: `https://sayba.id/informasi/${options.slug}`,
+      type: "article" as const,
       images: [
         {
           url: image,
-          width: 1024,
-          height: 1024,
-          alt: options.productTitle,
+          width: 1200,
+          height: 630,
+          alt: options.articleTitle,
         },
       ],
     },

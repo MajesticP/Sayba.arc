@@ -169,14 +169,14 @@ export default function ServicesClient({ allLayanan, allDepts }: Props) {
                     <span className="text-[10px] font-bold text-black/25 tabular-nums">{services.length} layanan</span>
                   </div>
 
-                {/* Cards — mobile: stack, desktop: grid 1 column (long cards) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 pb-1 -mb-1 sm:overflow-visible sm:pb-0 sm:mb-0">
-                  {services.map(service => (
-                    <div key={service.id} className="w-full">
-                      <ServiceCard service={service} cfg={cfg} />
-                    </div>
-                  ))}
-                </div>
+                  {/* Cards — mobile: carousel geser 1 card penuh, desktop: grid */}
+                  <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-1 -mb-1 sm:grid sm:grid-cols-2 xl:grid-cols-3 sm:gap-4 md:gap-5 sm:overflow-visible sm:pb-0 sm:mb-0 scrollbar-hide">
+                    {services.map(service => (
+                      <div key={service.id} className="flex-shrink-0 w-[86vw] sm:w-auto snap-center">
+                        <ServiceCard service={service} cfg={cfg} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </PageTransition>
             )
@@ -230,38 +230,39 @@ function ServiceCard({ service, cfg }: { service: Layanan; cfg: { label: string;
 
   return (
     <Link href={service.slug ? `/services/${service.slug}` : "#"}
-      className={`group bg-white ${cfg.border} ${cfg.shadow} transition-all duration-300 hover:-translate-y-1 relative overflow-hidden rounded-xl border border-black/8 w-full flex flex-col sm:flex-row`}
+      className={`group bg-white ${cfg.border} ${cfg.shadow} transition-all duration-300 hover:-translate-y-1 relative overflow-hidden rounded-xl border border-black/8 w-full flex flex-col`}
+
     >
-      {/* Image area — left side */}
-      <div className="relative w-full sm:w-[220px] lg:w-[260px] bg-black/5 overflow-hidden flex-shrink-0" style={{ minHeight: "160px" }}>
+      {/* Image area — hard-capped height */}
+      <div className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "160px" }}>
         {imgSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={imgSrc} alt={service.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
+          <img src={imgSrc} alt={service.title} className="w-full object-cover transition-transform duration-500 group-hover:scale-105 block"
+            style={{ height: "100%" }}
             onError={e => { const el = e.currentTarget; el.style.display = "none"; const fb = el.nextElementSibling as HTMLElement | null; if (fb) fb.style.display = "flex" }} />
         ) : null}
         <div className={`absolute inset-0 items-center justify-center ${cfg.iconBg} transition-colors duration-300`} style={{ display: imgSrc ? "none" : "flex" }}>
-          <DynamicIcon name={service.icon ?? "map"} color={cfg.color} size={32} />
+          <DynamicIcon name={service.icon ?? "map"} color={cfg.color} size={24} />
         </div>
-        <div className="absolute left-0 top-0 bottom-0 w-1 sm:block hidden" style={{ backgroundColor: cfg.color }} />
-        <div className="absolute bottom-0 left-0 right-0 h-1 sm:hidden block" style={{ backgroundColor: cfg.color }} />
+        <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: cfg.color }} />
       </div>
 
-      {/* Content — right side */}
-      <div className="flex flex-col p-5 md:p-6 flex-1 min-w-0">
+      {/* Content — hard-capped at remaining 130px */}
+      <div className="flex flex-col p-4 flex-1">
         {service.category && (
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-2.5 w-fit flex-shrink-0" style={{ backgroundColor: `${cfg.color}14`, color: cfg.color }}>
+          <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full mb-1 w-fit flex-shrink-0" style={{ backgroundColor: `${cfg.color}14`, color: cfg.color }}>
             # {service.category}
           </span>
         )}
-        <h4 className={`text-base md:text-lg font-bold text-black mb-2 ${cfg.accent} transition-colors duration-200 leading-snug line-clamp-2`}>
+        <h4 className={`text-[13px] font-bold text-black mb-1.5 ${cfg.accent} transition-colors duration-200 leading-snug line-clamp-2 flex-shrink-0`}>
           {service.title}
         </h4>
-        <p className="text-black/50 text-[12.5px] leading-relaxed line-clamp-3 mb-4">
+        <p className="text-black/50 text-[11.5px] leading-relaxed line-clamp-3">
           {service.description}
         </p>
-        <div className="mt-auto pt-2 flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: cfg.color }}>
+        <div className="mt-auto pt-1 flex items-center gap-1 text-[10.5px] font-semibold flex-shrink-0" style={{ color: cfg.color }}>
           Selengkapnya
-          <svg className="w-3.5 h-3.5 group-hover:translate-x-1.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          <svg className="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
         </div>
       </div>
     </Link>
@@ -269,7 +270,8 @@ function ServiceCard({ service, cfg }: { service: Layanan; cfg: { label: string;
 }
 
 function DeptIcon({ dept }: { dept: string }) {
-  if (dept === "it_konsulting") return <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-  if (dept === "engineering_konsulting") return <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+  if (dept === "arcgis") return <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+  if (dept === "it") return <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+  if (dept === "kelautan") return <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 17l3-8 4 4 4-6 3 5M3 21h18" /></svg>
   return <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
 }

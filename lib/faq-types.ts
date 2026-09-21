@@ -1,6 +1,6 @@
 /**
  * FAQ System Types and Helpers
- * Digunakan untuk semua halaman detail slug (services, applications, products)
+ * Digunakan untuk semua halaman detail slug (services, applications, informasi)
  */
 
 export interface FAQItem {
@@ -21,7 +21,7 @@ export interface FAQSection {
 export const DEFAULT_FAQ_SECTION: FAQSection = {
   title: "Pertanyaan yang Sering Diajukan",
   description:
-    "Temukan jawaban atas pertanyaan umum tentang produk atau layanan kami.",
+    "Temukan jawaban atas pertanyaan umum tentang dokumen atau layanan kami.",
   items: [
     {
       question: "Bagaimana cara memulai?",

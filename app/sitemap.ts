@@ -15,18 +15,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: base, lastModified: now, changeFrequency: "weekly" as const, priority: 1 },
     { url: `${base}/about`, lastModified: now, changeFrequency: "monthly" as const, priority: 0.8 },
     { url: `${base}/services`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.9 },
-    { url: `${base}/informasi`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.8 },
+    { url: `${base}/informasi`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.9 },
     { url: `${base}/portfolio`, lastModified: now, changeFrequency: "monthly" as const, priority: 0.8 },
     { url: `${base}/berita`, lastModified: now, changeFrequency: "daily" as const, priority: 0.8 },
     { url: `${base}/contact`, lastModified: now, changeFrequency: "yearly" as const, priority: 0.7 },
   ]
 
   const [{ data: layananItems }, { data: informasiItems }, { data: portfolioItems }, { data: beritaItems }] = await Promise.all([
-      supabase.from("layanan").select("slug, created_at, image_url, og_image").eq("status", "active").limit(1000),
-      supabase.from("informasi").select("slug, published_at, image_url, og_image").eq("status", "active").limit(1000),
-      supabase.from("portfolio").select("slug, created_at, image_url, og_image").eq("status", "active").limit(1000),
-      supabase.from("berita").select("slug, published_at, image_url, og_image").eq("status", "active").limit(1000),
-    ])
+    supabase.from("layanan").select("slug, created_at, image_url, og_image").eq("status", "active"),
+    supabase.from("informasi").select("slug, created_at, image_url, og_image").eq("status", "active"),
+    supabase.from("portfolio").select("slug, created_at, image_url, og_image").eq("status", "active"),
+    supabase.from("berita").select("slug, published_at, image_url, og_image").eq("status", "active"),
+  ])
 
   type ItemRow = { slug: string; created_at: string; image_url: string | null; og_image: string | null }
 
@@ -60,6 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...staticPages,
     ...newsPages,
     ...toPages(layananItems, "services", 0.7),
+    ...toPages(informasiItems, "informasi", 0.7),
     ...toPages(portfolioItems, "portfolio", 0.6),
   ]
 }

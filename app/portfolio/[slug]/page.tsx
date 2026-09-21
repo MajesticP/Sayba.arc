@@ -51,7 +51,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
   const { slug } = await params
   const { data: item, error } = await supabase
     .from("portfolio")
-    .select("id, title, slug, category, dept, description, image_url, result_url, features, tech_stack, status, meta_title, meta_description, meta_keywords, og_image, canonical_url, created_at")
+    .select("*")
     .eq("slug", slug)
     .eq("status", "active")
     .single()

@@ -28,44 +28,40 @@ function useInView(threshold = 0.1) {
 }
 
 export default function Services({ allLayanan, depts }: { allLayanan: Layanan[]; depts: LayananDept[] }) {
+  if (!allLayanan.length) return null
   const header = useInView()
   const cards = useInView(0.08)
 
-  if (!allLayanan || !allLayanan.length) return null
-
   return (
-    <section className="pt-6 pb-10 md:pt-14 md:pb-20 bg-[#f8f9fa] overflow-hidden" id="services">
+    <section className="py-10 md:py-28 bg-white" id="services">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
-        <div ref={header.ref} className={`mb-10 md:mb-16 transition-all duration-700 ease-out ${header.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-[#ff914d]/30 mb-3 shadow-sm">
+        <div ref={header.ref} className={`mb-7 md:mb-16 transition-all duration-700 ease-out ${header.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ff914d]/10 mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-[#ff914d] animate-pulse" />
             <span className="text-[10px] font-bold uppercase tracking-widest text-[#ff914d]">Layanan Unggulan</span>
           </div>
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
             <div>
-              <h2 className="text-[22px] leading-tight md:text-5xl font-black text-black tracking-tight">
+              <h2 className="text-[22px] leading-tight md:text-5xl font-black text-black">
                 Solusi Terbaik<br className="hidden md:block" />
                 <span className="text-[#ff914d]"> untuk Anda</span>
               </h2>
-              <p className="text-black/50 text-[14px] md:text-base mt-2 md:mt-3 max-w-md leading-relaxed">
+              <p className="text-black/50 text-[13px] md:text-base mt-2 max-w-md">
                 Layanan paling diminati klien kami — dipilih langsung dari portofolio aktif.
               </p>
             </div>
-              <Link
-                href="/services"
-                className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-black/50 hover:text-black transition-colors group self-start md:self-auto mt-2 md:mt-0"
-              >
+            <Link href="/services" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-black/50 hover:text-black transition-colors group self-start md:self-auto">
               Lihat semua layanan
               <svg className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
             </Link>
           </div>
         </div>
 
-        {/* Cards — mobile: stack, desktop: stack (long cards) */}
-        <div ref={cards.ref} className="flex flex-col gap-5 sm:gap-6 lg:gap-8 w-full relative z-10 px-4 sm:px-0">
-          {allLayanan.slice(0, 4).map((service, i) => {
+        {/* Cards — mobile: swipeable carousel, desktop: grid */}
+        <div ref={cards.ref} className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mb-2 sm:grid sm:grid-cols-2 xl:grid-cols-3 sm:gap-4 md:gap-5 sm:overflow-visible sm:pb-0 sm:mb-0 scrollbar-hide">
+          {allLayanan.slice(0, 3).map((service, i) => {
             const deptCfg = depts.find(d => d.value === service.dept)
             const color = deptCfg?.color ?? "#888"
             const deptLabel = deptCfg?.label ?? service.dept
@@ -73,14 +69,14 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
 
             return (
               <Link key={service.id} href={service.slug ? `/services/${service.slug}` : "#"}
-                className={`group relative transition-all duration-400 hover:-translate-y-1 hover:shadow-[0_15px_30px_-5px_rgba(0,0,0,0.15)] overflow-hidden rounded-[24px] border border-black/5 flex flex-col md:flex-row bg-white shadow-sm hover:border-[#ff914d]/30 w-full ${cards.inView ? "animate-card-reveal" : "opacity-0"}`}
+                className={`group relative transition-all duration-400 hover:-translate-y-1 hover:shadow-2xl overflow-hidden rounded-2xl border border-black/10 flex-shrink-0 w-[86vw] sm:w-auto snap-center flex flex-col ${cards.inView ? "animate-card-reveal" : "opacity-0"}`}
                 style={{
                   "--card-color": color,
                   animationDelay: `${i * 120}ms`,
                 } as React.CSSProperties}>
 
-                {/* Image — responsive width, fixed height on mobile, full height on desktop */}
-                <div className="relative w-full md:w-[45%] lg:w-[40%] xl:w-[35%] bg-black/5 overflow-hidden shrink-0 h-[220px] md:h-auto md:min-h-[220px] rounded-t-[24px] md:rounded-t-none md:rounded-l-[24px]">
+                {/* Image — hard-capped height, disamakan dengan halaman Layanan (160px) */}
+                <div className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "160px" }}>
                   {imgSrc ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={imgSrc} alt={service.title} className="w-full object-cover transition-transform duration-600 group-hover:scale-105 block"
@@ -99,18 +95,18 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
 
                 {/* Content — hard-capped at remaining space */}
                 <div
-                  className="flex flex-col p-6 md:p-8 lg:p-10 bg-white group-hover:bg-black/[0.01] transition-colors duration-300 flex-1 justify-center"
+                  className="flex flex-col p-4 bg-white group-hover:bg-black/[0.01] transition-colors duration-300 flex-1"
                 >
-                  <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-widest mb-2 lg:mb-3 flex-shrink-0 line-clamp-1" style={{ color }}>
+                  <span className="text-[9px] font-bold uppercase tracking-widest mb-1 flex-shrink-0 line-clamp-1" style={{ color }}>
                     {deptLabel}{service.category ? ` · ${service.category}` : ""}
                   </span>
-                  <h3 className="text-[18px] md:text-[20px] lg:text-[24px] font-black text-black mb-3 lg:mb-4 leading-snug group-hover:text-black/80 transition-colors flex-shrink-0 line-clamp-2">
+                  <h3 className="text-[14px] font-black text-black mb-1.5 leading-snug group-hover:text-black/80 transition-colors flex-shrink-0 line-clamp-2">
                     {service.title}
                   </h3>
-                  <p className="text-black/45 text-[14px] md:text-[15px] leading-relaxed line-clamp-3 lg:line-clamp-4 mb-5">
+                  <p className="text-black/45 text-[12px] leading-relaxed line-clamp-3">
                     {service.description ?? ""}
                   </p>
-                  <div className="mt-auto pt-2 lg:pt-4 flex items-center gap-1.5 text-[11.5px] lg:text-[13px] font-bold flex-shrink-0" style={{ color }}>
+                  <div className="mt-auto pt-1 flex items-center gap-1.5 text-[10.5px] font-bold flex-shrink-0" style={{ color }}>
                     Pelajari lebih lanjut
                     <svg className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                   </div>
@@ -121,12 +117,17 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
         </div>
 
         {/* Swipe hint — mobile only */}
-        {/* Dihapus karena layout sudah berbentuk stack */}
+        <div className="flex items-center justify-center gap-1.5 mt-3 sm:hidden">
+          {allLayanan.slice(0, 3).map((_, i) => (
+            <span key={i} className="w-1.5 h-1.5 rounded-full bg-black/15" />
+          ))}
+          <span className="text-[10px] text-black/25 ml-1.5">Geser untuk lihat lainnya</span>
+        </div>
 
         {/* Bottom strip */}
-        <div className={`mt-8 md:mt-16 flex flex-col sm:flex-row items-center justify-between gap-4 py-6 border-t border-black/8 transition-all duration-700 relative z-10 ${cards.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "500ms" }}>
-          <p className="text-black/40 text-[14px] md:text-[15px] font-medium text-center sm:text-left">Tidak menemukan yang Anda cari?</p>
-          <Link href="/services" className="btn-shine inline-flex items-center justify-center gap-2 px-6 py-3 md:px-8 md:py-3.5 rounded-xl bg-black text-white text-[14px] font-semibold hover:bg-[#ff914d] transition-colors duration-200 hover:shadow-[0_10px_20px_-5px_rgba(255,145,77,0.3)] hover:scale-105 active:scale-95 w-full sm:w-auto">
+        <div className={`mt-6 md:mt-12 flex flex-col sm:flex-row items-center justify-between gap-3 py-4 border-t border-black/8 transition-all duration-700 ${cards.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "500ms" }}>
+          <p className="text-black/35 text-[13px] text-center sm:text-left">Tidak menemukan yang Anda cari?</p>
+          <Link href="/services" className="btn-shine inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-black text-white text-[13px] font-semibold hover:bg-[#ff914d] transition-colors duration-200 hover:scale-105 active:scale-95">
             Jelajahi Semua Layanan
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </Link>

@@ -12,7 +12,7 @@ interface NewsListProps {
 
 const FALLBACK_IMG = "/berita/berita-1-800x500.png"
 
-/** Link Google Drive → proxy gambar lokal, sama seperti layanan/produk */
+/** Link Google Drive → proxy gambar lokal, sama seperti layanan/informasi */
 function gdriveToImg(url: string | null): string {
   if (!url) return FALLBACK_IMG
   if (url.startsWith("/api/gdrive-img")) return url

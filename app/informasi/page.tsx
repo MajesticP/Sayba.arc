@@ -2,20 +2,20 @@ import type { Metadata } from "next"
 import { siteConfig, navItems, footerLinks, socialLinks, ogImage } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
-import PageHero from "@/components/page-hero"
-import NewsList from "@/components/news-list"
 import { supabase } from "@/lib/supabase"
 import type { Informasi } from "@/lib/database.types"
+import { FALLBACK_INFORMASI } from "@/lib/informasi-data"
+import InformasiClient from "./informasi-client"
 
 const description =
-  "Informasi terkini, pengumuman layanan, dan panduan seputar IT & Engineering Konsulting dari SAYBA ARC."
+  "Pusat informasi resmi SAYBA ARC — panduan layanan, standar teknis CAD & geospasial, dokumentasi rilis, serta pengumuman operasional untuk klien dan mitra."
 
 export const metadata: Metadata = {
-  title: `Informasi — ${siteConfig.name}`,
+  title: `Informasi & Dokumen Teknis — ${siteConfig.name}`,
   description,
   alternates: { canonical: `${siteConfig.url}/informasi` },
   openGraph: {
-    title: `Informasi — ${siteConfig.name}`,
+    title: `Informasi & Dokumen Teknis — ${siteConfig.name}`,
     description,
     url: `${siteConfig.url}/informasi`,
     type: "website",
@@ -26,35 +26,27 @@ export const metadata: Metadata = {
 export const revalidate = 60
 
 export default async function InformasiPage() {
-  const { data, error } = await supabase
-    .from("informasi")
-    .select("id, title, slug, excerpt, category, image_url, author, published_at, read_minutes, views, featured, tags, status, og_image, meta_title, meta_description, meta_keywords")
-    .eq("status", "active")
-    .order("published_at", { ascending: false })
-    .limit(50)
+  let articles: Informasi[] = []
 
-  if (error) {
-    console.error("Error fetching informasi:", error)
+  try {
+    const { data, error } = await supabase
+      .from("informasi")
+      .select("*")
+      .eq("status", "active")
+      .order("published_at", { ascending: false })
+
+    if (error) console.error("Error fetching informasi:", error)
+
+    articles = data && data.length > 0 ? data : FALLBACK_INFORMASI
+  } catch (err) {
+    console.error("Error fetching informasi from Supabase:", err)
+    articles = FALLBACK_INFORMASI
   }
 
-  // Cast to `any` and then to `Informasi` since NewsList expects Berita but they have identical shapes.
-  const articles: any[] = data ?? []
-  const featured = articles.find((a) => a.featured) ?? articles[0] ?? null
-
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="min-h-screen flex flex-col bg-white">
       <Header navItems={navItems} />
-
-      <PageHero
-        image="/banners/products-1920x600.webp"
-        imageMobile="/banners/products-mobile-900x450.webp"
-        eyebrow="Pusat Informasi"
-        title="Informasi Layanan"
-        subtitle="Temukan detail pengumuman, panduan layanan, serta informasi terkini dari layanan IT & Engineering kami."
-      />
-
-      <NewsList articles={articles} featured={featured} />
-
+      <InformasiClient initialArticles={articles} />
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />
     </main>
   )

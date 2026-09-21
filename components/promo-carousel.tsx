@@ -11,7 +11,7 @@ interface PromoCarouselProps {
   interval?: number
 }
 
-/** Link Google Drive → proxy gambar lokal, sama seperti layanan/produk */
+/** Link Google Drive → proxy gambar lokal, sama seperti layanan/informasi */
 function gdriveToImg(url: string): string {
   if (!url) return url
   if (url.startsWith("/api/gdrive-img")) return url
@@ -49,7 +49,7 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
   if (!count) return null
 
   return (
-    <section className="bg-[#f8f9fa] pt-4 md:pt-10 pb-2 md:pb-4 relative z-10" aria-label="Banner promosi">
+    <section className="bg-white pt-8 md:pt-16" aria-label="Banner promosi">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
           className="relative group rounded-xl md:rounded-3xl overflow-hidden border border-black/10 bg-black shadow-[0_10px_40px_rgba(0,0,0,0.10)]"

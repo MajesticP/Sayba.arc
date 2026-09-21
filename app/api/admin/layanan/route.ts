@@ -15,26 +15,19 @@ export async function GET() {
 
   const { data, error } = await supabaseAdmin
     .from("layanan")
-    .select("id, title, slug, dept, category, description, image_url, icon, prices, status, featured_order, meta_title, meta_description, meta_keywords, og_image, canonical_url, created_at")
+    .select("*")
     .order("created_at", { ascending: false })
-    .limit(200)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
 }
 
-// POST /api/admin/layanan — validate input
+// POST /api/admin/layanan
 export async function POST(req: NextRequest) {
   const { user, unauthorized } = await requireAdmin()
   if (!user) return unauthorized()
 
-  const raw = await req.json()
-  const allowed = ["title", "slug", "dept", "category", "description", "icon", "image_url", "prices", "status", "featured_order", "meta_title", "meta_description", "meta_keywords", "og_image", "canonical_url"]
-  const payload: Record<string, unknown> = {}
-  for (const k of allowed) if (raw[k] !== undefined) payload[k] = raw[k]
-
-  if (!payload.title || !payload.slug) return NextResponse.json({ error: "title & slug required" }, { status: 400 })
-  if (!payload.dept) return NextResponse.json({ error: "dept required" }, { status: 400 })
+  const payload = await req.json()
 
   // Auto-clear any existing service that already holds this featured_order slot
   if (payload.featured_order !== null && payload.featured_order !== undefined) {
@@ -50,7 +43,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(data, { status: 201 })
 }
 
-// PUT /api/admin/layanan?id=<uuid> — validate input
+// PUT /api/admin/layanan?id=<uuid>
 export async function PUT(req: NextRequest) {
   const { user, unauthorized } = await requireAdmin()
   if (!user) return unauthorized()
@@ -58,13 +51,7 @@ export async function PUT(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id")
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 })
 
-  const raw = await req.json()
-  const allowed = ["title", "slug", "dept", "category", "description", "icon", "image_url", "prices", "status", "featured_order", "meta_title", "meta_description", "meta_keywords", "og_image", "canonical_url"]
-  const payload: Record<string, unknown> = {}
-  for (const k of allowed) if (raw[k] !== undefined) payload[k] = raw[k]
-
-  if (!payload.title || !payload.slug) return NextResponse.json({ error: "title & slug required" }, { status: 400 })
-  if (!payload.dept) return NextResponse.json({ error: "dept required" }, { status: 400 })
+  const payload = await req.json()
 
   // Auto-clear any OTHER service that already holds this featured_order slot
   if (payload.featured_order !== null && payload.featured_order !== undefined) {

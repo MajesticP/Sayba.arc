@@ -12,27 +12,19 @@ export async function GET() {
 
   const { data, error } = await supabaseAdmin
     .from("portfolio")
-    .select("id, title, slug, category, dept, description, image_url, result_url, features, tech_stack, status, og_image, created_at")
+    .select("*")
     .order("created_at", { ascending: false })
-    .limit(100)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
 }
 
-// POST /api/admin/portfolio — validate input
+// POST /api/admin/portfolio
 export async function POST(req: NextRequest) {
   const { user, unauthorized } = await requireAdmin()
   if (!user) return unauthorized()
 
-  const raw = await req.json()
-  const allowed = ["title", "slug", "category", "dept", "description", "image_url", "result_url", "features", "tech_stack", "status", "meta_title", "meta_description", "meta_keywords", "og_image", "canonical_url"]
-  const payload: Record<string, unknown> = {}
-  for (const k of allowed) if (raw[k] !== undefined) payload[k] = raw[k]
-
-  if (!payload.title || !payload.slug) return NextResponse.json({ error: "title & slug required" }, { status: 400 })
-  if (!payload.dept) return NextResponse.json({ error: "dept required" }, { status: 400 })
-
+  const payload = await req.json()
   const { data, error } = await db.from("portfolio").insert(payload).select().maybeSingle()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -40,7 +32,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(data, { status: 201 })
 }
 
-// PUT /api/admin/portfolio?id=<uuid> — validate input
+// PUT /api/admin/portfolio?id=<uuid>
 export async function PUT(req: NextRequest) {
   const { user, unauthorized } = await requireAdmin()
   if (!user) return unauthorized()
@@ -48,14 +40,7 @@ export async function PUT(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id")
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 })
 
-  const raw = await req.json()
-  const allowed = ["title", "slug", "category", "dept", "description", "image_url", "result_url", "features", "tech_stack", "status", "meta_title", "meta_description", "meta_keywords", "og_image", "canonical_url"]
-  const payload: Record<string, unknown> = {}
-  for (const k of allowed) if (raw[k] !== undefined) payload[k] = raw[k]
-
-  if (!payload.title || !payload.slug) return NextResponse.json({ error: "title & slug required" }, { status: 400 })
-  if (!payload.dept) return NextResponse.json({ error: "dept required" }, { status: 400 })
-
+  const payload = await req.json()
   const { data, error } = await db.from("portfolio").update(payload).eq("id", id).select().maybeSingle()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
