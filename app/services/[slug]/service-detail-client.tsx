@@ -26,10 +26,12 @@ function gdriveToImg(url: string | null): string | null {
 interface Props {
   service: Layanan
   deptLabel: string
+  /** Label kategori dari tabel `kategori`; null bila layanan belum berkategori */
+  categoryLabel: string | null
   others: Pick<Layanan, "id" | "title" | "slug" | "description" | "image_url" | "dept">[]
 }
 
-export default function ServiceDetailClient({ service, deptLabel, others }: Props) {
+export default function ServiceDetailClient({ service, deptLabel, categoryLabel, others }: Props) {
   const [openFaq, setOpenFaq] = useState<number | null>(0)
 
   const heroImg = gdriveToImg(service.image_url)
@@ -43,26 +45,34 @@ export default function ServiceDetailClient({ service, deptLabel, others }: Prop
   return (
     <>
       {/* ══ HERO ══ */}
-      <section className="relative bg-carbon overflow-hidden">
+      <section className="relative bg-navy overflow-hidden">
         <CuttingBoardBackground tone="dark" />
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-[96px] pb-12 md:pt-32 md:pb-16">
-          <nav className="flex items-center gap-1.5 text-[12px] text-steel mb-6 flex-wrap" aria-label="Breadcrumb">
-            <Link href="/" className="hover:text-platinum transition-colors">Beranda</Link>
+          <nav className="flex items-center gap-1.5 text-[12px] text-ice/70 mb-6 flex-wrap" aria-label="Breadcrumb">
+            <Link href="/" className="hover:text-ice transition-colors">Beranda</Link>
             <ChevronRight className="w-3 h-3" aria-hidden="true" />
-            <Link href="/services" className="hover:text-platinum transition-colors">Layanan</Link>
+            <Link href="/services" className="hover:text-ice transition-colors">Layanan</Link>
             <ChevronRight className="w-3 h-3" aria-hidden="true" />
-            <span className="text-powder truncate max-w-[240px]">{service.title}</span>
+            <span className="text-ice truncate max-w-[240px]">{service.title}</span>
           </nav>
 
-          <p className="text-[12px] font-medium text-steel mb-3">{deptLabel}</p>
+          <div className="flex items-center gap-2.5 flex-wrap mb-3">
+            <p className="text-[12px] font-medium text-orange">{deptLabel}</p>
+            {categoryLabel && (
+              <>
+                <span aria-hidden="true" className="text-ice/60">·</span>
+                <p className="text-[12px] text-ice/75">{categoryLabel}</p>
+              </>
+            )}
+          </div>
 
-          <h1 className="text-[24px] leading-[1.18] md:text-[36px] font-bold text-platinum tracking-tight mb-4">
+          <h1 className="text-[24px] leading-[1.18] md:text-[36px] font-bold text-ice tracking-tight mb-4">
             {service.title}
           </h1>
 
           {service.description && (
-            <p className="text-[14px] md:text-[17px] text-steel leading-relaxed max-w-2xl mb-7">
+            <p className="text-[14px] md:text-[17px] text-ice/75 leading-relaxed max-w-2xl mb-7">
               {service.description}
             </p>
           )}
@@ -72,14 +82,14 @@ export default function ServiceDetailClient({ service, deptLabel, others }: Prop
               href={`https://wa.me/6287721916495?text=${waText}`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-powder text-carbon text-[14px] font-semibold hover:bg-white transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange text-navy text-[14px] font-bold hover:bg-orange-soft transition-colors"
             >
               <MessageSquare className="w-4 h-4" aria-hidden="true" />
               Diskusikan Layanan Ini
             </a>
             <Link
               href="/services"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/20 text-platinum text-[14px] font-semibold hover:bg-white/[0.06] transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-ice/25 text-ice text-[14px] font-semibold hover:bg-ice/[0.08] transition-colors"
             >
               Layanan Lain
             </Link>
@@ -88,12 +98,12 @@ export default function ServiceDetailClient({ service, deptLabel, others }: Prop
       </section>
 
       {/* ══ ISI ══ */}
-      <section className="relative z-10 -mt-6 md:-mt-10 rounded-t-[28px] md:rounded-t-[40px] bg-platinum pb-14 md:pb-24">
+      <section className="relative z-10 -mt-6 md:-mt-10 rounded-t-[28px] md:rounded-t-[40px] bg-ice pb-14 md:pb-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-14">
 
-          {/* Gambar utama — hanya bila ada */}
+          {/* Gambar utama: hanya bila ada */}
           {heroImg && (
-            <figure className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-2xl overflow-hidden border border-platinum-line bg-platinum-dim mb-10 md:mb-14">
+            <figure className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-2xl overflow-hidden border border-ice-line bg-ice-dim mb-10 md:mb-14">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={heroImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
             </figure>
@@ -114,7 +124,7 @@ export default function ServiceDetailClient({ service, deptLabel, others }: Prop
           {/* ── Galeri ── */}
           {gallery.length > 0 && (
             <section className="mt-12 md:mt-16">
-              <h2 className="text-[18px] md:text-2xl font-bold text-carbon mb-1.5">
+              <h2 className="text-[18px] md:text-2xl font-bold text-navy mb-1.5">
                 Contoh Hasil Pekerjaan
               </h2>
               <p className="text-[14px] text-slate-brand mb-6">
@@ -125,7 +135,7 @@ export default function ServiceDetailClient({ service, deptLabel, others }: Prop
                 {gallery.map((url, i) => (
                   <figure
                     key={i}
-                    className="relative aspect-square rounded-xl overflow-hidden border border-platinum-line bg-white"
+                    className="relative aspect-square rounded-xl overflow-hidden border border-ice-line bg-white"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -143,7 +153,7 @@ export default function ServiceDetailClient({ service, deptLabel, others }: Prop
           {/* ── FAQ ── */}
           {faqs.length > 0 && (
             <section className="mt-12 md:mt-16">
-              <h2 className="text-[18px] md:text-2xl font-bold text-carbon mb-1.5">
+              <h2 className="text-[18px] md:text-2xl font-bold text-navy mb-1.5">
                 Pertanyaan yang Sering Diajukan
               </h2>
               <p className="text-[14px] text-slate-brand mb-6 max-w-2xl">
@@ -157,7 +167,7 @@ export default function ServiceDetailClient({ service, deptLabel, others }: Prop
                     <div
                       key={i}
                       className={`rounded-xl border transition-colors ${
-                        isOpen ? "border-steel bg-white" : "border-platinum-line bg-white"
+                        isOpen ? "border-orange bg-white" : "border-ice-line bg-white"
                       }`}
                     >
                       <button
@@ -166,12 +176,12 @@ export default function ServiceDetailClient({ service, deptLabel, others }: Prop
                         aria-expanded={isOpen}
                         className="w-full p-4 text-left flex items-start justify-between gap-4"
                       >
-                        <span className="text-[14px] font-semibold text-carbon leading-snug">
+                        <span className="text-[14px] font-semibold text-navy leading-snug">
                           {faq.question}
                         </span>
                         <ChevronDown
                           className={`w-4 h-4 shrink-0 mt-0.5 transition-transform ${
-                            isOpen ? "rotate-180 text-slate-brand" : "text-slate-brand/75"
+                            isOpen ? "rotate-180 text-orange-text" : "text-slate-brand"
                           }`}
                           aria-hidden="true"
                         />
@@ -189,14 +199,14 @@ export default function ServiceDetailClient({ service, deptLabel, others }: Prop
           )}
 
           {/* ── Ajakan ── */}
-          <div className="mt-12 md:mt-16 relative bg-carbon rounded-2xl md:rounded-3xl overflow-hidden p-6 md:p-9">
+          <div className="mt-12 md:mt-16 relative bg-navy rounded-2xl md:rounded-3xl overflow-hidden p-6 md:p-9">
             <CuttingBoardBackground tone="dark" />
             <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
               <div className="max-w-xl">
-                <h2 className="text-[18px] md:text-2xl font-bold text-platinum mb-2">
+                <h2 className="text-[18px] md:text-2xl font-bold text-ice mb-2">
                   Siap mendiskusikan layanan ini?
                 </h2>
-                <p className="text-steel text-[14px] md:text-[15px] leading-relaxed">
+                <p className="text-ice/75 text-[14px] md:text-[15px] leading-relaxed">
                   Kirimkan lingkup pekerjaan Anda. Kami balas dengan langkah teknis dan kebutuhan data
                   yang perlu disiapkan.
                 </p>
@@ -205,7 +215,7 @@ export default function ServiceDetailClient({ service, deptLabel, others }: Prop
                 href={`https://wa.me/6287721916495?text=${waText}`}
                 target="_blank"
                 rel="noreferrer"
-                className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-powder text-carbon text-[14px] font-semibold hover:bg-white transition-colors"
+                className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-orange text-navy text-[14px] font-bold hover:bg-orange-soft transition-colors"
               >
                 Hubungi via WhatsApp
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -216,7 +226,7 @@ export default function ServiceDetailClient({ service, deptLabel, others }: Prop
           {/* ── Layanan lain di departemen sama ── */}
           {others.length > 0 && (
             <section className="mt-12 md:mt-16">
-              <h2 className="text-[18px] md:text-2xl font-bold text-carbon mb-5">
+              <h2 className="text-[18px] md:text-2xl font-bold text-navy mb-5">
                 Layanan Lain di {deptLabel}
               </h2>
               <div className="space-y-3">
@@ -226,16 +236,16 @@ export default function ServiceDetailClient({ service, deptLabel, others }: Prop
                     <Link
                       key={o.id}
                       href={`/services/${o.slug}`}
-                      className="group flex items-center gap-4 bg-white rounded-xl border border-platinum-line p-4 hover:border-steel transition-colors"
+                      className="group flex items-center gap-4 bg-white rounded-xl border border-ice-line p-4 hover:border-orange transition-colors"
                     >
-                      <span className="relative w-14 h-14 rounded-lg overflow-hidden bg-platinum-dim shrink-0">
+                      <span className="relative w-14 h-14 rounded-lg overflow-hidden bg-ice-dim shrink-0">
                         {img ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={img} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                         ) : null}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[14px] font-semibold text-carbon group-hover:text-slate-brand transition-colors truncate">
+                        <span className="block text-[14px] font-semibold text-navy group-hover:text-orange-text transition-colors truncate">
                           {o.title}
                         </span>
                         {o.description && (
@@ -245,7 +255,7 @@ export default function ServiceDetailClient({ service, deptLabel, others }: Prop
                         )}
                       </span>
                       <ArrowRight
-                        className="w-4 h-4 text-slate-brand/75 group-hover:text-carbon group-hover:translate-x-1 transition-all shrink-0"
+                        className="w-4 h-4 text-slate-brand group-hover:text-orange-text group-hover:translate-x-1 transition-all shrink-0"
                         aria-hidden="true"
                       />
                     </Link>
@@ -264,7 +274,7 @@ export default function ServiceDetailClient({ service, deptLabel, others }: Prop
 function ContentBlockView({ block }: { block: ContentBlock }) {
   if (block.type === "heading") {
     return (
-      <h2 className="text-[18px] md:text-2xl font-bold text-carbon mt-10 mb-4 pb-2.5 border-b border-platinum-line leading-snug first:mt-0">
+      <h2 className="text-[18px] md:text-2xl font-bold text-navy mt-10 mb-4 pb-2.5 border-b border-ice-line leading-snug first:mt-0">
         {block.text}
       </h2>
     )
@@ -275,7 +285,7 @@ function ContentBlockView({ block }: { block: ContentBlock }) {
     if (!src) return null
     return (
       <figure className="my-7">
-        <span className="relative block w-full aspect-[16/9] rounded-xl overflow-hidden border border-platinum-line bg-white">
+        <span className="relative block w-full aspect-[16/9] rounded-xl overflow-hidden border border-ice-line bg-white">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={src} alt={block.caption ?? ""} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
         </span>
@@ -293,8 +303,8 @@ function ContentBlockView({ block }: { block: ContentBlock }) {
     return (
       <ul className="my-5 space-y-2.5">
         {items.map((item, i) => (
-          <li key={i} className="flex items-start gap-2.5 text-[14px] md:text-[15px] text-slate-brand leading-relaxed">
-            <span className="mt-2 w-1.5 h-1.5 rounded-full bg-steel shrink-0" aria-hidden="true" />
+          <li key={i} className="flex items-start gap-2.5 text-[14px] md:text-[15px] text-ink leading-relaxed">
+            <span className="mt-2 w-1.5 h-1.5 rounded-full bg-orange shrink-0" aria-hidden="true" />
             <span>{item}</span>
           </li>
         ))}
@@ -304,7 +314,7 @@ function ContentBlockView({ block }: { block: ContentBlock }) {
 
   // paragraph
   return (
-    <p className="text-[14px] md:text-[16px] text-slate-brand leading-[1.85] my-4 whitespace-pre-line">
+    <p className="text-[15px] md:text-[16px] text-ink leading-[1.85] my-4 whitespace-pre-line">
       {block.text}
     </p>
   )

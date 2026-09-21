@@ -6,6 +6,8 @@ import Footer from "@/components/footer"
 import { supabase } from "@/lib/supabase"
 import type { Layanan } from "@/lib/database.types"
 import { getDept } from "@/lib/layanan-config"
+import { getKategori, resolveKategori } from "@/lib/kategori"
+import { buildSeoMetadata, gdriveToProxy } from "@/lib/seo"
 import ServiceDetailClient from "./service-detail-client"
 
 interface PageProps {
@@ -29,27 +31,19 @@ async function getService(slug: string): Promise<Layanan | null> {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
   const service = await getService(slug)
-  if (!service) return { title: `Layanan — ${siteConfig.name}` }
+  if (!service) return { title: `Layanan: ${siteConfig.name}` }
 
-  const url = `${siteConfig.url}/services/${service.slug}`
-  const description =
-    service.meta_description || service.description || siteConfig.description
-
-  return {
-    title: service.meta_title || `${service.title} — ${siteConfig.name}`,
-    description,
-    keywords: service.meta_keywords ?? undefined,
-    alternates: { canonical: service.canonical_url || url },
-    openGraph: {
-      title: service.meta_title || service.title,
-      description,
-      url,
-      type: "website",
-      images: service.og_image || service.image_url
-        ? [{ url: service.og_image || service.image_url || "", alt: service.title }]
-        : undefined,
-    },
-  }
+  return buildSeoMetadata({
+    title: service.title,
+    metaTitle: service.meta_title,
+    description: service.description,
+    metaDescription: service.meta_description,
+    metaKeywords: service.meta_keywords,
+    image: gdriveToProxy(service.og_image) || gdriveToProxy(service.image_url),
+    path: `/services/${service.slug}`,
+    canonicalUrl: service.canonical_url,
+    type: "website",
+  })
 }
 
 export default async function ServiceDetailPage({ params }: PageProps) {
@@ -58,6 +52,14 @@ export default async function ServiceDetailPage({ params }: PageProps) {
   if (!service) notFound()
 
   const dept = getDept(service.dept)
+
+  // Label kategori dari tabel `kategori`. Kalau kategori sudah dihapus tapi
+  // layanan lama masih memakainya, `resolveKategori` menampilkan slug apa
+  // adanya supaya tidak ada label kosong di halaman.
+  const kategoriLayanan = await getKategori("layanan")
+  const kategoriLabel = service.category
+    ? resolveKategori(service.category, kategoriLayanan).label
+    : null
 
   // Layanan lain di departemen yang sama
   const { data: othersData } = await supabase
@@ -118,7 +120,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen flex flex-col bg-platinum">
+    <main className="min-h-screen flex flex-col">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
@@ -136,7 +138,12 @@ export default async function ServiceDetailPage({ params }: PageProps) {
 
       <Header navItems={navItems} />
 
-      <ServiceDetailClient service={service} deptLabel={dept?.label ?? service.dept} others={others} />
+      <ServiceDetailClient
+        service={service}
+        deptLabel={dept?.label ?? service.dept}
+        categoryLabel={kategoriLabel}
+        others={others}
+      />
 
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />
     </main>

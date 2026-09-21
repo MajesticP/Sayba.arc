@@ -1,9 +1,9 @@
-// Server-only module — never import this in client components or pages.
+// Server-only module: never import this in client components or pages.
 // The service role key bypasses RLS; keep it exclusively on the server.
 import { createClient } from "@supabase/supabase-js"
 import type { Database } from "./database.types"
 
-// Lazy singleton — created on first call so the module can be imported
+// Lazy singleton: created on first call so the module can be imported
 // during Next.js build without throwing when env vars aren't set yet.
 let _client: ReturnType<typeof createClient<Database>> | null = null
 

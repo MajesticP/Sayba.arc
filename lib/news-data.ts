@@ -1,69 +1,30 @@
 // ============================================================
-// SAYBA ARC — Konfigurasi & Helper Berita
+// SAYBA ARC: Helper Berita
 // ------------------------------------------------------------
-// Isi artikel TIDAK ada di file ini — tersimpan di tabel `berita`
-// di Supabase dan dikelola lewat Admin Dashboard.
-// File ini hanya menyimpan daftar kategori dan fungsi bantu.
-//
-// Menambah kategori: tambahkan satu baris di newsCategories,
-// otomatis muncul di filter halaman /berita dan dropdown admin.
+// Kategori TIDAK lagi didefinisikan di sini. Semua kategori (Layanan,
+// Berita, Informasi) dikelola dari satu tabel `kategori` di database dan
+// diambil lewat lib/kategori.ts, sehingga admin bisa menambah atau
+// menghapus kategori tanpa deploy.
 // ============================================================
 
-export interface NewsCategory {
-  /** disimpan di kolom `category` tabel berita */
-  slug: string
-  label: string
-  /** warna dari palet (lihat DESIGN.md) — semua lolos kontras di latar terang */
-  color: string
-}
-
-export const newsCategories: NewsCategory[] = [
-  { slug: "proyek", label: "Catatan Proyek", color: "#5e6572" },
-  { slug: "teknis", label: "Panduan Teknis", color: "#5e7a85" },
-  { slug: "perusahaan", label: "Kabar Perusahaan", color: "#7d98a1" },
-  { slug: "pemetaan", label: "Pemetaan & GIS", color: "#4a5a63" },
-  { slug: "pengembangan", label: "Pengembangan Perangkat Lunak", color: "#1c2321" },
-]
-
-export function getCategory(slug: string): NewsCategory | undefined {
-  return newsCategories.find((c) => c.slug === slug)
-}
-
-export function getCategoryLabel(slug: string): string {
-  return getCategory(slug)?.label ?? slug
-}
-
-export function getCategoryColor(slug: string): string {
-  return getCategory(slug)?.color ?? "#5e6572"
-}
-
-/** "2026-09-05" → "5 Sep 2026" */
 export function formatNewsDate(iso: string): string {
-  const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"]
-  const d = new Date(`${iso.slice(0, 10)}T00:00:00`)
-  if (Number.isNaN(d.getTime())) return iso
-  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
+  if (!iso) return "-"
+  const months = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+  ]
+  try {
+    const d = new Date(iso)
+    if (isNaN(d.getTime())) return iso
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
+  } catch {
+    return iso
+  }
 }
 
-/**
- * Memecah isi artikel (Markdown ringan dari textarea admin) menjadi blok:
- * baris kosong memisah paragraf, awalan "## " menandai sub-judul.
- */
-export function parseArticleBody(body: string | null): string[] {
-  if (!body) return []
-  return body
-    .replace(/\r\n/g, "\n")
-    .split(/\n\s*\n/)
-    .map((block) => block.trim())
-    .filter(Boolean)
-}
-
-/** Ubah judul jadi slug URL — dipakai admin saat mengetik judul. */
-export function slugifyTitle(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
+/** Perkiraan waktu baca dari isi artikel, minimal 1 menit. */
+export function estimateReadMinutes(body: string | null): number {
+  if (!body) return 1
+  const words = body.trim().split(/\s+/).filter(Boolean).length
+  return Math.max(1, Math.round(words / 200))
 }

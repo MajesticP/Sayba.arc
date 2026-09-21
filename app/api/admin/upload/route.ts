@@ -4,6 +4,10 @@ import sharp from "sharp"
 import { supabaseAdmin } from "@/lib/supabase-admin"
 import { requireAdmin } from "@/lib/admin-auth"
 
+// sharp adalah modul native, handler ini wajib berjalan di runtime Node.js,
+// bukan Edge.
+export const runtime = "nodejs"
+
 // Mengompres file 4,5MB bisa memakan waktu beberapa detik, melewati batas
 // default eksekusi function. Vercel akan memangkas nilai ini bila paket yang
 // dipakai memberi jatah lebih kecil.
@@ -11,148 +15,137 @@ export const maxDuration = 60
 
 // Ceiling for an incoming upload. This is NOT an arbitrary product choice:
 // Vercel caps a serverless function's request body at 4.5 MB, so anything
-// larger never reaches this handler — it fails at the platform with an opaque
+// larger never reaches this handler, it fails at the platform with an opaque
 // 413. We check just under that line so the admin gets a clear message
 // explaining why, instead of a cryptic network error.
 // To go beyond this the browser must upload straight to Supabase Storage via
 // a signed URL, bypassing Vercel entirely.
 const MAX_INPUT_SIZE = 4.5 * 1024 * 1024 // 4.5 MB
-// Anggaran ukuran berkas. Gambar di bawah ini cukup dikonversi sekali dengan
-// kualitas tinggi; yang di atasnya diturunkan kualitasnya bertahap. Dibuat
-// longgar supaya foto dan banner selebar 1600px tetap tajam — anggaran lama
-// 50 KB membuat gambar besar terlihat lembek.
-const TARGET_SIZE = 500 * 1024 // 500 KB
+
+// Anggaran ukuran berkas akhir. Setiap gambar yang diunggah dikonversi ke WebP
+// dan harus muat di bawah 100 KB.
+const TARGET_SIZE = 100 * 1024 // 100 KB
+
 const ALLOWED_FOLDERS = ["informasi", "layanan", "portfolio", "tim", "berita", "promo"]
-// path = "<folder>/<sha256-of-contents>.<ext>" — matches what POST generates below.
+
+// path = "<folder>/<sha256-of-contents>.<ext>". Unggahan baru SELALU ".webp",
+// tetapi svg/png masih diterima di sini supaya berkas lama (dari sebelum
+// konversi otomatis diberlakukan) tetap bisa dihapus lewat DELETE.
 const MEDIA_PATH_RE = /^(informasi|layanan|portfolio|tim|berita|promo)\/[a-f0-9]{64}\.(svg|png|webp)$/
 
-type ImgKind = "svg" | "png" | "webp"
+// Format masukan yang diterima. Format dideteksi dari isi berkas (bukan dari
+// Content-Type atau ekstensi), sehingga foto dengan MIME type yang salah pun
+// tetap tertangani.
+const ALLOWED_INPUT_FORMATS = ["jpeg", "png", "webp", "svg", "gif"] as const
 
-function detectKind(file: File): ImgKind | null {
-  const name = file.name.toLowerCase()
-  if (file.type === "image/svg+xml" || name.endsWith(".svg")) return "svg"
-  if (file.type === "image/png" || name.endsWith(".png")) return "png"
-  if (file.type === "image/webp" || name.endsWith(".webp")) return "webp"
-  return null
-}
-
-const DATA_URI_RE = /data:image\/(png|jpe?g|webp);base64,([A-Za-z0-9+/=]+)/g
-
-// SVGs exported from design tools sometimes embed large base64 raster images
-// (logos, textures) which can blow past the size budget. Progressively
-// re-encode those embedded images at lower quality/dimensions — never below
-// a floor that would make them illegible — until the whole SVG fits under
-// targetBytes, or we run out of attempts.
-async function compressEmbeddedImages(svgText: string, targetBytes: number): Promise<string> {
-  if (Buffer.byteLength(svgText, "utf8") <= targetBytes) return svgText
-
-  const matches = [...svgText.matchAll(DATA_URI_RE)]
-  if (matches.length === 0) return svgText // pure vector — nothing we can compress
-
-  let best = svgText
-  let quality = 80
-  let scale = 1
-
-  for (let attempt = 0; attempt < 8; attempt++) {
-    let working = svgText
-    for (const [full, format, b64] of matches) {
-      try {
-        const inputBuf = Buffer.from(b64, "base64")
-        let img = sharp(inputBuf)
-        const meta = await img.metadata()
-        if (scale < 1 && meta.width) {
-          img = img.resize(Math.max(1, Math.round(meta.width * scale)))
-        }
-        const outBuf =
-          format === "png"
-            ? await img.png({ compressionLevel: 9, effort: 4 }).toBuffer()
-            : format === "webp"
-              ? await img.webp({ quality }).toBuffer()
-              : await img.jpeg({ quality, mozjpeg: true }).toBuffer()
-        const newDataUri = `data:image/${format};base64,${outBuf.toString("base64")}`
-        working = working.replace(full, newDataUri)
-      } catch {
-        // If a specific embedded image fails to re-encode, leave it as-is
-        // and let the overall size check decide whether more passes are needed.
-      }
-    }
-    best = working
-    if (Buffer.byteLength(working, "utf8") <= targetBytes) return working
-
-    quality = Math.max(25, quality - 10)
-    scale = Math.max(0.7, scale - 0.06)
-  }
-
-  return best // best effort — may still be above target for very dense images
-}
-
-// Unggahan raster (PNG / WebP). Semuanya disimpan sebagai WebP, apa pun format
-// masuknya. Tiga hal berikut diukur, bukan diasumsikan:
-//
-// 1. WebP selalu lebih kecil pada aset proyek ini — logo transparan 256px
-//    25,7 KB PNG menjadi 4,8 KB, banner 1600x600 156,5 KB menjadi 19,2 KB.
-//    Jadi tidak ada pertukaran yang perlu ditimbang, hanya keuntungan.
-//
-// 2. Jumlah piksel, bukan setelan encoder, yang menentukan ukuran berkas. Foto
-//    3000x2000 tidak bisa ditekan di bawah anggaran hanya dengan menurunkan
-//    kualitas, tetapi membatasinya di MAX_DIMENSION langsung menyelesaikannya —
-//    dan tidak ada bagian situs yang menampilkan lebih lebar dari ~1600px.
-//
-// 3. Encoder PNG milik sharp tidak boleh dipakai pada foto. Memberi opsi
-//    `quality` memicu kuantisasi palet: pada foto 5 MB butuh ~105 detik untuk
-//    empat percobaan dan hasilnya tetap ~2 MB. WebP menyelesaikannya dalam
-//    ~2,5 detik pada 389 KB dengan kanal alfa tetap utuh.
-//
-// SVG sengaja tidak disentuh: ia vektor, bukan foto. Menjadikannya raster akan
-// membuang kemampuannya diperbesar tanpa pecah — justru alasan utama sebuah
-// logo disimpan sebagai SVG.
+// Batas sisi terpanjang. Foto ponsel bisa 4000px+; membatasinya di sini jauh
+// lebih efektif menekan ukuran berkas daripada sekadar menurunkan kualitas.
+// Tidak ada bagian situs yang menampilkan gambar lebih lebar dari ini.
 const MAX_DIMENSION = 2000
 
-/** Kualitas untuk gambar yang sudah cukup kecil — cukup sekali encode. */
-const QUALITY_DIRECT = 90
+// Batas bawah pengecilan dimensi. Di bawah ini gambar sudah terlalu kecil untuk
+// dipakai, jadi kualitas yang diturunkan (lihat FINAL_LADDER) sebagai gantinya.
+const MIN_DIMENSION = 512
 
-async function compressRaster(
-  buffer: Buffer,
-  kind: "png" | "webp",
-  targetBytes: number,
-): Promise<{ buffer: Buffer; kind: "webp" }> {
-  const meta = await sharp(buffer).metadata()
-  const oversized = (meta.width ?? 0) > MAX_DIMENSION || (meta.height ?? 0) > MAX_DIMENSION
-  const overBudget = buffer.length > targetBytes
+// Tangga kualitas untuk tiap dimensi: mulai dari yang paling tajam, turun
+// bertahap hanya bila ukuran masih di atas anggaran.
+const QUALITY_LADDER = [80, 60, 42]
+// Upaya terakhir bila dimensi sudah di batas bawah namun masih terlalu besar:
+// korbankan kualitas sampai muat, apa pun hasilnya.
+const FINAL_LADDER = [34, 26, 20]
+// Pengaman agar satu unggahan tidak pernah menghabiskan waktu function tanpa
+// henti. Pada praktiknya kasus terburuk (foto noise 6MB) selesai di ~12 encode.
+const MAX_ENCODES = 40
 
-  // Sudah WebP, ukuran dan dimensinya aman: encode ulang hanya akan membuang
-  // kualitas tanpa menghemat apa pun, jadi simpan apa adanya.
-  if (kind === "webp" && !overBudget && !oversized) return { buffer, kind: "webp" }
-
-  const encode = (quality: number) =>
-    sharp(buffer)
-      .resize({ width: MAX_DIMENSION, height: MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
-      .webp({ quality })
-      .toBuffer()
-
-  // Muat anggaran dan tidak kebesaran: satu kali konversi dengan kualitas
-  // tinggi. Tidak perlu menurunkan kualitas kalau ukurannya memang sudah aman.
-  if (!overBudget && !oversized) {
-    return { buffer: await encode(QUALITY_DIRECT), kind: "webp" }
-  }
-
-  let quality = 82
-  let out = await encode(quality)
-
-  // A few gentle steps only. Quality never goes below 60 — past that the
-  // artefacts show, and storing a slightly larger file is the better trade.
-  while (out.length > targetBytes && quality > 60) {
-    quality = Math.max(60, quality - 10)
-    out = await encode(quality)
-  }
-
-  return { buffer: out, kind: "webp" }
+type CompressResult = {
+  buffer: Buffer
+  width: number
+  height: number
+  quality: number
+  encodes: number
+  // True bila gambar masih di atas anggaran meski semua langkah sudah dicoba.
+  // Hanya mungkin untuk gambar yang sangat padat; tetap disimpan agar unggahan
+  // tidak gagal, dengan ukuran sedekat mungkin ke anggaran.
+  overBudget: boolean
 }
 
-// POST /api/admin/upload — body: multipart/form-data { file, folder }
-// Menyimpan gambar ke bucket Storage "media" lalu mengembalikan URL publiknya.
-// Semua gambar raster (PNG maupun WebP) selalu disimpan sebagai WebP; SVG
-// dibiarkan tetap SVG karena vektor, bukan foto.
+/**
+ * Konversi gambar apa pun (JPEG/PNG/WebP/GIF/SVG) menjadi WebP yang muat di
+ * bawah `targetBytes` (bawaan 100 KB).
+ *
+ * Cara kerja:
+ * 1. Dekode berkas sekali ke buffer mentah (sekaligus membakar orientasi EXIF
+ *    agar foto ponsel tidak tampil miring).
+ * 2. Untuk tiap dimensi dari terbesar ke terkecil, coba tangga kualitas. Berhenti
+ *    pada percobaan pertama yang sudah muat di bawah anggaran, jadi gambar yang
+ *    sudah kecil tetap tajam (satu encode kualitas 80), sedangkan foto raksasa
+ *    diturunkan perlahan sampai muat.
+ * 3. Bila dimensi sudah di batas bawah dan masih belum muat, kualitas diturunkan
+ *    sampai batas akhir.
+ *
+ * Semua format keluaran adalah WebP; kanal alfa (transparansi) dipertahankan.
+ */
+async function compressToWebp(buffer: Buffer, targetBytes = TARGET_SIZE): Promise<CompressResult> {
+  const meta = await sharp(buffer).metadata()
+  const longest = Math.max(meta.width ?? 0, meta.height ?? 0)
+
+  // Dekode sekali; semua percobaan encode memakai buffer mentah yang sama
+  // sehingga tidak ada dekode ulang (mahal) di tiap langkah.
+  const { data, info } = await sharp(buffer).rotate().raw().toBuffer({ resolveWithObject: true })
+  const fromRaw = () =>
+    sharp(data, { raw: { width: info.width, height: info.height, channels: info.channels } })
+
+  // Daftar dimensi yang akan dicoba: dari ukuran asli (dibatasi MAX_DIMENSION)
+  // mengecil bertahap sampai MIN_DIMENSION.
+  const start = Math.min(MAX_DIMENSION, longest || MAX_DIMENSION)
+  const steps: number[] = []
+  for (let d = start; d > MIN_DIMENSION; d *= 0.75) steps.push(Math.max(MIN_DIMENSION, Math.round(d)))
+  steps.push(MIN_DIMENSION)
+  const dimensions = [...new Set(steps)]
+
+  let best: Buffer | null = null
+  let bestMeta: { width: number; height: number; quality: number } | null = null
+  let encodes = 0
+
+  const attempt = async (maxDim: number, quality: number) => {
+    encodes++
+    const { data: out, info: outInfo } = await fromRaw()
+      .resize({ width: maxDim, height: maxDim, fit: "inside", withoutEnlargement: true })
+      .webp({ quality })
+      .toBuffer({ resolveWithObject: true })
+    if (!best || out.length < best.length) {
+      best = out
+      bestMeta = { width: outInfo.width, height: outInfo.height, quality }
+    }
+    return out.length <= targetBytes
+  }
+
+  for (const maxDim of dimensions) {
+    for (const quality of QUALITY_LADDER) {
+      if (encodes >= MAX_ENCODES) break
+      if (await attempt(maxDim, quality)) {
+        return { buffer: best!, width: bestMeta!.width, height: bestMeta!.height, quality: bestMeta!.quality, encodes, overBudget: false }
+      }
+    }
+    if (encodes >= MAX_ENCODES) break
+  }
+
+  // Semua dimensi sudah dicoba. Turunkan kualitas di batas bawah sebagai upaya
+  // terakhir supaya gambar pasti muat di bawah anggaran.
+  for (const quality of FINAL_LADDER) {
+    if (encodes >= MAX_ENCODES) break
+    if (await attempt(MIN_DIMENSION, quality)) {
+      return { buffer: best!, width: bestMeta!.width, height: bestMeta!.height, quality: bestMeta!.quality, encodes, overBudget: false }
+    }
+  }
+
+  return { buffer: best!, width: bestMeta!.width, height: bestMeta!.height, quality: bestMeta!.quality, encodes, overBudget: true }
+}
+
+// POST /api/admin/upload: body: multipart/form-data { file, folder }
+// Menerima gambar (JPEG/PNG/WebP/GIF/SVG), mengonversinya ke WebP maksimal
+// 100 KB, lalu menyimpannya ke bucket Storage "media" dan mengembalikan URL
+// publiknya.
 export async function POST(req: NextRequest) {
   const { user, unauthorized } = await requireAdmin()
   if (!user) return unauthorized()
@@ -167,55 +160,66 @@ export async function POST(req: NextRequest) {
   if (!ALLOWED_FOLDERS.includes(folder)) {
     return NextResponse.json({ error: "Invalid folder" }, { status: 400 })
   }
-  const kind = detectKind(file)
-  if (!kind) {
-    return NextResponse.json({ error: "Hanya file SVG, PNG, atau WebP yang diizinkan" }, { status: 400 })
-  }
   if (file.size > MAX_INPUT_SIZE) {
-    return NextResponse.json({ error: "Ukuran file maksimal 4,5MB — batas request Vercel, bukan batas aplikasi" }, { status: 400 })
+    return NextResponse.json({ error: "Ukuran file maksimal 4,5MB: batas request Vercel, bukan batas aplikasi" }, { status: 400 })
   }
 
-  let buffer: Buffer
-  let contentType: string
-  // Berbeda dari format yang diunggah: setiap raster disimpan sebagai WebP
-  // (lihat compressRaster), jadi ekstensi yang disimpan ikut menyesuaikan.
-  // Hanya SVG yang mempertahankan formatnya.
-  let storedKind: ImgKind = kind
+  const inputBuffer = Buffer.from(await file.arrayBuffer())
 
-  if (kind === "svg") {
-    const svgText = await file.text()
-    const compressed = await compressEmbeddedImages(svgText, TARGET_SIZE)
-    buffer = Buffer.from(compressed, "utf8")
-    contentType = "image/svg+xml"
-  } else {
-    const inputBuffer = Buffer.from(await file.arrayBuffer())
-    const result = await compressRaster(inputBuffer, kind, TARGET_SIZE)
-    buffer = result.buffer
-    storedKind = result.kind // selalu "webp" — raster apa pun disimpan sebagai WebP
-    contentType = "image/webp"
+  // Deteksi format dari isi berkas, bukan dari MIME/ekstensi yang bisa salah.
+  let meta: sharp.Metadata
+  try {
+    meta = await sharp(inputBuffer).metadata()
+  } catch {
+    return NextResponse.json({ error: "Berkas bukan gambar yang didukung" }, { status: 400 })
   }
+  const format = meta.format ?? ""
+  if (!ALLOWED_INPUT_FORMATS.includes(format as (typeof ALLOWED_INPUT_FORMATS)[number])) {
+    return NextResponse.json(
+      { error: "Hanya gambar JPG, PNG, WebP, GIF, atau SVG yang diizinkan" },
+      { status: 400 },
+    )
+  }
+  // GIF animasi akan kehilangan geraknya bila diratakan ke satu bingkai WebP: // tolak dengan jelas daripada diam-diam merusak animasinya.
+  if (format === "gif" && (meta.pages ?? 1) > 1) {
+    return NextResponse.json({ error: "GIF animasi belum didukung: unggah versi statis" }, { status: 400 })
+  }
+
+  const result = await compressToWebp(inputBuffer, TARGET_SIZE)
 
   // Content-hash filename: re-uploading identical bytes lands on the same
   // path instead of creating a new duplicate object every time.
-  const hash = createHash("sha256").update(buffer).digest("hex")
-  const path = `${folder}/${hash}.${storedKind}`
+  const hash = createHash("sha256").update(result.buffer).digest("hex")
+  const path = `${folder}/${hash}.webp`
 
   const { error } = await supabaseAdmin.storage
     .from("media")
     // Supabase defaults new objects to "x-robots-tag: none", which tells
-    // Google not to index them at all — override to "all" since the whole
+    // Google not to index them at all, override to "all" since the whole
     // point of this upload is to get these images into Google Images.
-    .upload(path, buffer, { contentType, upsert: true, headers: { "x-robots-tag": "all" } })
+    .upload(path, result.buffer, { contentType: "image/webp", upsert: true, headers: { "x-robots-tag": "all" } })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const { data } = supabaseAdmin.storage.from("media").getPublicUrl(path)
 
-  return NextResponse.json({ url: data.publicUrl, path }, { status: 201 })
+  return NextResponse.json(
+    {
+      url: data.publicUrl,
+      path,
+      // Info diagnostik supaya admin (dan log) tahu seberapa jauh kompresi
+      // mendorong gambar agar muat di bawah anggaran.
+      size: result.buffer.length,
+      width: result.width,
+      height: result.height,
+      overBudget: result.overBudget,
+    },
+    { status: 201 },
+  )
 }
 
 // DELETE /api/admin/upload?path=<folder>/<hash>.<ext>
-// Removes an orphaned upload — called when the admin panel replaces or
+// Removes an orphaned upload: called when the admin panel replaces or
 // clears an image so old files don't pile up in the bucket.
 export async function DELETE(req: NextRequest) {
   const { user, unauthorized } = await requireAdmin()

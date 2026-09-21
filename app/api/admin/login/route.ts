@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
 
   if (authError) {
     recordFailure(ip)
-    // Return a generic message — don't leak whether the email exists
+    // Return a generic message: don't leak whether the email exists
     return NextResponse.json({ error: "Email atau password salah." }, { status: 401 })
   }
 

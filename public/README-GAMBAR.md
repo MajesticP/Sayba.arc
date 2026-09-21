@@ -1,9 +1,9 @@
-# Gambar Placeholder — SAYBA ARC
+# Gambar Placeholder: SAYBA ARC
 
 File di folder `banners/`, `promo/`, dan `berita/` adalah **placeholder** bergaya tema situs
 (hitam + oranye `#ff914d`).
 
-> Logo (`logo.png`, `Sayba Arc.png`, dll.) di root `public/` bukan placeholder — jangan diganti.
+> Logo (`logo.png`, `Sayba Arc.png`, dll.) di root `public/` bukan placeholder, jangan diganti.
 
 ## Mana yang diganti lewat Admin, mana yang diganti lewat file
 
@@ -18,9 +18,9 @@ Gambar yang diunggah lewat admin disimpan di Supabase Storage, bukan di folder i
 
 ---
 
-## `/banners` — Hero banner tiap halaman
+## `/banners`: Hero banner tiap halaman
 
-Disimpan sebagai **WebP** — ukurannya 88% lebih kecil dari PNG dengan tampilan
+Disimpan sebagai **WebP**: ukurannya 88% lebih kecil dari PNG dengan tampilan
 setara (total 1.135KB menjadi 132KB). Kalau menimpa dengan berkas sendiri,
 simpan juga sebagai `.webp` agar namanya tetap cocok.
 
@@ -31,29 +31,29 @@ Diganti dengan **menimpa file**, pertahankan nama filenya.
 
 | File | Dipakai di |
 |---|---|
-| `services-1920x600.webp` | `/services` — Layanan |
-| `products-1920x600.webp` | Cadangan — halaman `/informasi` kini memakai hero sendiri |
-| `portfolio-1920x600.webp` | `/portfolio` — Portofolio |
-| `berita-1920x600.webp` | `/berita` — Berita |
-| `about-1920x600.webp` | `/about` — Tentang Kami |
-| `contact-1920x600.webp` | `/contact` — Kontak |
+| `services-1920x600.webp` | `/services`, Layanan |
+| `products-1920x600.webp` | Cadangan: halaman `/informasi` kini memakai hero sendiri |
+| `portfolio-1920x600.webp` | `/portfolio`, Portofolio |
+| `berita-1920x600.webp` | `/berita`, Berita |
+| `about-1920x600.webp` | `/about`, Tentang Kami |
+| `contact-1920x600.webp` | `/contact`, Kontak |
 
-Beranda (`/`) sengaja **tidak** memakai banner — hero-nya dibiarkan seperti semula.
+Beranda (`/`) sengaja **tidak** memakai banner, hero-nya dibiarkan seperti semula.
 
 Di atas gambar dipasang scrim gelap otomatis, jadi teks tetap terbaca dengan gambar apa pun.
-Bagian tengah tertutup judul — letakkan objek utama di sisi kiri atau kanan.
+Bagian tengah tertutup judul: letakkan objek utama di sisi kiri atau kanan.
 
-## `/promo` — Banner carousel beranda (1600 × 600 px)
+## `/promo`: Banner carousel beranda (1600 × 600 px)
 
 Sekarang dikelola dari **Admin Dashboard → Banner**: upload gambar, atur judul, subjudul,
 tombol CTA, urutan, dan status aktif/draft. File di folder ini hanya isi awal.
 
 Kalau gambar Anda sudah memuat teks sendiri (seperti banner NexShop), kosongkan kolom
-Label Kecil, Judul, dan Subjudul di admin — overlay teks otomatis hilang dan gambar tampil penuh.
+Label Kecil, Judul, dan Subjudul di admin: overlay teks otomatis hilang dan gambar tampil penuh.
 
 Sisi **kiri** banner tertutup gradient gelap untuk teks. Taruh visual utama di sisi kanan.
 
-## `/berita` — Gambar artikel
+## `/berita`: Gambar artikel
 
 Sekarang dikelola dari **Admin Dashboard → Berita**. File di folder ini hanya isi awal.
 
@@ -64,7 +64,7 @@ Sekarang dikelola dari **Admin Dashboard → Berita**. File di folder ini hanya 
 
 ## Catatan upload di admin
 
-Format yang diterima: **SVG, PNG, WebP** — maksimal **4,5MB** per file.
+Format yang diterima: **SVG, PNG, WebP**: maksimal **4,5MB** per file.
 
 Batas 4,5MB itu berasal dari Vercel (batas body request serverless function),
 bukan dari aplikasi. File di atas itu tidak akan pernah sampai ke server.
@@ -84,7 +84,7 @@ Transparansi tetap terjaga.
 - Berkas yang sudah berformat WebP dan ukurannya aman disimpan apa adanya,
   karena encode ulang hanya akan membuang kualitas tanpa menghemat apa pun.
 
-**SVG tidak dikonversi.** SVG adalah vektor, bukan foto — menjadikannya raster
+**SVG tidak dikonversi.** SVG adalah vektor, bukan foto: menjadikannya raster
 akan menghilangkan kemampuannya diperbesar tanpa pecah, yang justru jadi alasan
 utama sebuah logo disimpan sebagai SVG.
 
@@ -98,7 +98,7 @@ Perbandingan yang diukur pada aset situs ini:
 
 Kenapa dikonversi ke WebP: PNG tidak bisa memampatkan foto. Pada pengujian,
 foto 5MB butuh sekitar 105 detik untuk di-encode ulang sebagai PNG dan hasilnya
-tetap ~2MB — cukup lama untuk membuat upload gagal. WebP menyelesaikannya dalam
+tetap ~2MB: cukup lama untuk membuat upload gagal. WebP menyelesaikannya dalam
 sekitar 1,5 detik pada ukuran 476KB.
 
 Hasil pengujian ukuran akhir:
@@ -109,4 +109,4 @@ Hasil pengujian ukuran akhir:
 | Foto WebP 3000×2000 | 381KB WebP | 2000×1333 | 2,4 dtk |
 | Banner PNG 1600×600 | 366KB WebP | 1600×600 | 0,3 dtk |
 | PNG transparan 1200×800 | 365KB WebP | 1200×800 | 0,3 dtk |
-| Ikon PNG 128×128 | tidak diubah | 128×128 | — |
+| Ikon PNG 128×128 | tidak diubah | 128×128 |, |

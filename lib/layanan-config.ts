@@ -2,8 +2,8 @@
  * ── KONFIGURASI DEPARTEMEN LAYANAN ───────────────────────────────────────────
  *
  * SAYBA ARC punya DUA departemen tetap:
- *   1. IT Consultant        — pengembangan digital & sistem informasi
- *   2. Engineering Consultant — pemetaan spasial, rancang bangun, gambar teknik
+ *   1. IT Consultant: pengembangan digital & sistem informasi
+ *   2. Engineering Consultant: pemetaan spasial, rancang bangun, gambar teknik
  *
  * Departemen bersifat TETAP (tidak diubah dari admin). Yang dikelola admin
  * adalah daftar LAYANAN di dalam tiap departemen.
@@ -13,7 +13,7 @@
  */
 
 export interface LayananDept {
-  /** Disimpan di DB — harus cocok dengan kolom `dept` */
+  /** Disimpan di DB: harus cocok dengan kolom `dept` */
   value: string
   /** Label yang tampil di UI */
   label: string
@@ -31,7 +31,7 @@ export const LAYANAN_DEPTS: LayananDept[] = [
     label: "IT Consultant",
     description:
       "Pengembangan perangkat lunak, sistem informasi, dan infrastruktur digital yang dipakai sehari-hari oleh tim Anda.",
-    color: "#7d98a1",
+    color: "#f07a26",
     scope: [
       "Website & aplikasi web",
       "Aplikasi mobile & desktop",
@@ -45,7 +45,7 @@ export const LAYANAN_DEPTS: LayananDept[] = [
     label: "Engineering Consultant",
     description:
       "Pemetaan spasial, rancang bangun, dan dokumen teknik yang siap dipakai untuk perizinan maupun pelaksanaan lapangan.",
-    color: "#5e6572",
+    color: "#5a5c62",
     scope: [
       "Pemetaan & analisis spasial (GIS)",
       "Gambar teknik 2D & 3D (AutoCAD)",
@@ -70,4 +70,4 @@ export const getDeptLabel = (value: string): string =>
 
 /** Warna aksen departemen */
 export const getDeptColor = (value: string): string =>
-  getDept(value)?.color ?? "#5e6572"
+  getDept(value)?.color ?? "#5a5c62"

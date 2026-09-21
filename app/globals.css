@@ -4,82 +4,91 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ════════════════════════════════════════════════════════════════════════
-   SAYBA ARC — Sistem Warna
-   Palet cool-steel profesional untuk konteks engineering & IT konsultasi.
-   Semua pasangan teks/latar sudah diverifikasi WCAG AA (lihat DESIGN.md).
+   SAYBA ARC: Sistem Warna
+   Palet "Executive Navy": Navy (otoritas) + Orange (aksen, maks 10%).
+
+   Semua pasangan teks/latar diverifikasi dengan contrast-check.py.
+   Aturan pemakaian ada di DESIGN.md dan wajib diikuti.
    ════════════════════════════════════════════════════════════════════════ */
 :root {
-  /* ── Palet inti (5 warna, hue sama: cool steel) ── */
-  --carbon: #1c2321;   /* Carbon Black  — latar gelap, teks utama di terang */
-  --steel: #7d98a1;    /* Cool Steel    — aksen, garis, teks sekunder di gelap */
-  --slate: #5e6572;    /* Blue Slate    — teks sekunder di terang, latar panel gelap */
-  --powder: #a9b4c2;   /* Powder Blue   — aksen terang di latar gelap */
-  --platinum: #eef1ef; /* Platinum      — latar terang utama */
+  /* ── Palet inti (4 warna dari brand guide) ── */
+  --navy: #112a46;      /* Executive Navy: header, blok penting, banner */
+  --orange: #f07a26;    /* Vivid Orange: AKSEN saja, maks 10% */
+  --ink: #2a2b2e;       /* Dark Gray: teks paragraf */
+  --ice: #f4f6f9;       /* Ice White: latar netral utama */
 
-  /* ── Turunan untuk permukaan & batas ── */
-  --carbon-800: #242c29;  /* permukaan terangkat di atas Carbon */
-  --carbon-700: #2d3733;  /* kartu di dalam section gelap */
-  --platinum-dim: #e3e8e5; /* latar pembeda section terang */
-  --platinum-line: #d3dad6; /* garis pemisah di latar terang */
+  /* ── Turunan navy: permukaan berjenjang di section gelap ── */
+  --navy-800: #16345a;  /* panel terangkat di atas navy */
+  --navy-700: #1b3e6b;  /* kartu di dalam section gelap */
+  --navy-600: #20487c;  /* batas atas permukaan gelap */
+
+  /* ── Turunan ice: latar pembeda & garis ── */
+  --ice-dim: #ebeff5;   /* section pembeda (sedikit lebih gelap) */
+  --ice-line: #d8e0ea;  /* garis pemisah di latar terang */
+
+  /* ── Warna pendukung (diturunkan dari palet inti, hue dipertahankan) ── */
+  --slate: #5a5c62;       /* teks sekunder di latar terang, 6.17:1 di ice */
+  --orange-text: #b45610; /* orange sbg TEKS di latar terang, 4.53:1 di ice */
+  --orange-soft: #f5a76c; /* orange lembut utk aksen sekunder di latar gelap */
 
   /* ── Token semantik (shadcn) ── */
-  --background: var(--platinum);
-  --foreground: var(--carbon);
+  --background: var(--ice);
+  --foreground: var(--ink);
   --card: #ffffff;
-  --card-foreground: var(--carbon);
+  --card-foreground: var(--ink);
   --popover: #ffffff;
-  --popover-foreground: var(--carbon);
-  --primary: var(--carbon);
-  --primary-foreground: var(--platinum);
-  --secondary: var(--steel);
-  --secondary-foreground: var(--carbon);
-  --muted: var(--platinum-dim);
+  --popover-foreground: var(--ink);
+  --primary: var(--navy);
+  --primary-foreground: var(--ice);
+  --secondary: var(--orange);
+  --secondary-foreground: var(--navy);
+  --muted: var(--ice-dim);
   --muted-foreground: var(--slate);
-  --accent: var(--slate);
-  --accent-foreground: var(--platinum);
+  --accent: var(--orange);
+  --accent-foreground: var(--navy);
   --destructive: #b4453f;
   --destructive-foreground: #ffffff;
-  --border: var(--platinum-line);
+  --border: var(--ice-line);
   --input: #ffffff;
-  --ring: var(--steel);
-  --chart-1: var(--slate);
-  --chart-2: var(--steel);
-  --chart-3: var(--powder);
-  --chart-4: var(--carbon);
-  --chart-5: var(--platinum-dim);
+  --ring: var(--orange);
+  --chart-1: var(--navy);
+  --chart-2: var(--orange);
+  --chart-3: var(--slate);
+  --chart-4: var(--navy-700);
+  --chart-5: var(--ice-dim);
   --radius: 0.625rem;
 
   /* ── Token admin (panel gelap) ── */
-  --sidebar: var(--carbon);
-  --sidebar-foreground: var(--platinum);
-  --sidebar-primary: var(--powder);
-  --sidebar-primary-foreground: var(--carbon);
-  --sidebar-accent: var(--carbon-800);
-  --sidebar-accent-foreground: var(--platinum);
+  --sidebar: var(--navy);
+  --sidebar-foreground: var(--ice);
+  --sidebar-primary: var(--orange);
+  --sidebar-primary-foreground: var(--navy);
+  --sidebar-accent: var(--navy-800);
+  --sidebar-accent-foreground: var(--ice);
   --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: var(--steel);
+  --sidebar-ring: var(--orange);
 }
 
 .dark {
-  --background: var(--carbon);
-  --foreground: var(--platinum);
-  --card: var(--carbon-800);
-  --card-foreground: var(--platinum);
-  --popover: var(--carbon-800);
-  --popover-foreground: var(--platinum);
-  --primary: var(--powder);
-  --primary-foreground: var(--carbon);
-  --secondary: var(--steel);
-  --secondary-foreground: var(--carbon);
-  --muted: var(--carbon-700);
-  --muted-foreground: var(--steel);
-  --accent: var(--powder);
-  --accent-foreground: var(--carbon);
+  --background: var(--navy);
+  --foreground: var(--ice);
+  --card: var(--navy-800);
+  --card-foreground: var(--ice);
+  --popover: var(--navy-800);
+  --popover-foreground: var(--ice);
+  --primary: var(--orange);
+  --primary-foreground: var(--navy);
+  --secondary: var(--orange);
+  --secondary-foreground: var(--navy);
+  --muted: var(--navy-700);
+  --muted-foreground: var(--orange-soft);
+  --accent: var(--orange);
+  --accent-foreground: var(--navy);
   --destructive: #d4756f;
-  --destructive-foreground: var(--carbon);
+  --destructive-foreground: var(--navy);
   --border: rgba(255, 255, 255, 0.10);
-  --input: var(--carbon-700);
-  --ring: var(--steel);
+  --input: var(--navy-700);
+  --ring: var(--orange);
 }
 
 @theme inline {
@@ -123,16 +132,34 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Token palet langsung supaya bisa dipakai sebagai utility Tailwind */
-  --color-carbon: var(--carbon);
-  --color-carbon-800: var(--carbon-800);
-  --color-carbon-700: var(--carbon-700);
-  --color-steel: var(--steel);
+  /* ── Token palet langsung sebagai utility Tailwind ── */
+  --color-navy: var(--navy);
+  --color-navy-800: var(--navy-800);
+  --color-navy-700: var(--navy-700);
+  --color-navy-600: var(--navy-600);
+  --color-orange: var(--orange);
+  --color-orange-text: var(--orange-text);
+  --color-orange-soft: var(--orange-soft);
+  --color-ink: var(--ink);
+  --color-ice: var(--ice);
+  --color-ice-dim: var(--ice-dim);
+  --color-ice-line: var(--ice-line);
   --color-slate-brand: var(--slate);
-  --color-powder: var(--powder);
-  --color-platinum: var(--platinum);
-  --color-platinum-dim: var(--platinum-dim);
-  --color-platinum-line: var(--platinum-line);
+
+  /* ── Alias lama: menjaga 18 komponen tetap bekerja saat migrasi ──
+     carbon  = permukaan gelap        -> navy
+     steel   = aksen                  -> orange
+     powder  = aksen terang di gelap  -> ice
+     platinum= latar terang           -> ice
+     slate-brand = teks sekunder      -> slate                            */
+  --color-carbon: var(--navy);
+  --color-carbon-800: var(--navy-800);
+  --color-carbon-700: var(--navy-700);
+  --color-steel: var(--orange);
+  --color-powder: var(--ice);
+  --color-platinum: var(--ice);
+  --color-platinum-dim: var(--ice-dim);
+  --color-platinum-line: var(--ice-line);
 }
 
 @layer base {
@@ -157,7 +184,7 @@
 
   /* Fokus terlihat (WCAG 2.4.7) */
   :focus-visible {
-    outline: 2px solid var(--steel);
+    outline: 2px solid var(--orange);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -166,39 +193,66 @@
 /* ════════════════════════════════════════════════════════════════════════
    MOTIF: Meja Potong Arsitek (architect's cutting mat)
 
-   Terinspirasi meja potong self-healing: kisi halus, garis tepi terukur,
-   dan tanda registrasi di sudut. Dipakai sebagai latar section supaya
-   halaman terasa "ruang kerja teknis", bukan dekorasi.
+   Motif identitas situs ini. Terinspirasi meja potong self-healing:
+   kisi halus, garis tepi terukur, tanda registrasi di sudut.
 
-   Prinsip: sangat tipis, tidak bergerak kecuali diminta, tidak pernah
-   menutupi teks. Semua opasitas di bawah 0.08.
+   DIPAKAI SEBAGAI LATAR HALAMAN PENUH (lihat .board-page di layout).
+   Section di atasnya adalah panel yang mengambang di atas meja, jadi
+   meja tetap terlihat di sela-sela section. Ini yang membuat latar
+   konsisten dari atas sampai bawah halaman.
+
+   Prinsip: sangat tipis, tidak bergerak, tidak pernah menutupi teks.
    ════════════════════════════════════════════════════════════════════════ */
 
-/* Kisi meja potong — dua lapis: 1 unit halus + 5 unit lebih tegas.
-   Variabel garis di-set per tema di bawah, jadi satu kelas melayani keduanya. */
+/* Kisi meja potong untuk latar terang: dua lapis (24px halus, 120px tegas) */
 .cutting-grid {
-  --cut-line: rgba(94, 101, 114, 0.055);
-  --cut-line-strong: rgba(94, 101, 114, 0.09);
   background-image:
-    linear-gradient(to right, var(--cut-line) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--cut-line) 1px, transparent 1px),
-    linear-gradient(to right, var(--cut-line-strong) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--cut-line-strong) 1px, transparent 1px);
-  background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px;
-}
-/* Latar gelap: garis terang tipis, kontras tetap di bawah ambang gangguan */
-.cutting-grid-dark {
-  --cut-line: rgba(169, 180, 194, 0.045);
-  --cut-line-strong: rgba(169, 180, 194, 0.075);
-  background-image:
-    linear-gradient(to right, var(--cut-line) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--cut-line) 1px, transparent 1px),
-    linear-gradient(to right, var(--cut-line-strong) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--cut-line-strong) 1px, transparent 1px);
+    linear-gradient(to right, rgba(17, 42, 70, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 42, 70, 0.045) 1px, transparent 1px),
+    linear-gradient(to right, rgba(17, 42, 70, 0.075) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 42, 70, 0.075) 1px, transparent 1px);
   background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px;
 }
 
-/* Tanda registrasi sudut — seperti tanda potong di meja cetak */
+/* Kisi meja potong untuk section gelap */
+.cutting-grid-dark {
+  background-image:
+    linear-gradient(to right, rgba(244, 246, 249, 0.040) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(244, 246, 249, 0.040) 1px, transparent 1px),
+    linear-gradient(to right, rgba(244, 246, 249, 0.070) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(244, 246, 249, 0.070) 1px, transparent 1px);
+  background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px;
+}
+
+/* Meja potong halaman penuh: menempel di viewport, tidak ikut menggulir.
+   `fixed` + z-index rendah supaya section di atasnya tetap terbaca. */
+.board-page {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: var(--ice);
+  background-image:
+    linear-gradient(to right, rgba(17, 42, 70, 0.050) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 42, 70, 0.050) 1px, transparent 1px),
+    linear-gradient(to right, rgba(17, 42, 70, 0.085) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 42, 70, 0.085) 1px, transparent 1px);
+  background-size: 28px 28px, 28px 28px, 140px 140px, 140px 140px;
+}
+
+/* Panel yang mengambang di atas meja. Section memakai ini supaya tepi
+   meja tetap terlihat dan latar konsisten sepanjang halaman. */
+.board-panel {
+  position: relative;
+  background-color: var(--ice);
+  border: 1px solid var(--ice-line);
+  border-radius: 20px;
+}
+@media (min-width: 768px) {
+  .board-panel { border-radius: 28px; }
+}
+
+/* Tanda registrasi sudut, seperti tanda potong di meja cetak */
 .reg-mark { position: absolute; width: 22px; height: 22px; pointer-events: none; }
 .reg-mark::before,
 .reg-mark::after {
@@ -210,7 +264,7 @@
 .reg-mark::before { width: 100%; height: 1px; top: 0; left: 0; }
 .reg-mark::after  { width: 1px; height: 100%; top: 0; left: 0; }
 
-/* Garis ukur dengan tick — seperti penggaris baja */
+/* Garis ukur dengan tick, seperti penggaris baja */
 .rule-line {
   height: 1px;
   background-image: repeating-linear-gradient(
@@ -222,7 +276,9 @@
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   Animasi — semua halus, semua menghormati prefers-reduced-motion
+   Animasi: semua halus, semua menghormati prefers-reduced-motion
+   MOTION dial = 2: reveal saat masuk viewport + transisi hover.
+   Tidak ada gerakan berjalan terus (loop) kecuali indikator proses.
    ════════════════════════════════════════════════════════════════════════ */
 @keyframes fadeInUp {
   0% { opacity: 0; transform: translateY(20px); }
@@ -244,6 +300,16 @@
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
+@keyframes drawLineY {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+/* Denyut indikator proses: hanya dipakai penanda tahap aktif pada diagram
+   alir, memberi tahu posisi pembaca. Bukan dekorasi. */
+@keyframes pulseMark {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(1.15); }
+}
 @keyframes sweepAcross {
   0%   { transform: translateX(-100%); opacity: 0; }
   15%  { opacity: 1; }
@@ -258,6 +324,8 @@
 .animate-blur-in      { animation: blurIn 0.6s cubic-bezier(.22,1,.36,1) both; }
 .animate-scale-in     { animation: scaleIn 0.45s cubic-bezier(.22,1,.36,1) both; }
 .animate-draw-line    { animation: drawLine 0.9s cubic-bezier(.22,1,.36,1) both; transform-origin: left; }
+.animate-draw-line-y  { animation: drawLineY 0.9s cubic-bezier(.22,1,.36,1) both; transform-origin: top; }
+.animate-pulse-mark   { animation: pulseMark 2.4s ease-in-out infinite; }
 .animate-sweep        { animation: sweepAcross 3.2s ease-in-out infinite; }
 
 .stagger-1 { animation-delay: 70ms; }
@@ -289,7 +357,7 @@
 .line-clamp-4 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 
 @media (hover: none) {
-  button, a { -webkit-tap-highlight-color: rgba(125, 152, 161, 0.15); }
+  button, a { -webkit-tap-highlight-color: rgba(240, 122, 38, 0.15); }
 }
 
 p, h1, h2, h3, h4, h5 { overflow-wrap: break-word; word-break: break-word; }
@@ -302,8 +370,8 @@ header { padding-top: env(safe-area-inset-top); }
 /* ════════════════════════════════════════════════════════════════════════
    Tombol admin (panel gelap)
    ════════════════════════════════════════════════════════════════════════ */
-.btn-primary { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.875rem; border-radius: 0.5rem; font-size: 0.8rem; font-weight: 600; background-color: var(--steel); color: var(--carbon); transition: background-color 0.15s; white-space: nowrap; }
-.btn-primary:hover { background-color: var(--powder); }
+.btn-primary { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.875rem; border-radius: 0.5rem; font-size: 0.8rem; font-weight: 600; background-color: var(--orange); color: var(--navy); transition: background-color 0.15s; white-space: nowrap; }
+.btn-primary:hover { background-color: var(--orange-soft); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-ghost { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.875rem; border-radius: 0.5rem; font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.08); transition: color 0.15s, border-color 0.15s; white-space: nowrap; }
 .btn-ghost:hover { color: rgba(255,255,255,0.75); border-color: rgba(255,255,255,0.2); }

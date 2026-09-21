@@ -1,5 +1,5 @@
 // ============================================================
-// SAYBA ARC — Helper Pusat Informasi
+// SAYBA ARC: Helper Pusat Informasi
 // ------------------------------------------------------------
 // Kategori informasi TIDAK lagi didefinisikan di file ini.
 // Daftar kategori sekarang dikelola lewat tabel `informasi_kategori`

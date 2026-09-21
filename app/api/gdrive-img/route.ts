@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server"
  *
  * Server-side proxy for Google Drive images.
  * Fetches the file from Drive and streams it back to the browser
- * under the app's own origin — no CORS, no CSP, no auth-cookie issues.
+ * under the app's own origin, no CORS, no CSP, no auth-cookie issues.
  *
  * The Drive file must be shared as "Anyone with the link can view".
  */
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
 
     // If Drive returned HTML (virus-scan warning page), bail out
     if (contentType.includes("text/html")) {
-      return new NextResponse("Drive returned an HTML page — check sharing settings", {
+      return new NextResponse("Drive returned an HTML page: check sharing settings", {
         status: 502,
       })
     }

@@ -1,11 +1,11 @@
 // ============================================================
-// SAYBA ARC — Konten Situs (Bahasa Indonesia)
+// SAYBA ARC: Konten Situs (Bahasa Indonesia)
 // Palet & arah visual: lihat DESIGN.md
 // ============================================================
 
 export const siteConfig = {
   name: "SAYBA ARC",
-  tagline: "Konsultan IT & Engineering — Pontianak",
+  tagline: "Konsultan IT & Engineering: Pontianak",
   description:
     "SAYBA ARC adalah konsultan IT dan engineering dari Pontianak. Kami mengerjakan pengembangan perangkat lunak, pemetaan spasial, dan dokumen teknik untuk bisnis dan instansi di Indonesia.",
   url: "https://sayba.id",
@@ -18,7 +18,7 @@ export const siteConfig = {
 
 // ── Legalitas usaha ─────────────────────────────────────────────
 // Ditampilkan di footer. Angka di sini adalah pernyataan resmi yang terbaca
-// publik — pastikan cocok dengan dokumen NIB Anda sebelum diubah.
+// publik, pastikan cocok dengan dokumen NIB Anda sebelum diubah.
 // Kolom yang dikosongkan otomatis tidak ditampilkan.
 //
 // CATATAN: kode KBLI perlu diverifikasi ulang ke NIB/OSS. Kode 60390
@@ -45,7 +45,7 @@ export const ogImage = {
   url: "https://sayba.id/og-image.png",
   width: 1200,
   height: 630,
-  alt: "SAYBA ARC — Konsultan IT & Engineering",
+  alt: "SAYBA ARC: Konsultan IT & Engineering",
 }
 
 export const navItems = [
@@ -110,7 +110,7 @@ export const features = [
 export const about = {
   title: "Dua Departemen, Satu Standar Kerja",
   description:
-    "SAYBA ARC berdiri di Pontianak pada 2025. Kami membagi pekerjaan ke dua departemen — IT Consultant dan Engineering Consultant — supaya keahlian tiap bidang tetap tajam, sementara klien cukup berurusan dengan satu tim. Setiap proyek punya penanggung jawab yang bisa Anda hubungi langsung.",
+    "SAYBA ARC berdiri di Pontianak pada 2025. Kami membagi pekerjaan ke dua departemen, IT Consultant dan Engineering Consultant: supaya keahlian tiap bidang tetap tajam, sementara klien cukup berurusan dengan satu tim. Setiap proyek punya penanggung jawab yang bisa Anda hubungi langsung.",
   stats: [
     { value: "2025", label: "Tahun Berdiri" },
     { value: "2", label: "Departemen" },

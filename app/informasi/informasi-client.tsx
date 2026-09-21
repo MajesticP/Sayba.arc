@@ -1,6 +1,5 @@
 "use client"
 
-import type React from "react"
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import {
@@ -20,17 +19,12 @@ import {
 import PageTransition from "@/components/page-transition"
 import CuttingBoardBackground from "@/components/cutting-board-bg"
 import type { Informasi } from "@/lib/database.types"
+import type { KategoriItem } from "@/lib/kategori"
 import { formatInformasiDate } from "@/lib/informasi-data"
-
-export interface KategoriItem {
-  slug: string
-  label: string
-  color: string
-}
 
 interface Props {
   initialArticles: Informasi[]
-  categories: KategoriItem[]
+  kategori: KategoriItem[]
 }
 
 /** Ikon per kategori. Kalau slug tidak dikenal, pakai ikon dokumen. */
@@ -50,7 +44,7 @@ function CategoryIcon({ slug, className }: { slug: string; className?: string })
   }
 }
 
-export default function InformasiClient({ initialArticles, categories }: Props) {
+export default function InformasiClient({ initialArticles, kategori }: Props) {
   const [search, setSearch] = useState("")
   const [activeCategory, setActiveCategory] = useState("semua")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -59,12 +53,12 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
   // Peta slug → label/warna untuk pencarian cepat
   const catMap = useMemo(() => {
     const m = new Map<string, KategoriItem>()
-    categories.forEach((c) => m.set(c.slug.toLowerCase(), c))
+    kategori.forEach((c) => m.set(c.slug.toLowerCase(), c))
     return m
-  }, [categories])
+  }, [kategori])
 
   const catOf = (slug: string): KategoriItem =>
-    catMap.get(slug.toLowerCase()) ?? { slug, label: slug, color: "#5e6572" }
+    catMap.get(slug.toLowerCase()) ?? { slug, label: slug, color: "#5a5c62" }
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -89,8 +83,8 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
   // Hanya tampilkan kategori yang benar-benar dipakai artikel
   const usedCategories = useMemo(() => {
     const used = new Set(initialArticles.map((a) => a.category.toLowerCase()))
-    return categories.filter((c) => used.has(c.slug.toLowerCase()))
-  }, [categories, initialArticles])
+    return kategori.filter((c) => used.has(c.slug.toLowerCase()))
+  }, [kategori, initialArticles])
 
   const counts = useMemo(() => {
     const map: Record<string, number> = { semua: initialArticles.length }
@@ -108,23 +102,23 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
   return (
     <>
       {/* ══ HERO ══ */}
-      <section className="relative bg-carbon overflow-hidden">
+      <section className="relative bg-navy overflow-hidden">
         <CuttingBoardBackground tone="dark" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-[100px] pb-14 md:pt-36 md:pb-20">
-          <p className="animate-fade-in stagger-1 text-[12px] font-medium text-steel mb-4">
+          <p className="animate-fade-in stagger-1 text-[12px] font-medium text-orange mb-4">
             Informasi
           </p>
-          <h1 className="animate-blur-in stagger-2 text-[28px] leading-[1.15] sm:text-4xl lg:text-[44px] font-bold text-platinum tracking-tight mb-4 max-w-3xl">
+          <h1 className="animate-blur-in stagger-2 text-[28px] leading-[1.15] sm:text-4xl lg:text-[44px] font-bold text-ice tracking-tight mb-4 max-w-3xl">
             Panduan, Standar &amp; Pengumuman
           </h1>
-          <p className="animate-fade-in-up stagger-3 text-[14px] md:text-lg text-steel leading-relaxed max-w-2xl mb-7">
+          <p className="animate-fade-in-up stagger-3 text-[14px] md:text-lg text-ice/75 leading-relaxed max-w-2xl mb-7">
             Acuan kerja, format berkas, dan kabar layanan yang kami pakai sehari-hari.
           </p>
 
           <div className="animate-fade-in-up stagger-4 relative max-w-xl">
             <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-carbon/60 pointer-events-none"
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/45 pointer-events-none"
               aria-hidden="true"
             />
             <input
@@ -133,14 +127,14 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari panduan, standar, atau pengumuman…"
               aria-label="Cari informasi"
-              className="w-full pl-11 pr-11 py-3.5 rounded-2xl bg-platinum text-[14px] text-carbon placeholder:text-carbon/65 outline-none focus:ring-2 focus:ring-steel transition-all"
+              className="w-full pl-11 pr-11 py-3.5 rounded-2xl bg-ice text-[14px] text-ink placeholder:text-ink/50 outline-none focus:ring-2 focus:ring-orange transition-all"
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch("")}
                 aria-label="Bersihkan pencarian"
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-carbon/60 hover:text-carbon hover:bg-carbon/5 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-ink/50 hover:text-ink hover:bg-ink/5 transition-colors"
               >
                 <X className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
@@ -150,23 +144,23 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
       </section>
 
       {/* ══ ISI ══ */}
-      <section className="relative z-10 -mt-6 md:-mt-10 rounded-t-[28px] md:rounded-t-[40px] bg-platinum flex-1 pb-14 md:pb-24">
+      <section className="relative z-10 -mt-6 md:-mt-10 rounded-t-[28px] md:rounded-t-[40px] bg-ice flex-1 pb-14 md:pb-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-14">
 
           {/* ── Belum ada dokumen sama sekali ── */}
           {initialArticles.length === 0 && (
             <div className="py-20 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-platinum-dim border border-platinum-line flex items-center justify-center mx-auto mb-5">
-                <FileText className="w-6 h-6 text-slate-brand/75" aria-hidden="true" />
+              <div className="w-14 h-14 rounded-2xl bg-ice-dim border border-ice-line flex items-center justify-center mx-auto mb-5">
+                <FileText className="w-6 h-6 text-slate-brand" aria-hidden="true" />
               </div>
-              <h2 className="text-[17px] font-bold text-carbon mb-2">Belum ada dokumen</h2>
+              <h2 className="text-[17px] font-bold text-navy mb-2">Belum ada dokumen</h2>
               <p className="text-[14px] text-slate-brand max-w-md mx-auto mb-6 leading-relaxed">
                 Panduan dan standar kerja sedang disiapkan. Untuk pertanyaan teknis, hubungi tim kami
                 langsung.
               </p>
               <Link
                 href="/contact"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-carbon text-platinum text-[14px] font-semibold hover:bg-carbon-800 transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-navy text-ice text-[14px] font-semibold hover:bg-navy-700 transition-colors"
               >
                 Hubungi Kami
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -202,24 +196,24 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
             <PageTransition>
               <Link
                 href={`/informasi/${featured.slug}`}
-                className="group block bg-carbon rounded-2xl md:rounded-3xl overflow-hidden mb-10 md:mb-14 p-6 md:p-9 hover:shadow-2xl transition-all duration-200"
+                className="group block bg-navy rounded-2xl md:rounded-3xl overflow-hidden mb-10 md:mb-14 p-6 md:p-9 hover:shadow-2xl transition-all duration-200"
               >
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-powder mb-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-orange mb-3">
                   Sorotan
                 </p>
-                <h2 className="text-[18px] md:text-[24px] font-bold text-platinum leading-snug mb-3 group-hover:text-powder transition-colors max-w-3xl">
+                <h2 className="text-[18px] md:text-[24px] font-bold text-ice leading-snug mb-3 group-hover:text-orange-soft transition-colors max-w-3xl">
                   {featured.title}
                 </h2>
                 {featured.excerpt && (
-                  <p className="text-steel text-[14px] md:text-[15px] leading-relaxed line-clamp-2 mb-5 max-w-3xl">
+                  <p className="text-ice/75 text-[14px] md:text-[15px] leading-relaxed line-clamp-2 mb-5 max-w-3xl">
                     {featured.excerpt}
                   </p>
                 )}
-                <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 text-[11px] text-steel">
-                  <span className="text-powder font-medium">{catOf(featured.category).label}</span>
-                  <span aria-hidden="true" className="text-steel/75">·</span>
+                <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 text-[11px] text-ice/70">
+                  <span className="text-orange font-medium">{catOf(featured.category).label}</span>
+                  <span aria-hidden="true">·</span>
                   <span>{formatInformasiDate(featured.published_at)}</span>
-                  <span aria-hidden="true" className="text-steel/75">·</span>
+                  <span aria-hidden="true">·</span>
                   <span>{featured.read_minutes} menit baca</span>
                 </div>
               </Link>
@@ -228,8 +222,8 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
 
           {/* ── Toolbar ── */}
           {initialArticles.length > 0 && (
-            <div className="flex items-center justify-between gap-3 mb-5 pb-3 border-b border-platinum-line">
-              <h2 className="text-[17px] md:text-2xl font-bold text-carbon">
+            <div className="flex items-center justify-between gap-3 mb-5 pb-3 border-b border-ice-line">
+              <h2 className="text-[17px] md:text-2xl font-bold text-navy">
                 {activeCategory === "semua"
                   ? "Semua Dokumen"
                   : catOf(activeCategory).label}
@@ -238,7 +232,7 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
                 </span>
               </h2>
 
-              <div className="flex items-center p-1 rounded-xl bg-platinum-dim border border-platinum-line shrink-0">
+              <div className="flex items-center p-1 rounded-xl bg-ice-dim border border-ice-line shrink-0">
                 <button
                   type="button"
                   onClick={() => setViewMode("grid")}
@@ -247,8 +241,8 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
                   aria-pressed={viewMode === "grid"}
                   className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
                     viewMode === "grid"
-                      ? "bg-white text-carbon shadow-sm"
-                      : "text-slate-brand hover:text-carbon"
+                      ? "bg-white text-navy shadow-sm"
+                      : "text-slate-brand hover:text-navy"
                   }`}
                 >
                   <LayoutGrid className="w-4 h-4" aria-hidden="true" />
@@ -261,8 +255,8 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
                   aria-pressed={viewMode === "list"}
                   className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
                     viewMode === "list"
-                      ? "bg-white text-carbon shadow-sm"
-                      : "text-slate-brand hover:text-carbon"
+                      ? "bg-white text-navy shadow-sm"
+                      : "text-slate-brand hover:text-navy"
                   }`}
                 >
                   <List className="w-4 h-4" aria-hidden="true" />
@@ -274,7 +268,7 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
           {/* ── Kosong karena filter ── */}
           {initialArticles.length > 0 && filtered.length === 0 && (
             <div className="py-16 text-center">
-              <h3 className="text-[15px] font-bold text-carbon mb-1.5">Tidak ada dokumen yang cocok</h3>
+              <h3 className="text-[15px] font-bold text-navy mb-1.5">Tidak ada dokumen yang cocok</h3>
               <p className="text-[14px] text-slate-brand max-w-md mx-auto mb-5">
                 {search
                   ? `Tidak ada hasil untuk "${search}". Coba kata kunci lain.`
@@ -286,7 +280,7 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
                   setSearch("")
                   setActiveCategory("semua")
                 }}
-                className="px-5 py-2.5 rounded-xl bg-carbon text-platinum text-[13px] font-semibold hover:bg-carbon-800 transition-colors"
+                className="px-5 py-2.5 rounded-xl bg-navy text-ice text-[13px] font-semibold hover:bg-navy-700 transition-colors"
               >
                 Tampilkan semua dokumen
               </button>
@@ -306,16 +300,16 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
 
           {/* ── Daftar ── */}
           {viewMode === "list" && filtered.length > 0 && (
-            <div className="rounded-2xl border border-platinum-line overflow-hidden divide-y divide-platinum-line">
+            <div className="rounded-2xl border border-ice-line overflow-hidden divide-y divide-ice-line">
               {filtered.map((article, i) => (
                 <PageTransition key={article.id} delay={Math.min(i, 8) * 40}>
                   <Link
                     href={`/informasi/${article.slug}`}
-                    className="group flex items-start gap-4 p-4 md:p-5 bg-white hover:bg-platinum-dim/60 transition-colors"
+                    className="group flex items-start gap-4 p-4 md:p-5 bg-white hover:bg-ice-dim/60 transition-colors"
                   >
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-2.5 flex-wrap mb-1">
-                        <span className="text-[11px] font-semibold text-slate-brand">
+                        <span className="text-[11px] font-semibold text-orange-text">
                           {catOf(article.category).label}
                         </span>
                         <span aria-hidden="true" className="text-slate-brand">·</span>
@@ -328,7 +322,7 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
                           {article.read_minutes} mnt
                         </span>
                       </span>
-                      <span className="block text-[14px] font-semibold text-carbon leading-snug group-hover:text-slate-brand transition-colors line-clamp-2">
+                      <span className="block text-[14px] font-semibold text-navy leading-snug group-hover:text-orange-text transition-colors line-clamp-2">
                         {article.title}
                       </span>
                       {article.excerpt && (
@@ -339,7 +333,7 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
                     </span>
 
                     <ArrowRight
-                      className="w-4 h-4 text-slate-brand/75 group-hover:text-carbon group-hover:translate-x-1 transition-all shrink-0 mt-3"
+                      className="w-4 h-4 text-slate-brand group-hover:text-orange-text group-hover:translate-x-1 transition-all shrink-0 mt-3"
                       aria-hidden="true"
                     />
                   </Link>
@@ -350,8 +344,8 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
 
           {/* ── FAQ ── */}
           {initialArticles.length > 0 && (
-            <section className="mt-14 md:mt-20 pt-10 md:pt-14 border-t border-platinum-line">
-              <h2 className="text-[18px] md:text-2xl font-bold text-carbon mb-2">
+            <section className="mt-14 md:mt-20 pt-10 md:pt-14 border-t border-ice-line">
+              <h2 className="text-[18px] md:text-2xl font-bold text-navy mb-2">
                 Pertanyaan yang Sering Diajukan
               </h2>
               <p className="text-[14px] text-slate-brand mb-6 max-w-2xl">
@@ -365,7 +359,7 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
                     <div
                       key={i}
                       className={`rounded-xl border bg-white transition-colors ${
-                        isOpen ? "border-steel" : "border-platinum-line"
+                        isOpen ? "border-orange" : "border-ice-line"
                       }`}
                     >
                       <button
@@ -374,12 +368,12 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
                         aria-expanded={isOpen}
                         className="w-full p-4 text-left flex items-start justify-between gap-4"
                       >
-                        <span className="text-[14px] font-semibold text-carbon leading-snug">
+                        <span className="text-[14px] font-semibold text-navy leading-snug">
                           {faq.q}
                         </span>
                         <ChevronDown
                           className={`w-4 h-4 shrink-0 mt-0.5 transition-transform ${
-                            isOpen ? "rotate-180 text-slate-brand" : "text-slate-brand/75"
+                            isOpen ? "rotate-180 text-orange" : "text-slate-brand"
                           }`}
                           aria-hidden="true"
                         />
@@ -401,7 +395,7 @@ export default function InformasiClient({ initialArticles, categories }: Props) 
   )
 }
 
-/* ── FAQ — pertanyaan yang benar-benar ditanyakan klien ─────────────────── */
+/* ── FAQ: pertanyaan yang benar-benar ditanyakan klien ─────────────────── */
 const FAQ_LIST = [
   {
     q: "Bagaimana alur memulai pekerjaan di SAYBA ARC?",
@@ -444,13 +438,13 @@ function FilterChip({
       aria-pressed={active}
       className={`shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold border transition-colors ${
         active
-          ? "bg-carbon text-platinum border-carbon"
-          : "bg-white text-slate-brand border-platinum-line hover:border-steel hover:text-carbon"
+          ? "bg-navy text-ice border-navy"
+          : "bg-white text-slate-brand border-ice-line hover:border-orange hover:text-navy"
       }`}
     >
       {label}
       <span
-        className={`text-[11px] tabular-nums ${active ? "text-platinum/70" : "text-slate-brand"}`}
+        className={`text-[11px] tabular-nums ${active ? "text-ice/70" : "text-slate-brand"}`}
       >
         {count}
       </span>
@@ -463,13 +457,13 @@ function DocumentCard({ article, cat }: { article: Informasi; cat: KategoriItem 
   return (
     <Link
       href={`/informasi/${article.slug}`}
-      className="group flex flex-col h-full bg-white rounded-2xl border border-platinum-line overflow-hidden hover:border-steel hover:shadow-lg transition-all duration-200"
+      className="group flex flex-col h-full bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-lg transition-all duration-200"
     >
       <span className="block h-1 w-full" style={{ backgroundColor: cat.color }} aria-hidden="true" />
 
       <span className="flex flex-col flex-1 p-5">
         <span className="flex items-center justify-between gap-2 mb-3">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-brand">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-orange-text">
             <CategoryIcon slug={article.category} className="w-3.5 h-3.5" />
             {cat.label}
           </span>
@@ -479,7 +473,7 @@ function DocumentCard({ article, cat }: { article: Informasi; cat: KategoriItem 
           </span>
         </span>
 
-        <span className="block text-[15px] font-bold text-carbon leading-snug mb-2 line-clamp-2 group-hover:text-slate-brand transition-colors">
+        <span className="block text-[15px] font-bold text-navy leading-snug mb-2 line-clamp-2 group-hover:text-orange-text transition-colors">
           {article.title}
         </span>
 
@@ -489,7 +483,7 @@ function DocumentCard({ article, cat }: { article: Informasi; cat: KategoriItem 
           </span>
         )}
 
-        <span className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-platinum-line">
+        <span className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-ice-line">
           <span className="text-[11px] text-slate-brand">
             {formatInformasiDate(article.published_at)}
           </span>

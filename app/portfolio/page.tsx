@@ -10,11 +10,11 @@ import type { Portfolio } from "@/lib/database.types"
 import { ArrowRight } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: `Portofolio — ${siteConfig.name}`,
+  title: `Portofolio: ${siteConfig.name}`,
   description: "Portofolio proyek GIS dan IT dari SAYBA ARC.",
   alternates: { canonical: `${siteConfig.url}/portfolio` },
   openGraph: {
-    title: `Portofolio — ${siteConfig.name}`,
+    title: `Portofolio: ${siteConfig.name}`,
     description: "Portofolio proyek GIS dan IT dari SAYBA ARC.",
     url: `${siteConfig.url}/portfolio`,
     type: "website",
@@ -99,7 +99,7 @@ export default async function PortfolioPage() {
               <p className="text-black/40 text-[12px] mb-3">Tertarik dengan proyek serupa?</p>
               <Link
                 href="/contact"
-                className="inline-block px-5 py-2.5 rounded-xl font-semibold bg-carbon text-platinum hover:bg-steel hover:text-carbon transition-all duration-200 text-[13px]"
+                className="inline-block px-5 py-2.5 rounded-xl font-semibold bg-navy text-ice hover:bg-orange hover:text-navy transition-all duration-200 text-[13px]"
               >
                 Diskusikan Proyek Anda
               </Link>
@@ -131,7 +131,7 @@ function PortfolioCard({ item, thumbnail, dept, hexToRgba }: {
         "--dept-color-08": hexToRgba(color, 0.08),
       } as React.CSSProperties}
     >
-      {/* Thumbnail — hard-capped height */}
+      {/* Thumbnail: hard-capped height */}
       <div
         className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "180px" }}
       >
@@ -166,7 +166,7 @@ function PortfolioCard({ item, thumbnail, dept, hexToRgba }: {
         <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: color }} />
       </div>
 
-      {/* Content — hard-capped at remaining 130px, clipped */}
+      {/* Content: hard-capped at remaining 130px, clipped */}
       <div
         className="flex flex-col p-4 flex-1"
       >

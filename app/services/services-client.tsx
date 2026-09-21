@@ -8,6 +8,7 @@ import CuttingBoardBackground from "@/components/cutting-board-bg"
 import type { Layanan } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
 import { getDeptColor } from "@/lib/layanan-config"
+import type { KategoriItem } from "@/lib/kategori"
 
 /** Link Google Drive → proxy gambar lokal, sama seperti berita/informasi */
 function gdriveToImg(url: string | null): string | null {
@@ -23,11 +24,26 @@ function gdriveToImg(url: string | null): string | null {
 interface Props {
   allLayanan: Layanan[]
   depts: LayananDept[]
+  /** Kategori dari tabel `kategori` (scope "layanan") */
+  kategori: KategoriItem[]
 }
 
-export default function ServicesClient({ allLayanan, depts }: Props) {
+export default function ServicesClient({ allLayanan, depts, kategori }: Props) {
   const [activeDept, setActiveDept] = useState<string>("semua")
   const [query, setQuery] = useState("")
+
+  // Peta slug kategori ke label, supaya kartu menampilkan label yang Anda
+  // atur di admin, bukan slug mentah.
+  const kategoriMap = useMemo(() => {
+    const m = new Map<string, KategoriItem>()
+    kategori.forEach((k) => m.set(k.slug.toLowerCase(), k))
+    return m
+  }, [kategori])
+
+  const labelKategori = (slug: string | null): string | null => {
+    if (!slug) return null
+    return kategoriMap.get(slug.toLowerCase())?.label ?? slug
+  }
 
   // Hanya tampilkan departemen yang benar-benar punya layanan aktif
   const usedDepts = useMemo(() => {
@@ -43,7 +59,8 @@ export default function ServicesClient({ allLayanan, depts }: Props) {
       return (
         l.title.toLowerCase().includes(q) ||
         (l.description ?? "").toLowerCase().includes(q) ||
-        (l.category ?? "").toLowerCase().includes(q)
+        (l.category ?? "").toLowerCase().includes(q) ||
+        (labelKategori(l.category) ?? "").toLowerCase().includes(q)
       )
     })
   }, [allLayanan, activeDept, query])
@@ -61,18 +78,18 @@ export default function ServicesClient({ allLayanan, depts }: Props) {
 
   return (
     <>
-      {/* ══ HERO — pita gelap dengan kisi meja potong ══ */}
-      <section className="relative bg-carbon overflow-hidden">
+      {/* ══ HERO: pita gelap dengan kisi meja potong ══ */}
+      <section className="relative bg-navy overflow-hidden">
         <CuttingBoardBackground tone="dark" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-[100px] pb-14 md:pt-36 md:pb-20">
-          <p className="animate-fade-in stagger-1 text-[12px] font-medium text-steel mb-4">
+          <p className="animate-fade-in stagger-1 text-[12px] font-medium text-orange mb-4">
             Layanan
           </p>
-          <h1 className="animate-blur-in stagger-2 text-[28px] leading-[1.15] sm:text-4xl lg:text-[44px] font-bold text-platinum tracking-tight mb-4 max-w-3xl">
+          <h1 className="animate-blur-in stagger-2 text-[28px] leading-[1.15] sm:text-4xl lg:text-[44px] font-bold text-ice tracking-tight mb-4 max-w-3xl">
             Dua Departemen, Lingkup Kerja yang Jelas
           </h1>
-          <p className="animate-fade-in-up stagger-3 text-[14px] md:text-lg text-steel leading-relaxed max-w-2xl">
+          <p className="animate-fade-in-up stagger-3 text-[14px] md:text-lg text-ice/75 leading-relaxed max-w-2xl">
             Pilih bidang yang Anda butuhkan. Kalau pekerjaannya mencakup keduanya, satu tim kami yang
             menangani.
           </p>
@@ -80,7 +97,7 @@ export default function ServicesClient({ allLayanan, depts }: Props) {
       </section>
 
       {/* ══ DAFTAR LAYANAN ══ */}
-      <section className="relative z-10 -mt-6 md:-mt-10 rounded-t-[28px] md:rounded-t-[40px] bg-platinum pb-14 md:pb-24">
+      <section className="relative z-10 -mt-6 md:-mt-10 rounded-t-[28px] md:rounded-t-[40px] bg-ice pb-14 md:pb-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-14">
 
           {/* ── Filter departemen + pencarian ── */}
@@ -103,7 +120,7 @@ export default function ServicesClient({ allLayanan, depts }: Props) {
 
             <div className="relative md:w-72 shrink-0">
               <Search
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-brand pointer-events-none"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/65 pointer-events-none"
                 aria-hidden="true"
               />
               <input
@@ -112,7 +129,7 @@ export default function ServicesClient({ allLayanan, depts }: Props) {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Cari layanan…"
                 aria-label="Cari layanan"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-platinum-line bg-white text-[14px] text-carbon placeholder:text-slate-brand/90 outline-none focus:border-steel focus:ring-2 focus:ring-steel/25 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-ice-line bg-white text-[14px] text-ink placeholder:text-ink/70 outline-none focus:border-orange focus:ring-2 focus:ring-orange/25 transition-all"
               />
             </div>
           </div>
@@ -120,7 +137,7 @@ export default function ServicesClient({ allLayanan, depts }: Props) {
           {/* ── Kosong ── */}
           {grouped.length === 0 && (
             <div className="py-16 text-center">
-              <h2 className="text-[16px] font-bold text-carbon mb-1.5">
+              <h2 className="text-[16px] font-bold text-navy mb-1.5">
                 {query ? "Tidak ada layanan yang cocok" : "Belum ada layanan tersedia"}
               </h2>
               <p className="text-[14px] text-slate-brand max-w-md mx-auto mb-5">
@@ -132,7 +149,7 @@ export default function ServicesClient({ allLayanan, depts }: Props) {
                 <button
                   type="button"
                   onClick={() => setQuery("")}
-                  className="px-5 py-2.5 rounded-xl bg-carbon text-platinum text-[13px] font-semibold hover:bg-carbon-800 transition-colors"
+                  className="px-5 py-2.5 rounded-xl bg-navy text-ice text-[13px] font-semibold hover:bg-navy-700 transition-colors"
                 >
                   Tampilkan semua layanan
                 </button>
@@ -144,9 +161,9 @@ export default function ServicesClient({ allLayanan, depts }: Props) {
           {grouped.map(({ dept, items }, gi) => (
             <section key={dept?.value ?? gi} className="mb-12 md:mb-16 last:mb-0">
               {/* Judul departemen */}
-              <div className="flex items-baseline justify-between gap-3 mb-5 pb-3 border-b border-platinum-line">
+              <div className="flex items-baseline justify-between gap-3 mb-5 pb-3 border-b border-ice-line">
                 <div>
-                  <h2 className="text-[18px] md:text-2xl font-bold text-carbon">
+                  <h2 className="text-[18px] md:text-2xl font-bold text-navy">
                     {dept?.label ?? "Layanan"}
                   </h2>
                   {dept?.description && (
@@ -166,7 +183,7 @@ export default function ServicesClient({ allLayanan, depts }: Props) {
                   {dept.scope.map((s) => (
                     <li
                       key={s}
-                      className="text-[11px] text-slate-brand bg-white border border-platinum-line px-2.5 py-1 rounded-lg"
+                      className="text-[11px] text-slate-brand bg-white border border-ice-line px-2.5 py-1 rounded-lg"
                     >
                       {s}
                     </li>
@@ -178,7 +195,7 @@ export default function ServicesClient({ allLayanan, depts }: Props) {
               <div className="space-y-3 md:space-y-4">
                 {items.map((item, i) => (
                   <PageTransition key={item.id} delay={Math.min(i, 6) * 60}>
-                    <ServiceRow item={item} accent={getDeptColor(item.dept)} />
+                    <ServiceRow item={item} accent={getDeptColor(item.dept)} categoryLabel={labelKategori(item.category)} />
                   </PageTransition>
                 ))}
               </div>
@@ -187,21 +204,21 @@ export default function ServicesClient({ allLayanan, depts }: Props) {
 
           {/* ── Ajakan ── */}
           <div className="mt-14 md:mt-20">
-            <div className="relative bg-carbon rounded-2xl md:rounded-3xl overflow-hidden p-6 md:p-10">
+            <div className="relative bg-navy rounded-2xl md:rounded-3xl overflow-hidden p-6 md:p-10">
               <CuttingBoardBackground tone="dark" />
               <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
                 <div className="max-w-xl">
-                  <h2 className="text-[18px] md:text-2xl font-bold text-platinum mb-2">
+                  <h2 className="text-[18px] md:text-2xl font-bold text-ice mb-2">
                     Lingkupnya belum jelas?
                   </h2>
-                  <p className="text-steel text-[14px] md:text-[15px] leading-relaxed">
+                  <p className="text-ice/75 text-[14px] md:text-[15px] leading-relaxed">
                     Ceritakan kondisi yang Anda hadapi. Kami bantu petakan kebutuhan teknisnya dan
                     langkah pertama yang perlu disiapkan.
                   </p>
                 </div>
                 <Link
                   href="/contact"
-                  className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-powder text-carbon text-[14px] font-semibold hover:bg-white transition-colors"
+                  className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-orange text-navy text-[14px] font-bold hover:bg-orange-soft transition-colors"
                 >
                   Diskusikan Kebutuhan
                   <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -232,8 +249,8 @@ function FilterChip({
       aria-pressed={active}
       className={`shrink-0 px-5 py-2.5 rounded-xl text-[13px] font-semibold border transition-colors ${
         active
-          ? "bg-carbon text-platinum border-carbon"
-          : "bg-white text-slate-brand border-platinum-line hover:border-steel hover:text-carbon"
+          ? "bg-navy text-ice border-navy"
+          : "bg-white text-slate-brand border-ice-line hover:border-orange hover:text-navy"
       }`}
     >
       {label}
@@ -242,16 +259,24 @@ function FilterChip({
 }
 
 /* ── Kartu layanan memanjang: foto 1:1 kiri + isi kanan ─────────────────── */
-function ServiceRow({ item, accent }: { item: Layanan; accent: string }) {
+function ServiceRow({
+  item,
+  accent,
+  categoryLabel,
+}: {
+  item: Layanan
+  accent: string
+  categoryLabel: string | null
+}) {
   const img = gdriveToImg(item.image_url)
 
   return (
     <Link
       href={`/services/${item.slug}`}
-      className="group flex flex-col sm:flex-row bg-white rounded-2xl border border-platinum-line overflow-hidden hover:border-steel hover:shadow-lg transition-all duration-200"
+      className="group flex flex-col sm:flex-row bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-lg transition-all duration-200"
     >
-      {/* Foto 1:1 — rasio persegi di kiri */}
-      <div className="relative w-full sm:w-40 md:w-44 aspect-square shrink-0 bg-platinum-dim overflow-hidden">
+      {/* Foto 1:1: rasio persegi di kiri */}
+      <div className="relative w-full sm:w-40 md:w-44 aspect-square shrink-0 bg-ice-dim overflow-hidden">
         {img ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -262,7 +287,7 @@ function ServiceRow({ item, accent }: { item: Layanan; accent: string }) {
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <ImageIcon className="w-7 h-7 text-slate-brand/75" aria-hidden="true" />
+            <ImageIcon className="w-7 h-7 text-slate-brand" aria-hidden="true" />
           </div>
         )}
       </div>
@@ -270,26 +295,26 @@ function ServiceRow({ item, accent }: { item: Layanan; accent: string }) {
       {/* Isi */}
       <div className="flex flex-col flex-1 min-w-0 p-5 md:p-6">
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="text-[16px] md:text-[17px] font-bold text-carbon leading-snug group-hover:text-slate-brand transition-colors">
+          <h3 className="text-[16px] md:text-[17px] font-bold text-navy leading-snug group-hover:text-orange-text transition-colors">
             {item.title}
           </h3>
-          {item.category && (
+          {categoryLabel && (
             <span
-              className="shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md border"
+              className="shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md border text-navy"
               style={{ borderColor: `${accent}99`, backgroundColor: `${accent}14` }}
             >
-              {item.category}
+              {categoryLabel}
             </span>
           )}
         </div>
 
         {item.description && (
-          <p className="text-[14px] text-slate-brand leading-relaxed line-clamp-2 md:line-clamp-3 mb-4">
+          <p className="text-[13.5px] text-slate-brand leading-relaxed line-clamp-2 md:line-clamp-3 mb-4">
             {item.description}
           </p>
         )}
 
-        <span className="mt-auto inline-flex items-center gap-1.5 text-[13px] font-semibold text-carbon">
+        <span className="mt-auto inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-navy">
           Lihat detail
           <ArrowRight
             className="w-4 h-4 group-hover:translate-x-1 transition-transform"

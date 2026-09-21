@@ -1,4 +1,4 @@
-// Shared helper — verifies the caller has an active admin session.
+// Shared helper: verifies the caller has an active admin session.
 // Use this at the top of every admin API route handler.
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"

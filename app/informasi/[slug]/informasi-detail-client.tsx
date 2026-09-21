@@ -20,12 +20,7 @@ import {
 import PageTransition from "@/components/page-transition"
 import type { Informasi } from "@/lib/database.types"
 import { formatInformasiDate } from "@/lib/informasi-data"
-
-export interface KategoriItem {
-  slug: string
-  label: string
-  color: string
-}
+import { resolveKategori, type KategoriItem } from "@/lib/kategori"
 
 interface Props {
   article: Informasi
@@ -33,34 +28,29 @@ interface Props {
   related: Informasi[]
   heroImg: string | null
   /**
-   * Kategori dari tabel `informasi_kategori` (dikelola lewat Admin Dashboard).
-   * Opsional: bila tidak dikirim, label memakai slug apa adanya dan warna
-   * memakai aksen netral (steel).
+   * Kategori dari tabel `kategori` (scope "informasi"), dikelola lewat Admin
+   * Dashboard. Bila tidak dikirim, label memakai slug apa adanya dan warna
+   * memakai aksen netral.
    */
   categories?: KategoriItem[]
 }
 
-/* ── Palet (DESIGN.md) ─────────────────────────────────────────────────────
- * carbon      #1c2321  teks utama / latar gelap
- * steel       #5e6572  aksen & teks sekunder — 5.9:1 di atas putih (WCAG AA)
- * powder      #c3cdd9  aksen terang di atas latar gelap
- * platinum    #f5f7f9  latar terang
- * carbon-800  #262f2c  permukaan terangkat di atas carbon
+/* ── Palet (DESIGN.md, Executive Navy) ───────────────────────────────────
+ * navy        #112a46  latar gelap, judul, blok penting
+ * navy-800    #16345a  permukaan terangkat di atas navy
+ * orange      #f07a26  AKSEN saja (garis, tombol di latar gelap), maks 10%
+ * orange-text #b45610  orange sebagai TEKS di latar terang: 4.53:1 di ice
+ * slate       #5a5c62  teks sekunder di latar terang, 6.17:1 di ice
+ * ice         #f4f6f9  latar terang utama
+ * ice-line    #d8e0ea  garis pemisah di latar terang
  * ------------------------------------------------------------------------ */
-const ACCENT = "#5e6572"    // Blue Slate  — teks sekunder, 5.2:1 di platinum
-const CARBON = "#1c2321"
-const POWDER = "#a9b4c2"    // Powder Blue — aksen terang di latar gelap, 7.6:1
-const PLATINUM = "#eef1ef"  // Platinum    — latar terang utama
-const CARBON_800 = "#242c29" // permukaan terangkat di atas carbon
-const LINE = "#d3dad6"      // garis pemisah di latar terang
-
-/** Label & warna kategori dari prop; fallback netral bila belum tersedia. */
-function resolveCategory(slug: string, categories?: KategoriItem[]): { label: string; color: string } {
-  const found = categories?.find(
-    (c) => c.slug === slug || c.label.toLowerCase() === slug.toLowerCase()
-  )
-  return { label: found?.label ?? slug, color: found?.color ?? ACCENT }
-}
+const NAVY = "#112a46"
+const NAVY_800 = "#16345a"
+const ORANGE = "#f07a26"
+const ORANGE_TEXT = "#b45610"
+const SLATE = "#5a5c62"
+const ICE = "#f4f6f9"
+const ICE_LINE = "#d8e0ea"
 
 /* ── Pemecahan isi menjadi seksi per sub-judul ───────────────────────────── */
 interface Section {
@@ -90,7 +80,7 @@ function renderInline(text: string): React.ReactNode[] {
   return parts.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       return (
-        <strong key={i} className="font-bold" style={{ color: CARBON }}>
+        <strong key={i} className="font-bold" style={{ color: NAVY }}>
           {part.slice(2, -2)}
         </strong>
       )
@@ -104,11 +94,10 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
   const [progress, setProgress] = useState(0)
   const [activeHeading, setActiveHeading] = useState<string | null>(null)
 
-  const { label: catLabel, color: catColor } = resolveCategory(article.category, categories)
-  // Warna kategori dipakai HANYA untuk chip/badge identitas (latar bertint),
-  // bukan untuk teks panjang. Semua teks aksen di latar terang memakai steel
-  // (ACCENT, #5e6572) supaya dijamin lolos WCAG AA — 5.9:1 di atas putih.
-  const accent = ACCENT
+  // Label & warna kategori dari tabel `kategori`; fallback netral bila kosong.
+  const cat = resolveKategori(article.category, categories ?? [])
+  const catLabel = cat.label
+  const catColor = cat.color
 
   const sections = useMemo(() => groupSections(blocks), [blocks])
   const toc = useMemo(
@@ -128,7 +117,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
-  // Sorot sub-judul yang sedang terlihat — hanya mengubah WARNA, bukan ukuran huruf.
+  // Sorot sub-judul yang sedang terlihat, hanya mengubah WARNA, bukan ukuran huruf.
   useEffect(() => {
     if (toc.length === 0) return
     const headings = Array.from(document.querySelectorAll("[data-info-heading]"))
@@ -152,7 +141,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      /* diabaikan — clipboard bisa diblokir browser */
+      /* diabaikan, clipboard bisa diblokir browser */
     }
   }
 
@@ -168,7 +157,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
 
   return (
     <>
-      {/* Bilah kemajuan baca */}
+      {/* Bilah kemajuan baca: memakai warna kategori sebagai aksen tipis */}
       <div className="fixed top-0 left-0 right-0 h-0.5 z-[60] pointer-events-none">
         <div
           className="h-full transition-[width] duration-150 ease-out"
@@ -176,68 +165,67 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
         />
       </div>
 
-      {/* ══ HERO — pita terang, beda dari banner halaman lain ══ */}
-      <section className="relative overflow-hidden border-b" style={{ backgroundColor: PLATINUM, borderColor: LINE }}>
+      {/* ══ HERO: pita terang, beda dari banner halaman lain ══ */}
+      <section className="relative overflow-hidden border-b" style={{ backgroundColor: ICE, borderColor: ICE_LINE }}>
         <div
           className="absolute inset-0 opacity-[0.5] pointer-events-none"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(94,101,114,0.10) 1px, transparent 1px), linear-gradient(90deg, rgba(94,101,114,0.10) 1px, transparent 1px)",
+              "linear-gradient(rgba(17,42,70,0.10) 1px, transparent 1px), linear-gradient(90deg, rgba(17,42,70,0.10) 1px, transparent 1px)",
             backgroundSize: "48px 48px",
           }}
-        />
-        <div
-          className="absolute -top-24 right-0 w-80 h-80 rounded-full pointer-events-none opacity-[0.10] blur-3xl"
-          style={{ backgroundColor: accent }}
         />
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-[92px] pb-10 md:pt-32 md:pb-16">
           <PageTransition>
             {/* Breadcrumb */}
-            <nav className="flex items-center gap-1.5 text-[11.5px] mb-5 flex-wrap" style={{ color: ACCENT }} aria-label="Breadcrumb">
-              <Link href="/" className="hover:opacity-80 transition-opacity">Beranda</Link>
+            <nav className="flex items-center gap-1.5 text-[11.5px] mb-5 flex-wrap" style={{ color: SLATE }} aria-label="Breadcrumb">
+              <Link href="/" className="hover:text-navy transition-colors">Beranda</Link>
               <ChevronRight className="w-3 h-3 opacity-50" aria-hidden="true" />
-              <Link href="/informasi" className="hover:opacity-80 transition-opacity">Informasi</Link>
+              <Link href="/informasi" className="hover:text-navy transition-colors">Informasi</Link>
               <ChevronRight className="w-3 h-3 opacity-50" aria-hidden="true" />
-              <span className="truncate max-w-[260px] font-medium" style={{ color: CARBON }}>{article.title}</span>
+              <span className="truncate max-w-[260px] font-medium" style={{ color: NAVY }}>{article.title}</span>
             </nav>
 
             <div className="flex items-center flex-wrap gap-2.5 mb-4">
+              {/* Chip kategori: tint warna kategori + teks navy supaya selalu lolos
+                  WCAG AA apa pun warna yang dipilih admin di database. */}
               <span
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold uppercase tracking-wider"
-                style={{ backgroundColor: `${catColor}1f`, color: catColor }}
+                style={{ backgroundColor: `${catColor}1f`, color: NAVY }}
               >
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: catColor }} aria-hidden="true" />
                 {catLabel}
               </span>
-              <span className="inline-flex items-center gap-1.5 text-[11.5px]" style={{ color: ACCENT }}>
+              <span className="inline-flex items-center gap-1.5 text-[11.5px]" style={{ color: SLATE }}>
                 <Clock className="w-3 h-3" aria-hidden="true" />
                 {article.read_minutes} menit baca
               </span>
-              <span aria-hidden="true" style={{ color: ACCENT }} className="opacity-50">·</span>
-              <span className="text-[11.5px]" style={{ color: ACCENT }}>{formatInformasiDate(article.published_at)}</span>
+              <span aria-hidden="true" style={{ color: SLATE }} className="opacity-50">·</span>
+              <span className="text-[11.5px]" style={{ color: SLATE }}>{formatInformasiDate(article.published_at)}</span>
             </div>
 
-            <h1 className="text-[24px] md:text-[40px] font-black leading-[1.18] tracking-tight mb-4" style={{ color: CARBON }}>
+            <h1 className="text-[24px] md:text-[40px] font-black leading-[1.18] tracking-tight mb-4" style={{ color: NAVY }}>
               {article.title}
             </h1>
 
             {article.excerpt && (
-              <p className="text-[14px] md:text-[16px] leading-[1.75] mb-6 max-w-[68ch]" style={{ color: ACCENT }}>
+              <p className="text-[14px] md:text-[16px] leading-[1.75] mb-6 max-w-[68ch]" style={{ color: SLATE }}>
                 {article.excerpt}
               </p>
             )}
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-5 border-t" style={{ borderColor: LINE }}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-5 border-t" style={{ borderColor: ICE_LINE }}>
               <div className="flex items-center gap-3">
                 <div
                   className="w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-black shrink-0"
-                  style={{ backgroundColor: accent, color: "#ffffff" }}
+                  style={{ backgroundColor: NAVY, color: ICE }}
                 >
                   {article.author.charAt(0)}
                 </div>
                 <div>
-                  <div className="text-[13px] font-bold leading-tight" style={{ color: CARBON }}>{article.author}</div>
-                  <div className="text-[11px] inline-flex items-center gap-1.5 mt-0.5" style={{ color: ACCENT }}>
+                  <div className="text-[13px] font-bold leading-tight" style={{ color: NAVY }}>{article.author}</div>
+                  <div className="text-[11px] inline-flex items-center gap-1.5 mt-0.5" style={{ color: SLATE }}>
                     <Eye className="w-3 h-3" aria-hidden="true" />
                     {article.views.toLocaleString("id-ID")} kali dibaca
                   </div>
@@ -248,8 +236,8 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                 <button
                   type="button"
                   onClick={copyLink}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border text-[12px] font-semibold transition-colors hover:opacity-80"
-                  style={{ borderColor: LINE, color: ACCENT }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border text-[12px] font-semibold transition-colors hover:border-orange hover:text-orange-text"
+                  style={{ borderColor: ICE_LINE, color: SLATE }}
                 >
                   {copied ? (
                     <>
@@ -265,8 +253,8 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                 </button>
                 <Link
                   href="/informasi"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-white text-[12px] font-semibold transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: CARBON }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-ice text-[12px] font-semibold transition-colors hover:bg-navy-700"
+                  style={{ backgroundColor: NAVY }}
                 >
                   <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Semua Informasi</span>
@@ -285,7 +273,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
             {/* ── Kiri: isi dokumen ── */}
             <div className="lg:col-span-8 min-w-0">
               {heroImg && (
-                <figure className="relative aspect-[16/9] rounded-2xl overflow-hidden border mb-8 md:mb-10 shadow-sm" style={{ borderColor: LINE }}>
+                <figure className="relative aspect-[16/9] rounded-2xl overflow-hidden border mb-8 md:mb-10 shadow-sm" style={{ borderColor: ICE_LINE }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={heroImg} alt={article.title} className="absolute inset-0 w-full h-full object-cover" />
                 </figure>
@@ -303,9 +291,9 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                           style={{
                             // Penanda aktif: warna teks + border kiri berubah.
                             // Ukuran huruf TIDAK berubah saat aktif.
-                            color: isActive ? accent : CARBON,
-                            borderColor: LINE,
-                            borderLeft: isActive ? `3px solid ${ACCENT}` : "3px solid transparent",
+                            color: isActive ? ORANGE_TEXT : NAVY,
+                            borderColor: ICE_LINE,
+                            borderLeft: isActive ? `3px solid ${ORANGE}` : "3px solid transparent",
                             paddingLeft: "12px",
                           }}
                         >
@@ -319,21 +307,18 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                           lines.length > 1 &&
                           lines.every((l) => l.trim().startsWith("- ") || l.trim().startsWith("* "))
 
-                        // Paragraf pada seksi aktif berubah WARNA (bukan ukuran huruf).
-                        const textColor = isActive ? accent : CARBON
-
                         if (isList) {
                           return (
                             <ul key={bi} className="space-y-2.5 my-5 pl-1 max-w-[70ch]">
                               {lines.map((l, li) => (
                                 <li
                                   key={li}
-                                  className="flex items-start gap-2.5 text-[15px] md:text-[16px] leading-[1.75] transition-colors duration-200"
-                                  style={{ color: textColor }}
+                                  className="flex items-start gap-2.5 text-[15px] md:text-[16px] leading-[1.75]"
+                                  style={{ color: NAVY }}
                                 >
                                   <span
                                     className="mt-2.5 w-1.5 h-1.5 rounded-full shrink-0"
-                                    style={{ backgroundColor: isActive ? ACCENT : LINE }}
+                                    style={{ backgroundColor: isActive ? ORANGE : ICE_LINE }}
                                     aria-hidden="true"
                                   />
                                   <span>{renderInline(l.trim().replace(/^[-*]\s*/, ""))}</span>
@@ -346,8 +331,8 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                         return (
                           <p
                             key={bi}
-                            className="text-[15px] md:text-[16px] leading-[1.75] my-4 whitespace-pre-line max-w-[70ch] transition-colors duration-200"
-                            style={{ color: textColor }}
+                            className="text-[15px] md:text-[16px] leading-[1.75] my-4 whitespace-pre-line max-w-[70ch]"
+                            style={{ color: NAVY }}
                           >
                             {renderInline(block)}
                           </p>
@@ -359,13 +344,13 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
               </article>
 
               {article.tags && article.tags.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 mt-9 pt-6 border-t" style={{ borderColor: LINE }}>
-                  <Tag className="w-3.5 h-3.5" style={{ color: ACCENT }} aria-hidden="true" />
+                <div className="flex flex-wrap items-center gap-2 mt-9 pt-6 border-t" style={{ borderColor: ICE_LINE }}>
+                  <Tag className="w-3.5 h-3.5" style={{ color: SLATE }} aria-hidden="true" />
                   {article.tags.map((tag) => (
                     <span
                       key={tag}
                       className="px-3 py-1 rounded-full text-[11px] font-semibold"
-                      style={{ backgroundColor: PLATINUM, color: ACCENT }}
+                      style={{ backgroundColor: ICE, color: SLATE }}
                     >
                       #{tag}
                     </span>
@@ -374,18 +359,18 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
               )}
 
               {/* CTA */}
-              <div className="mt-9 rounded-2xl p-6 md:p-8 relative overflow-hidden" style={{ backgroundColor: CARBON }}>
-                <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: POWDER }} />
-                <div className="absolute -top-16 right-0 w-56 h-56 rounded-full opacity-[0.12] blur-3xl pointer-events-none" style={{ backgroundColor: POWDER }} />
+              <div className="mt-9 rounded-2xl p-6 md:p-8 relative overflow-hidden" style={{ backgroundColor: NAVY }}>
+                <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: ORANGE }} />
+                <div className="absolute -top-16 right-0 w-56 h-56 rounded-full opacity-[0.12] blur-3xl pointer-events-none" style={{ backgroundColor: ORANGE }} />
 
                 <div className="relative z-10">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: "rgba(195,205,217,0.15)", border: "1px solid rgba(195,205,217,0.3)" }}>
-                    <MessageSquare className="w-5 h-5" style={{ color: POWDER }} aria-hidden="true" />
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: "rgba(240,122,38,0.15)", border: "1px solid rgba(240,122,38,0.3)" }}>
+                    <MessageSquare className="w-5 h-5" style={{ color: ORANGE }} aria-hidden="true" />
                   </div>
-                  <h3 className="text-[18px] md:text-2xl font-black mb-2" style={{ color: "#ffffff" }}>
+                  <h3 className="text-[18px] md:text-2xl font-black mb-2" style={{ color: ICE }}>
                     Ada pertanyaan tentang dokumen ini?
                   </h3>
-                  <p className="text-[13px] md:text-[15px] leading-relaxed mb-5 max-w-lg" style={{ color: POWDER }}>
+                  <p className="text-[13px] md:text-[15px] leading-relaxed mb-5 max-w-lg" style={{ color: "rgba(244,246,249,0.75)" }}>
                     Tim teknis SAYBA ARC siap menjelaskan detail standar, alur kerja, atau kebutuhan khusus
                     instansi Anda.
                   </p>
@@ -397,15 +382,15 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-bold transition-opacity hover:opacity-90"
-                      style={{ backgroundColor: POWDER, color: CARBON }}
+                      style={{ backgroundColor: ORANGE, color: NAVY }}
                     >
                       Tanya via WhatsApp
                       <ArrowRight className="w-4 h-4" aria-hidden="true" />
                     </a>
                     <Link
                       href="/contact"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-colors"
-                      style={{ backgroundColor: CARBON_800, color: POWDER, border: "1px solid rgba(195,205,217,0.2)" }}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-colors hover:bg-navy-700"
+                      style={{ backgroundColor: NAVY_800, color: ICE, border: "1px solid rgba(244,246,249,0.2)" }}
                     >
                       Halaman Kontak
                     </Link>
@@ -419,10 +404,10 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
               <div className="lg:sticky lg:top-28 space-y-4">
 
                 {toc.length > 0 && (
-                  <div className="rounded-2xl border p-5" style={{ backgroundColor: PLATINUM, borderColor: LINE }}>
+                  <div className="rounded-2xl border p-5" style={{ backgroundColor: ICE, borderColor: ICE_LINE }}>
                     <div className="flex items-center gap-2 mb-3.5">
-                      <ListOrdered className="w-4 h-4" style={{ color: ACCENT }} aria-hidden="true" />
-                      <h3 className="text-[13px] font-black" style={{ color: CARBON }}>Daftar Isi</h3>
+                      <ListOrdered className="w-4 h-4" style={{ color: SLATE }} aria-hidden="true" />
+                      <h3 className="text-[13px] font-black" style={{ color: NAVY }}>Daftar Isi</h3>
                     </div>
                     <nav className="space-y-0.5">
                       {toc.map((h, i) => {
@@ -435,14 +420,12 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                             aria-current={active ? "true" : undefined}
                             className="block w-full text-left text-[12.5px] leading-snug py-1.5 pl-3 border-l-2 transition-colors duration-200"
                             style={{
-                              // Item aktif → WARNA teks berubah ke aksen; ukuran huruf tetap.
-                              // Item aktif → hanya WARNA yang berubah: teks jadi Carbon
-                              // dan latar diberi tint warna kategori. Ukuran serta
-                              // ketebalan huruf sengaja tetap supaya tata letak tidak
-                              // bergeser saat pengguna menelusuri daftar isi.
-                              borderColor: active ? ACCENT : LINE,
-                              color: active ? CARBON : ACCENT,
-                              backgroundColor: active ? `${catColor}26` : "transparent",
+                              // Item aktif → WARNA yang berubah (teks navy + penanda
+                              // orange + tint kategori). Ukuran & ketebalan huruf tetap
+                              // supaya tata letak tidak bergeser saat menelusuri isi.
+                              borderColor: active ? ORANGE : ICE_LINE,
+                              color: active ? NAVY : SLATE,
+                              backgroundColor: active ? `${catColor}1f` : "transparent",
                             }}
                           >
                             {h}
@@ -453,10 +436,10 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                   </div>
                 )}
 
-                <div className="rounded-2xl border p-5" style={{ backgroundColor: PLATINUM, borderColor: LINE }}>
+                <div className="rounded-2xl border p-5" style={{ backgroundColor: ICE, borderColor: ICE_LINE }}>
                   <div className="flex items-center gap-2 mb-3.5">
-                    <BookOpen className="w-4 h-4" style={{ color: ACCENT }} aria-hidden="true" />
-                    <h3 className="text-[13px] font-black" style={{ color: CARBON }}>Detail Dokumen</h3>
+                    <BookOpen className="w-4 h-4" style={{ color: SLATE }} aria-hidden="true" />
+                    <h3 className="text-[13px] font-black" style={{ color: NAVY }}>Detail Dokumen</h3>
                   </div>
                   <dl className="space-y-2.5 text-[12px]">
                     {[
@@ -467,8 +450,8 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                       { k: "Dibaca", v: `${article.views.toLocaleString("id-ID")}x` },
                     ].map((row) => (
                       <div key={row.k} className="flex items-start justify-between gap-3">
-                        <dt style={{ color: ACCENT }}>{row.k}</dt>
-                        <dd className="font-semibold text-right" style={{ color: CARBON }}>{row.v}</dd>
+                        <dt style={{ color: SLATE }}>{row.k}</dt>
+                        <dd className="font-semibold text-right" style={{ color: NAVY }}>{row.v}</dd>
                       </div>
                     ))}
                   </dl>
@@ -476,8 +459,8 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                   <button
                     type="button"
                     onClick={copyLink}
-                    className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border text-[12px] font-semibold transition-colors hover:opacity-80"
-                    style={{ borderColor: LINE, color: ACCENT }}
+                    className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border text-[12px] font-semibold transition-colors hover:border-orange hover:text-orange-text"
+                    style={{ borderColor: ICE_LINE, color: SLATE }}
                   >
                     {copied ? (
                       <>
@@ -494,14 +477,14 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                 </div>
 
                 {related.length > 0 && (
-                  <div className="rounded-2xl border p-5" style={{ backgroundColor: PLATINUM, borderColor: LINE }}>
+                  <div className="rounded-2xl border p-5" style={{ backgroundColor: ICE, borderColor: ICE_LINE }}>
                     <div className="flex items-center gap-2 mb-3.5">
-                      <FileText className="w-4 h-4" style={{ color: ACCENT }} aria-hidden="true" />
-                      <h3 className="text-[13px] font-black" style={{ color: CARBON }}>Dokumen Terkait</h3>
+                      <FileText className="w-4 h-4" style={{ color: SLATE }} aria-hidden="true" />
+                      <h3 className="text-[13px] font-black" style={{ color: NAVY }}>Dokumen Terkait</h3>
                     </div>
                     <div className="space-y-1">
                       {related.map((r) => {
-                        const rc = resolveCategory(r.category, categories)
+                        const rc = resolveKategori(r.category, categories ?? [])
                         return (
                           <Link
                             key={r.id}
@@ -509,15 +492,16 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                             className="group block p-3 -mx-1 rounded-xl transition-colors hover:bg-black/[0.04]"
                           >
                             <span
-                              className="inline-block px-2 py-0.5 rounded-md text-[9.5px] font-bold uppercase tracking-wider mb-1.5"
-                              style={{ backgroundColor: `${rc.color}1f`, color: rc.color }}
+                              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9.5px] font-bold uppercase tracking-wider mb-1.5"
+                              style={{ backgroundColor: `${rc.color}1f`, color: NAVY }}
                             >
+                              <span className="w-1 h-1 rounded-full" style={{ backgroundColor: rc.color }} aria-hidden="true" />
                               {rc.label}
                             </span>
-                            <span className="block text-[12.5px] font-bold leading-snug line-clamp-2 mb-1 transition-colors" style={{ color: CARBON }}>
+                            <span className="block text-[12.5px] font-bold leading-snug line-clamp-2 mb-1 text-navy group-hover:text-orange-text transition-colors">
                               {r.title}
                             </span>
-                            <span className="text-[10.5px]" style={{ color: ACCENT }}>
+                            <span className="text-[10.5px]" style={{ color: SLATE }}>
                               {formatInformasiDate(r.published_at)} · {r.read_minutes} mnt
                             </span>
                           </Link>
@@ -526,8 +510,8 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                     </div>
                     <Link
                       href="/informasi"
-                      className="mt-3.5 w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-[12px] font-bold transition-colors"
-                      style={{ backgroundColor: `${ACCENT}1a`, color: ACCENT, border: `1px solid ${LINE}` }}
+                      className="mt-3.5 w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-[12px] font-bold transition-colors hover:bg-navy-700"
+                      style={{ backgroundColor: NAVY, color: ICE }}
                     >
                       Lihat Semua Informasi
                       <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />

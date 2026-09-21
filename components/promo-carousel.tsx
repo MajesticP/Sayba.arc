@@ -5,7 +5,7 @@ import Link from "next/link"
 import type { PromoBanner } from "@/lib/database.types"
 
 interface PromoCarouselProps {
-  /** Baris tabel `promo_banner` — dikelola lewat Admin Dashboard */
+  /** Baris tabel `promo_banner`: dikelola lewat Admin Dashboard */
   slides: PromoBanner[]
   /** Jeda geser otomatis (ms) */
   interval?: number
@@ -44,7 +44,7 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
   const next = useCallback(() => goTo(index + 1), [goTo, index])
   const prev = useCallback(() => goTo(index - 1), [goTo, index])
 
-  // Geser otomatis — berhenti saat hover, fokus, sentuh, tab tidak aktif,
+  // Geser otomatis: berhenti saat hover, fokus, sentuh, tab tidak aktif,
   // atau saat pengguna memilih reduce motion.
   useEffect(() => {
     if (paused || reduceMotion || count < 2) return
@@ -61,10 +61,10 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
   if (!count) return null
 
   return (
-    <section className="bg-white pt-8 md:pt-16" aria-label="Banner promosi">
+    <section className="pt-8 md:pt-16" aria-label="Banner promosi">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
-          className="relative group rounded-xl md:rounded-3xl overflow-hidden border border-platinum-line bg-carbon shadow-[0_10px_40px_rgba(28,35,33,0.10)]"
+          className="relative group rounded-xl md:rounded-3xl overflow-hidden border border-ice-line bg-navy shadow-[0_10px_40px_rgba(17,42,70,0.12)]"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onFocusCapture={() => setPaused(true)}
@@ -103,21 +103,20 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
 
                   {hasCopy && (
                     // Di ponsel banner tampil sebagai gambar utuh: teks disembunyikan
-                    // dengan `sr-only`, BUKAN `hidden`. Bedanya penting untuk SEO —
-                    // Google memakai mobile-first indexing, jadi teks yang benar-benar
+                    // dengan `sr-only`, BUKAN `hidden`. Bedanya penting untuk SEO: // Google memakai mobile-first indexing, jadi teks yang benar-benar
                     // dihapus dari DOM di ponsel ikut hilang dari indeks. Dengan
                     // sr-only teksnya tetap ada, terbaca crawler dan pembaca layar,
                     // hanya tidak terlihat. Mulai md tampil normal seperti biasa.
                     <div className="sr-only md:not-sr-only md:absolute md:inset-0">
-                      {/* Scrim agar teks tetap terbaca — hanya perlu saat teks tampil */}
-                      <div className="hidden md:block absolute inset-0 bg-gradient-to-r from-carbon/90 via-carbon/60 to-transparent" />
+                      {/* Scrim agar teks tetap terbaca: hanya perlu saat teks tampil */}
+                      <div className="hidden md:block absolute inset-0 bg-gradient-to-r from-navy/95 via-navy/65 to-transparent" />
 
                       <div className="md:relative md:h-full md:flex md:items-center">
                         <div className="md:px-12 lg:px-16 md:max-w-lg lg:max-w-xl">
                           {slide.eyebrow && (
-                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full bg-steel/15 border border-steel/30 mb-1.5 md:mb-4">
-                              <span className="w-1.5 h-1.5 rounded-full bg-steel" aria-hidden="true" />
-                              <span className="text-[9px] md:text-[11px] font-bold uppercase tracking-widest text-powder">
+                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full bg-orange/15 border border-orange/30 mb-1.5 md:mb-4">
+                              <span className="w-1.5 h-1.5 rounded-full bg-orange" aria-hidden="true" />
+                              <span className="text-[9px] md:text-[11px] font-bold uppercase tracking-widest text-orange-soft">
                                 {slide.eyebrow}
                               </span>
                             </div>
@@ -127,19 +126,19 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
                             // H2, bukan H3: carousel muncul tepat setelah H1 hero
                             // dan tidak punya heading section sendiri, jadi judul
                             // slide adalah heading level berikutnya (hindari H1→H3).
-                            <h2 className="text-[15px] sm:text-2xl md:text-4xl font-black text-platinum leading-[1.15] tracking-tight line-clamp-2">
+                            <h2 className="text-[15px] sm:text-2xl md:text-4xl font-bold text-ice leading-[1.15] tracking-tight line-clamp-2">
                               {slide.title}
                             </h2>
                           )}
 
                           {slide.subtitle && (
-                            <p className="hidden sm:block text-steel text-[13px] md:text-base mt-2 md:mt-3 leading-relaxed">
+                            <p className="hidden sm:block text-ice/75 text-[13px] md:text-base mt-2 md:mt-3 leading-relaxed">
                               {slide.subtitle}
                             </p>
                           )}
 
                           {cta && (
-                            <span className="mt-2 md:mt-6 inline-flex items-center gap-1.5 px-3 py-1 md:px-5 md:py-2.5 min-h-0 rounded-full bg-steel text-carbon text-[10.5px] md:text-sm font-semibold shadow-lg transition-transform duration-200 group-hover:scale-[1.03]">
+                            <span className="mt-2 md:mt-6 inline-flex items-center gap-1.5 px-3 py-1 md:px-5 md:py-2.5 min-h-0 rounded-full bg-orange text-navy text-[10.5px] md:text-sm font-bold shadow-lg transition-transform duration-200 group-hover:scale-[1.03]">
                               {cta.text}
                               <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -167,14 +166,14 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
             })}
           </div>
 
-          {/* Panah — area ketuk 44px, visual lebih kecil di dalamnya */}
+          {/* Panah: area ketuk 44px, visual lebih kecil di dalamnya */}
           {count > 1 && (
             <>
               <button
                 type="button"
                 onClick={prev}
                 aria-label="Banner sebelumnya"
-                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 min-h-0 rounded-full bg-carbon/55 backdrop-blur-sm border border-platinum/15 text-platinum flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-steel hover:text-carbon transition-all duration-200"
+                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 min-h-0 rounded-full bg-navy/60 backdrop-blur-sm border border-ice/15 text-ice flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-orange hover:text-navy transition-all duration-200"
               >
                 <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -184,7 +183,7 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
                 type="button"
                 onClick={next}
                 aria-label="Banner berikutnya"
-                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 min-h-0 rounded-full bg-carbon/55 backdrop-blur-sm border border-platinum/15 text-platinum flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-steel hover:text-carbon transition-all duration-200"
+                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 min-h-0 rounded-full bg-navy/60 backdrop-blur-sm border border-ice/15 text-ice flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-orange hover:text-navy transition-all duration-200"
               >
                 <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -193,10 +192,10 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
             </>
           )}
 
-          {/* Indikator titik — wrapper tiap tombol 24x24px (WCAG 2.5.8),
+          {/* Indikator titik: wrapper tiap tombol 24x24px (WCAG 2.5.8),
               dot visualnya tetap kecil di tengah. */}
           {count > 1 && (
-            <div className="absolute bottom-1.5 md:bottom-3 left-1/2 -translate-x-1/2 flex items-center px-1.5 rounded-full bg-carbon/45 backdrop-blur-sm border border-platinum/10">
+            <div className="absolute bottom-1.5 md:bottom-3 left-1/2 -translate-x-1/2 flex items-center px-1.5 rounded-full bg-navy/50 backdrop-blur-sm border border-ice/10">
               {slides.map((slide, i) => (
                 <button
                   key={slide.id}
@@ -208,7 +207,7 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
                 >
                   <span
                     className={`block h-1.5 rounded-full transition-all duration-300 ${
-                      i === index ? "w-6 bg-powder" : "w-1.5 bg-platinum/50"
+                      i === index ? "w-6 bg-orange" : "w-1.5 bg-ice/50"
                     }`}
                   />
                 </button>

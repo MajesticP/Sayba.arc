@@ -25,7 +25,7 @@ export interface TimMember {
   status: string
 }
 
-const BRAND_COLOR = "#5e6572"
+const BRAND_COLOR = "#f07a26"
 
 function Avatar({ name, color, size }: { name: string; color: string; size: number }) {
   const initials = name.split(" ").filter((w: string) => !["Tim","dan","&"].includes(w)).slice(0,2).map((w: string) => w[0].toUpperCase()).join("")
@@ -72,7 +72,7 @@ function ProfileModal({ member, onClose }: { member: TimMember; onClose: () => v
         animation: "mup .26s cubic-bezier(.16,1,.3,1)",
         maxHeight: "92dvh", overflowY: "auto",
       }}>
-        {/* Drag handle — mobile only */}
+        {/* Drag handle: mobile only */}
         <div className="pm-drag-handle" style={{ display: "flex", justifyContent: "center", paddingTop: 10, paddingBottom: 2 }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: "#d3dad6" }} />
         </div>
@@ -85,7 +85,7 @@ function ProfileModal({ member, onClose }: { member: TimMember; onClose: () => v
             borderRadius: "50%", background: "rgba(28,35,33,0.07)", border: "none",
             cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5e6572" strokeWidth="2.5" strokeLinecap="round">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f07a26" strokeWidth="2.5" strokeLinecap="round">
               <path d="M18 6L6 18M6 6l12 12"/>
             </svg>
           </button>
@@ -93,7 +93,7 @@ function ProfileModal({ member, onClose }: { member: TimMember; onClose: () => v
           <div style={{
             width: 84, height: 84, borderRadius: "50%", overflow: "hidden", position: "relative",
             border: `3px solid ${BRAND_COLOR}`, margin: "0 auto",
-            boxShadow: `0 0 0 6px ${BRAND_COLOR}18`, background: "#eef1ef",
+            boxShadow: `0 0 0 6px ${BRAND_COLOR}18`, background: "#f4f6f9",
           }}>
             {photoSrc
               ? <Image src={photoSrc} alt={member.name} fill className="object-cover" sizes="84px" unoptimized />
@@ -101,36 +101,36 @@ function ProfileModal({ member, onClose }: { member: TimMember; onClose: () => v
             }
           </div>
 
-          <h3 style={{ margin: "14px 0 3px", fontSize: 19, fontWeight: 800, color: "#1c2321", letterSpacing: "-0.4px" }}>
+          <h3 style={{ margin: "14px 0 3px", fontSize: 19, fontWeight: 800, color: "#112a46", letterSpacing: "-0.4px" }}>
             {member.name}
           </h3>
-          <p style={{ margin: 0, fontSize: 13, color: "#5e6572", fontWeight: 500 }}>{member.role}</p>
+          <p style={{ margin: 0, fontSize: 13, color: "#5a5c62", fontWeight: 500 }}>{member.role}</p>
         </div>
 
         <div style={{ height: 1, background: "#e3e8e5", margin: "0 24px" }} />
 
         <div style={{ padding: "18px 24px 32px" }}>
           {member.bio
-            ? <p style={{ margin: "0 0 18px", fontSize: 13.5, lineHeight: 1.75, color: "#5e6572" }}>{member.bio}</p>
-            : <p style={{ margin: "0 0 18px", fontSize: 13, color: "#a9b4c2", fontStyle: "italic" }}>Tidak ada bio tersedia.</p>
+            ? <p style={{ margin: "0 0 18px", fontSize: 13.5, lineHeight: 1.75, color: "#5a5c62" }}>{member.bio}</p>
+            : <p style={{ margin: "0 0 18px", fontSize: 13, color: "#f07a26", fontStyle: "italic" }}>Tidak ada bio tersedia.</p>
           }
           {hasSocials && (
             <div style={{ display: "flex", gap: 8 }}>
               {member.github_url && (
                 <a href={member.github_url} target="_blank" rel="noopener noreferrer"
-                  style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "12px 14px", borderRadius: 12, background: "#1c2321", color: "#fff", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
+                  style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "12px 14px", borderRadius: 12, background: "#112a46", color: "#fff", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
                   <GithubIcon /> GitHub
                 </a>
               )}
               {member.linkedin_url && (
                 <a href={member.linkedin_url} target="_blank" rel="noopener noreferrer"
-                  style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "12px 14px", borderRadius: 12, background: "#5e6572", color: "#fff", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
+                  style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "12px 14px", borderRadius: 12, background: "#5a5c62", color: "#f4f6f9", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
                   <LinkedinIcon /> LinkedIn
                 </a>
               )}
               {member.instagram_url && (
                 <a href={member.instagram_url} target="_blank" rel="noopener noreferrer"
-                  style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "12px 14px", borderRadius: 12, background: "#7d98a1", color: "#1c2321", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
+                  style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "12px 14px", borderRadius: 12, background: "#f07a26", color: "#112a46", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
                   <InstagramIcon /> Instagram
                 </a>
               )}
@@ -176,7 +176,7 @@ function MobileCard({ member, onClick }: { member: TimMember; onClick: () => voi
     >
       <div style={{
         width: 54, height: 54, borderRadius: "50%", overflow: "hidden",
-        position: "relative", background: "#eef1ef",
+        position: "relative", background: "#f4f6f9",
         border: `2px solid ${BRAND_COLOR}35`, marginBottom: 8, flexShrink: 0,
       }}>
         {photoSrc
@@ -184,14 +184,14 @@ function MobileCard({ member, onClick }: { member: TimMember; onClick: () => voi
           : <Avatar name={member.name} color={BRAND_COLOR} size={54} />
         }
       </div>
-      <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 700, color: "#1c2321", lineHeight: 1.3 }}>
+      <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 700, color: "#112a46", lineHeight: 1.3 }}>
         {member.name}
       </p>
-      <p style={{ margin: 0, fontSize: 10, color: "#5e6572", fontWeight: 500, lineHeight: 1.3 }}>
+      <p style={{ margin: 0, fontSize: 10, color: "#5a5c62", fontWeight: 500, lineHeight: 1.3 }}>
         {member.role}
       </p>
       {(member.github_url || member.linkedin_url || member.instagram_url) && (
-        <div style={{ display: "flex", gap: 3, marginTop: 6, color: "#a9b4c2" }}>
+        <div style={{ display: "flex", gap: 3, marginTop: 6, color: "#f07a26" }}>
           {member.github_url    && <GithubIcon />}
           {member.linkedin_url  && <LinkedinIcon />}
           {member.instagram_url && <InstagramIcon />}
@@ -240,7 +240,7 @@ function OrgCard({
       </div>
       <div style={{
         width: avatarSize, height: avatarSize, borderRadius: "50%", overflow: "hidden",
-        position: "relative", background: "#eef1ef",
+        position: "relative", background: "#f4f6f9",
         border: `2.5px solid ${BRAND_COLOR}40`, boxShadow: `0 0 0 4px ${BRAND_COLOR}10`,
         marginBottom: 10, flexShrink: 0,
       }}>
@@ -249,11 +249,11 @@ function OrgCard({
           : <Avatar name={member.name} color={BRAND_COLOR} size={avatarSize} />
         }
       </div>
-      <p style={{ margin: 0, fontSize: size === "lg" ? 13.5 : 12.5, fontWeight: 700, color: "#1c2321", letterSpacing: "-0.2px", lineHeight: 1.35 }}>
+      <p style={{ margin: 0, fontSize: size === "lg" ? 13.5 : 12.5, fontWeight: 700, color: "#112a46", letterSpacing: "-0.2px", lineHeight: 1.35 }}>
         {member.name}
       </p>
       {(member.github_url || member.linkedin_url || member.instagram_url) && (
-        <div style={{ display: "flex", gap: 4, marginTop: 8, justifyContent: "center", color: "#a9b4c2" }}>
+        <div style={{ display: "flex", gap: 4, marginTop: 8, justifyContent: "center", color: "#f07a26" }}>
           {member.github_url    && <GithubIcon />}
           {member.linkedin_url  && <LinkedinIcon />}
           {member.instagram_url && <InstagramIcon />}
@@ -263,7 +263,7 @@ function OrgCard({
   )
 }
 
-// ── DESKTOP grid — urut 1,2,3,... sejajar, wrap ke bawah kalau penuh ────────
+// ── DESKTOP grid: urut 1,2,3,... sejajar, wrap ke bawah kalau penuh ────────
 function TeamGrid({ members, onSelect }: { members: TimMember[]; onSelect: (m: TimMember) => void }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -272,7 +272,7 @@ function TeamGrid({ members, onSelect }: { members: TimMember[]; onSelect: (m: T
           <OrgCard key={m.id} member={m} size="md" onClick={() => onSelect(m)} />
         ))}
       </div>
-      <div style={{ marginTop: 20, fontSize: 11, fontWeight: 600, color: "#5e6572", padding: "3px 10px", borderRadius: 50, background: "#e3e8e5" }}>
+      <div style={{ marginTop: 20, fontSize: 11, fontWeight: 600, color: "#5a5c62", padding: "3px 10px", borderRadius: 50, background: "#e3e8e5" }}>
         {members.length} anggota tim
       </div>
     </div>
@@ -298,7 +298,7 @@ export default function TeamSection({ team }: { team: TimMember[] }) {
     // menyembunyikan seluruh section ini kalau tim kosong, jadi ini hanya
     // jaring pengaman kalau komponen dipakai di tempat lain.
     return (
-      <div style={{ textAlign: "center", padding: "48px 0", color: "#5e6572" }}>
+      <div style={{ textAlign: "center", padding: "48px 0", color: "#5a5c62" }}>
         <p style={{ margin: 0, fontSize: 14 }}>Profil tim sedang diperbarui.</p>
       </div>
     )
@@ -306,13 +306,13 @@ export default function TeamSection({ team }: { team: TimMember[] }) {
 
   return (
     <>
-      {/* MOBILE — 2-col grid ordered by hierarchy */}
+      {/* MOBILE: 2-col grid ordered by hierarchy */}
       {isMobile ? (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {sorted.map(m => <MobileCard key={m.id} member={m} onClick={() => setSelected(m)} />)}
         </div>
       ) : (
-        /* DESKTOP — grid urut, sejajar, wrap ke bawah */
+        /* DESKTOP: grid urut, sejajar, wrap ke bawah */
         <TeamGrid members={sorted} onSelect={setSelected} />
       )}
 

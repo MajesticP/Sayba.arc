@@ -9,7 +9,7 @@ import { supabase } from "@/lib/supabase"
  * saat halaman detail dibuka atau di-refresh.
  *
  * Sengaja tanpa autentikasi: ini penghitung tampilan publik. Yang dibatasi
- * adalah tabel dan kolomnya — fungsi database `increment_views` hanya boleh
+ * adalah tabel dan kolomnya, fungsi database `increment_views` hanya boleh
  * menaikkan kolom `views`, tidak menyentuh kolom lain.
  */
 const ALLOWED_TABLES = new Set(["informasi", "berita"])
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   const { error } = await supabase.rpc("increment_views", { p_table: table, p_slug: slug })
 
   if (error) {
-    // Jangan bikin halaman gagal hanya karena penghitung — cukup catat.
+    // Jangan bikin halaman gagal hanya karena penghitung, cukup catat.
     console.error("Gagal menaikkan views:", error.message)
     return NextResponse.json({ ok: false }, { status: 200 })
   }

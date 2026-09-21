@@ -2,7 +2,7 @@ import type React from "react"
 import PageTransition from "@/components/page-transition"
 
 interface PageHeroProps {
-  /** Banner desktop di /public/banners/ — ganti file, nama dipertahankan. Rasio 1920x600 px. */
+  /** Banner desktop di /public/banners/, ganti file, nama dipertahankan. Rasio 1920x600 px. */
   image: string
   /**
    * Banner khusus layar kecil, rasio 2:1 (900x450 px). Banner desktop yang
@@ -29,7 +29,7 @@ export default function PageHero({
   children,
 }: PageHeroProps) {
   return (
-    <section className="relative bg-carbon overflow-hidden min-h-[170px] md:min-h-[380px] flex items-center">
+    <section className="relative bg-navy overflow-hidden min-h-[170px] md:min-h-[380px] flex items-center">
       {/* Browser hanya mengunduh satu berkas: yang cocok dengan lebar layarnya. */}
       <picture>
         {imageMobile && <source media="(max-width: 767px)" srcSet={imageMobile} />}
@@ -49,14 +49,14 @@ export default function PageHero({
       <div className="absolute inset-0 bg-gradient-to-b from-carbon/45 via-carbon/30 to-carbon/55 md:from-carbon/75 md:via-carbon/55 md:to-carbon/80" />
 
       {/* Aksen glow steel */}
-      <div className="absolute -top-16 right-1/4 w-72 h-72 rounded-full bg-steel opacity-[0.10] blur-3xl pointer-events-none" />
+      <div className="absolute -top-16 right-1/4 w-72 h-72 rounded-full bg-orange opacity-[0.10] blur-3xl pointer-events-none" />
 
       <div className="relative z-10 w-full pt-[80px] pb-5 md:pt-32 md:pb-20">
         <PageTransition>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             {eyebrow && (
               <span
-                className="inline-block text-[10px] font-bold text-powder uppercase tracking-widest mb-1.5 md:mb-2"
+                className="inline-block text-[10px] font-bold text-ice uppercase tracking-widest mb-1.5 md:mb-2"
                 style={{ textShadow: "0 1px 3px rgba(28,35,33,0.9)" }}
               >
                 {eyebrow}

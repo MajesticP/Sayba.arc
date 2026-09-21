@@ -1,4 +1,4 @@
-# SAYBA ARC — Arah Desain & Sistem Warna
+# SAYBA ARC: Arah Desain & Sistem Warna
 
 Sumber kebenaran tunggal untuk warna dan arah visual situs. Setiap keputusan
 warna harus bisa dijelaskan dalam satu baris.
@@ -6,140 +6,102 @@ warna harus bisa dijelaskan dalam satu baris.
 ## Arah
 
 **Dibaca sebagai:** situs konsultan IT & engineering untuk klien bisnis dan
-instansi di Kalimantan Barat, dengan bahasa visual *technical drafting* —
-presisi, tenang, tanpa dekorasi berlebih. Dial **ENERGY 2 / RHYTHM 2 / MOTION 1**.
+instansi di Kalimantan Barat, dengan bahasa visual *technical drafting*, presisi, tenang, tanpa dekorasi berlebih.
+
+**Design Read:** B2B konsultan teknik untuk pengambil keputusan instansi, gaya
+*drafting board* (meja gambar), dial **ENERGY 2 / RHYTHM 2 / MOTION 2**.
 
 | Dial | Nilai | Artinya di situs ini |
 |---|---|---|
 | **ENERGY** | 2 | Hero tegas, sisanya tenang. Bukan halaman yang berteriak. |
-| **RHYTHM** | 2 | Komposisi seragam dengan 2-3 jeda yang sengaja dibedakan. |
-| **MOTION** | 1 | Hanya transisi masuk dan hover. Tidak ada animasi berjalan terus. |
+| **RHYTHM** | 2 | Komposisi konsisten dengan 2-3 jeda yang sengaja dibedakan bentuknya. |
+| **MOTION** | 2 | Reveal saat masuk viewport + transisi hover. Tanpa gerakan berjalan terus. |
 
-## Palet
+## Palet: Executive Navy
 
-Lima warna, satu keluarga hue (cool steel). Netral hangat, aksen sejuk.
+Navy sebagai warna otoritas, orange sebagai aksen terbatas, netral dingin
+sebagai latar. Rasio pemakaian yang dituju: **navy dan netral mendominasi,
+orange maksimal 10% dari tampilan.**
 
 | Nama | Hex | Peran | Alasan |
 |---|---|---|---|
-| **Carbon Black** | `#1c2321` | Latar gelap, teks utama di terang | Hitam dengan undertone hijau-kebiruan; menyatu dengan keluarga steel, tidak sekeras `#000` |
-| **Cool Steel** | `#7d98a1` | Aksen, garis penghubung, teks sekunder di gelap | Biru-kelabu yang mengingatkan garis teknik; 5.24:1 di atas Carbon |
-| **Blue Slate** | `#5e6572` | Teks sekunder di terang, permukaan panel | Abu-kebiruan untuk teks pendukung tanpa harus hitam; 5.16:1 di atas Platinum |
-| **Powder Blue** | `#a9b4c2` | Aksen terang di latar gelap | Untuk tombol dan penanda di atas Carbon; 7.62:1 dengan teks Carbon |
-| **Platinum** | `#eef1ef` | Latar terang utama | Putih gading yang lebih lembut dari `#fff`; mengurangi kelelahan mata pada teks panjang |
+| **Executive Navy** | `#112a46` | Header, banner, blok penting, latar gelap | Biru gelap memberi kesan mapan dan tepercaya, sesuai konteks konsultan B2B |
+| **Vivid Orange** | `#f07a26` | Aksen: tombol utama, garis penanda, ikon indikator | Satu-satunya warna hangat, jadi mata langsung menemukan titik aksi |
+| **Dark Gray** | `#2a2b2e` | Teks paragraf | Diambil dari warna gelap logo, lebih lembut dari hitam pekat untuk bacaan panjang |
+| **Ice White** | `#f4f6f9` | Latar netral utama | Putih kebiruan yang lebih dingin dari putih biasa, menyatu dengan navy |
 
 ### Turunan
 
-Turunan dibuat dari lima warna di atas, bukan warna baru.
-
-| Token | Hex | Asal |
+| Nama | Hex | Peran |
 |---|---|---|
-| `--carbon-800` | `#242c29` | Carbon dinaikkan 4% terang — permukaan terangkat |
-| `--carbon-700` | `#2d3733` | Carbon dinaikkan 8% — input di panel gelap |
-| `--platinum-dim` | `#e3e8e5` | Platinum diturunkan 5% — latar pembeda section |
-| `--platinum-line` | `#d3dad6` | Platinum diturunkan 12% — garis pemisah |
-| `--steel-deep` | `#5e7a85` | Steel digelapkan — kategori informasi |
+| Navy 800 | `#16345a` | Permukaan terangkat di atas navy |
+| Navy 700 | `#1b3e6b` | Kartu di dalam section gelap |
+| Ice Dim | `#ebeff5` | Section pembeda di latar terang |
+| Ice Line | `#d8e0ea` | Garis pemisah dan batas kartu |
+| Blue Slate | `#5a5c62` | Teks sekunder di latar terang |
+| Orange Text | `#b45610` | Orange sebagai teks di latar terang |
+| Orange Soft | `#f5a76c` | Aksen sekunder di latar gelap |
 
-## Kontras (terverifikasi)
+### Aturan pakai warna
 
-Diukur dengan `contrast-check.py` (WCAG 2.x). Ambang: 4.5:1 teks normal, 3:1 teks besar.
-
-| Teks | Latar | Rasio | Status |
-|---|---|---|---|
-| Carbon `#1c2321` | Platinum `#eef1ef` | 14.08:1 | AAA |
-| Platinum `#eef1ef` | Carbon `#1c2321` | 14.08:1 | AAA |
-| Blue Slate `#5e6572` | Platinum `#eef1ef` | 5.16:1 | AA |
-| Cool Steel `#7d98a1` | Carbon `#1c2321` | 5.24:1 | AA |
-| Powder Blue `#a9b4c2` | Carbon `#1c2321` | 7.62:1 | AA |
-| Carbon `#1c2321` | Powder Blue `#a9b4c2` | 7.62:1 | AAA |
-| Carbon `#1c2321` | Cool Steel `#7d98a1` | 5.24:1 | AA |
-| Platinum `#eef1ef` | Blue Slate `#5e6572` | 5.16:1 | AA |
-
-**Dilarang** (gagal WCAG AA):
-
-| Teks | Latar | Rasio |
-|---|---|---|
-| Powder Blue `#a9b4c2` | Platinum `#eef1ef` | 1.85:1 |
-| Cool Steel `#7d98a1` | Platinum `#eef1ef` | 2.68:1 |
-| Blue Slate `#5e6572` | Carbon `#1c2321` | 2.73:1 |
-| Carbon `#1c2321` | Blue Slate `#5e6572` | 2.73:1 |
-
-Cara verifikasi:
-
-```bash
-python ~/AppData/Local/hermes/skills/design/antislop-human/contrast-check.py "#1c2321" "#eef1ef"
-```
-
-## Motif: Meja Potong Arsitek
-
-Latar situs meniru meja potong *self-healing* yang dipakai arsitek dan drafter.
-Alasannya: situs ini menjual pekerjaan teknis, jadi latarnya mengingatkan ruang
-kerja teknis — bukan dekorasi abstrak.
-
-Tiga lapis, semuanya tipis:
-
-1. **Kisi ukur** — 24px halus + 120px tegas. Kelas `.cutting-grid` (terang) dan
-   `.cutting-grid-dark` (gelap). Opasitas 0.045–0.09, di bawah ambang gangguan.
-2. **Tanda registrasi** — sudut siku di empat pojok, seperti tanda potong di
-   meja cetak. Kelas `.reg-mark`.
-3. **Garis ukur** — garis dengan tick seperti penggaris baja. Kelas `.rule-line`.
-
-Komponen: `components/cutting-board-bg.tsx` (props `tone="dark" | "light"`).
-
-**Yang dihapus:** semua orb/lingkaran berdenyut, animasi glow, ikon landmark
-mengambang, dan putaran lambat. Alasan: gerakan tanpa fungsi mengalihkan
-perhatian dari isi, dan termasuk pola yang membuat situs terlihat dibuat
-template.
+1. **Orange hanya untuk aksen, maksimal 10% tampilan.** Jangan pakai orange
+   sebagai latar section besar atau warna teks paragraf.
+2. **Orange dilarang sebagai teks di latar terang** (2.58:1, gagal WCAG).
+   Untuk teks gunakan `#b45610` (4.53:1 di Ice White).
+3. **Tombol ber-fill orange wajib berteks navy** (5.21:1). Jangan teks putih
+   di atas orange (2.79:1, gagal).
+4. **Warna kategori hanya untuk border dan tint latar** (maksimal 30%
+   opasitas), bukan warna teks. Semua teks memakai navy, ink, atau slate.
+5. **Opacity teks minimal /75.** `/50` dan `/40` gagal kontras.
+6. Semua pasangan teks/latar diverifikasi dengan `contrast-check.py`, bukan
+   dikira-kira.
 
 ## Tipografi
 
-**Geist** (via `next/font/google`) untuk seluruh situs.
+**Geist** untuk seluruh teks. Alasan: satu keluarga huruf dengan bentuk angka
+yang jelas dan tabular, berguna karena situs ini banyak menampilkan ukuran,
+tanggal, dan nomor dokumen.
 
-Alasan: sans-serif geometris dengan terminal terbuka, netral untuk teks
-Indonesia yang panjang, dan disajikan dari domain sendiri sehingga tidak ada
-permintaan ke Google Fonts saat runtime.
+Skala ukuran (dari audit, bukan tebakan):
 
-Skala yang dipakai:
-
-| Peran | Mobile | Desktop |
-|---|---|---|
-| Judul halaman | 26–28px | 40–46px |
-| Judul section | 18px | 22–24px |
-| Judul kartu | 15–16px | 16–17px |
-| Teks isi | 13.5–14px | 15–15.5px |
-| Teks pendukung | 11.5–12.5px | 12.5–13px |
-
-## Radius
-
-| Nilai | Dipakai untuk |
+| Peran | Ukuran |
 |---|---|
-| `rounded-lg` | Chip, badge |
-| `rounded-xl` | Tombol, input, kartu kecil |
-| `rounded-2xl` | Kartu konten, panel |
-| `rounded-3xl` | Blok ajakan, sorotan |
-| `rounded-full` | Hanya penanda status dan avatar |
+| Judul halaman | 24-28px mobile, 36-46px desktop |
+| Judul section | 22px mobile, 36px desktop |
+| Judul kartu | 15-18px |
+| Badan teks | 14-16px, line-height 1.75, lebar maksimal 70ch |
+| Meta / label | 11-12px |
 
-Radius bervariasi menurut hierarki, tidak seragam di semua elemen.
+## Motif: Meja Potong Arsitek
 
-## Aturan yang mengikat
+Motif identitas situs. Terinspirasi meja potong self-healing yang dipakai
+drafter: kisi ukur, tanda registrasi di sudut, garis skala.
 
-1. Maksimal **3 warna inti + 1 aksen** (Carbon, Steel, Slate + Powder). Platinum
-   netral tidak dihitung.
-2. Setiap pasangan teks/latar wajib lolos WCAG AA, diverifikasi dengan alat.
-3. Setiap keputusan warna ditulis alasannya dalam satu baris.
-4. Tombol di latar gelap: fill Powder + teks Carbon. Tombol di latar terang:
-   fill Carbon + teks Platinum.
-5. Tidak ada animasi yang berjalan terus tanpa fungsi.
-6. Tidak ada ikon sparkle, star, magic, lightning, diamond, robot.
-7. Tidak ada emoji di antarmuka.
-8. Semua gerakan menghormati `prefers-reduced-motion`.
+**Pemasangan:** motif ini dipasang sebagai **latar halaman penuh** lewat
+`.board-page` di `app/layout.tsx`, bukan per section. Efeknya meja potong
+terlihat konsisten dari atas sampai bawah halaman, dan section di atasnya
+mengambang sebagai panel (`.board-panel`) sehingga tepi meja tetap tampak di
+sela-sela section.
 
-## Konteks usaha
+Alasan: latar yang konsisten membuat halaman terasa satu ruang kerja, bukan
+tumpukan section yang masing-masing punya gaya sendiri.
 
-Dua departemen, tanpa sub-kategori terkelola:
+Batasnya: opasitas garis di bawah 0.09 supaya tidak pernah bersaing dengan
+teks, dan tidak ada orb, glow berwarna, atau gambar ilustrasi.
 
-| Departemen | Value DB | Lingkup |
-|---|---|---|
-| **IT Consultant** | `it_konsulting` | Website, aplikasi web/mobile/desktop, backend & API, machine learning, cloud |
-| **Engineering Consultant** | `engineering_konsulting` | Pemetaan GIS, gambar teknik 2D/3D, desain rancang bangun, survey, dokumen teknis |
+## Prinsip komposisi
 
-Tidak ada layanan perkapalan, kelautan, atau maritim di situs ini.
+1. **Satu fokus per layar.** Hero punya satu tombol utama, sisanya mendukung.
+2. **Bentuk section dibedakan sesuai isinya.** Berita memakai kartu bergambar
+   karena dibaca karena ketertarikan visual. Informasi memakai daftar bernomor
+   karena dokumen dibaca karena judulnya. Perbedaan bentuk ini disengaja.
+3. **Tanpa paket harga.** Layanan bersifat terpusat: lingkup, biaya, dan
+   jadwal disusun per proyek dalam Kerangka Acuan Kerja.
+4. **Tanpa klaim tanpa bukti.** Tidak ada angka statistik, testimoni, atau
+   logo klien yang tidak bisa diverifikasi.
+
+## Larangan
+
+Tidak ada orb, lingkaran berputar, glow berwarna, atau partikel 3D. Tidak ada
+animasi berjalan terus kecuali penanda tahap aktif pada diagram alir. Tidak ada
+teks di bawah 11px. Tidak ada emoji di teks antarmuka.

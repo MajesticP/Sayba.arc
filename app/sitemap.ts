@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next"
 import { siteConfig } from "@/lib/data"
 import { supabase } from "@/lib/supabase"
 
-// Selalu ambil data segar — sitemap yang ter-cache akan menunjuk slug lama
+// Selalu ambil data segar: sitemap yang ter-cache akan menunjuk slug lama
 // setelah admin menambah atau mengubah konten.
 export const dynamic = "force-dynamic"
 export const revalidate = 0

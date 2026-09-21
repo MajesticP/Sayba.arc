@@ -5,8 +5,10 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import ViewCounter from "@/components/view-counter"
 import { generateBreadcrumbSchema } from "@/lib/structured-data"
+import { buildSeoMetadata, gdriveToProxy } from "@/lib/seo"
 import { supabase } from "@/lib/supabase"
 import type { Informasi } from "@/lib/database.types"
+import { getKategori } from "@/lib/kategori"
 import { parseInformasiBody } from "@/lib/informasi-data"
 import InformasiDetailClient from "./informasi-detail-client"
 
@@ -18,17 +20,7 @@ export const revalidate = 60
 
 /** Link Google Drive → proxy gambar lokal */
 function gdriveToImg(url: string | null): string | null {
-  if (!url) return null
-  if (url.startsWith("/api/gdrive-img")) return url
-  const fileMatch = url.match(/\/d\/([\w-]+)/)
-  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
-  const idMatch = url.match(/[?&]id=([\w-]+)/)
-  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
-  return url
-}
-
-function absoluteUrl(url: string): string {
-  return url.startsWith("http") ? url : `${siteConfig.url}${url}`
+  return gdriveToProxy(url)
 }
 
 async function getArticle(slug: string): Promise<Informasi | null> {
@@ -40,33 +32,27 @@ async function getArticle(slug: string): Promise<Informasi | null> {
     .maybeSingle()
 
   if (error) console.error("Error fetching informasi detail:", error)
-  // Tidak ada data contoh — kalau tidak ada di database, halaman 404.
+  // Tidak ada data contoh: kalau tidak ada di database, halaman 404.
   return data ?? null
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
   const article = await getArticle(slug)
-  if (!article) return { title: `Informasi — ${siteConfig.name}` }
+  if (!article) return { title: `Informasi: ${siteConfig.name}` }
 
-  const url = `${siteConfig.url}/informasi/${article.slug}`
-
-  return {
-    title: article.meta_title || `${article.title} — ${siteConfig.name}`,
-    description: article.meta_description || article.excerpt || undefined,
-    keywords: article.meta_keywords ?? undefined,
-    alternates: { canonical: article.canonical_url || url },
-    openGraph: {
-      title: article.title,
-      description: article.meta_description || article.excerpt || undefined,
-      url,
-      type: "article",
-      publishedTime: article.published_at,
-      images: article.image_url
-        ? [{ url: absoluteUrl(article.image_url), alt: article.title }]
-        : undefined,
-    },
-  }
+  return buildSeoMetadata({
+    title: article.title,
+    metaTitle: article.meta_title,
+    excerpt: article.excerpt,
+    metaDescription: article.meta_description,
+    metaKeywords: article.meta_keywords,
+    image: gdriveToProxy(article.og_image) || gdriveToProxy(article.image_url),
+    path: `/informasi/${article.slug}`,
+    canonicalUrl: article.canonical_url,
+    type: "article",
+    publishedTime: article.published_at,
+  })
 }
 
 export default async function InformasiDetailPage({ params }: PageProps) {
@@ -75,6 +61,9 @@ export default async function InformasiDetailPage({ params }: PageProps) {
   if (!article) notFound()
 
   const blocks = parseInformasiBody(article.body)
+
+  // Kategori dari tabel `kategori` (scope "informasi") untuk label & warna chip.
+  const kategori = await getKategori("informasi")
 
   // Dokumen terkait: kategori sama lebih dulu
   const { data: othersData } = await supabase
@@ -121,7 +110,7 @@ export default async function InformasiDetailPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen flex flex-col bg-platinum">
-      {/* Penghitung tampilan — naik saat halaman dibuka atau di-refresh */}
+      {/* Penghitung tampilan: naik saat halaman dibuka atau di-refresh */}
       <ViewCounter table="informasi" slug={article.slug} />
 
       <script
@@ -140,6 +129,7 @@ export default async function InformasiDetailPage({ params }: PageProps) {
         blocks={blocks}
         related={related as unknown as Informasi[]}
         heroImg={gdriveToImg(article.image_url)}
+        categories={kategori}
       />
 
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />

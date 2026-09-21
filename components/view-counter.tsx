@@ -30,7 +30,7 @@ export default function ViewCounter({
         body: JSON.stringify({ table, slug }),
         keepalive: true,
       }).catch(() => {
-        // Penghitung bukan hal kritis — kegagalan diabaikan diam-diam.
+        // Penghitung bukan hal kritis: kegagalan diabaikan diam-diam.
       })
     }
 

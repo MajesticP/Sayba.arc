@@ -3,11 +3,23 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { Menu, X } from "lucide-react"
 import { siteConfig } from "@/lib/data"
 
 interface NavItem { label: string; href: string }
 interface HeaderProps { navItems: NavItem[]; ctaText?: string; ctaHref?: string }
 
+/**
+ * Header: kapsul melayang.
+ *
+ * Bentuk dan posisi dipertahankan: kapsul melayang di atas section pertama,
+ * tanpa spacer, sehingga latarnya mengikuti hero di bawahnya. Yang berubah
+ * hanya warna (palet Executive Navy) dan kerapian jarak.
+ *
+ * Warna: kapsul memakai navy dengan teks ice. Alasan navy, bukan putih:
+ * warna otoritas pada panduan brand dipakai untuk header, dan latar gelap
+ * membuat kapsul terbaca sebagai satu bidang di atas hero yang juga navy.
+ */
 export default function Header({ navItems, ctaText, ctaHref }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -24,89 +36,133 @@ export default function Header({ navItems, ctaText, ctaHref }: HeaderProps) {
   // Tutup menu mobile setiap pindah halaman
   useEffect(() => setIsOpen(false), [pathname])
 
+  // Tutup menu mobile dengan Escape (WCAG 2.1.2: tidak ada jebakan fokus)
+  useEffect(() => {
+    if (!isOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false)
+    }
+    document.addEventListener("keydown", onKey)
+    return () => document.removeEventListener("keydown", onKey)
+  }, [isOpen])
+
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href))
 
   return (
-    <>
-      {/* Tanpa spacer: header melayang di atas section pertama, sehingga
-          latarnya mengikuti warna/gambar hero di bawahnya. Setiap halaman
-          memberi padding-atas pada section pertamanya agar konten tidak
-          tertutup kapsul ini. */}
-      {/* Jarak atas dipasang di container dalam, bukan di <header>: globals.css
-          punya aturan `header { padding-top: env(safe-area-inset-top) }` tanpa
-          @layer, yang presedennya mengalahkan utility Tailwind. Dengan begini
-          safe-area untuk ponsel berponi tetap jalan dan jarak ini tetap terpakai. */}
-      <header className="fixed inset-x-0 top-0 z-50 pointer-events-none">
-        <div className="max-w-6xl mx-auto px-3 sm:px-5 pt-4 md:pt-6">
-          <div
-            className={`pointer-events-auto rounded-2xl md:rounded-full border transition-all duration-300 ${
-              scrolled
-                ? "bg-white/85 backdrop-blur-xl border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.12)]"
-                : "bg-white/70 backdrop-blur-lg border-black/8 shadow-[0_4px_20px_rgba(0,0,0,0.07)]"
-            }`}
-          >
-            <div className="flex justify-between items-center h-14 pl-3.5 pr-2.5 md:pl-5 md:pr-2.5">
-              {/* Logo */}
-              <Link href="/" className="flex items-center gap-2 group shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo-256.png" alt={siteConfig.name} width={32} height={32} fetchPriority="high" decoding="async" className="h-8 w-8 rounded-md object-contain transition-opacity group-hover:opacity-80" />
-                <span className="font-bold text-base text-black tracking-tight group-hover:text-carbon transition-colors">{siteConfig.name}</span>
-              </Link>
+    <header className="fixed inset-x-0 top-0 z-50 pointer-events-none">
+      {/* Jarak atas di container dalam, bukan di <header>: globals.css punya
+          aturan `header { padding-top: env(safe-area-inset-top) }` tanpa
+          @layer, yang presedennya mengalahkan utility Tailwind. */}
+      <div className="max-w-6xl mx-auto px-3 sm:px-5 pt-4 md:pt-6">
+        <div
+          className={`pointer-events-auto rounded-2xl md:rounded-full border transition-all duration-300 ${
+            scrolled
+              ? "bg-navy/95 backdrop-blur-xl border-ice/15 shadow-[0_8px_30px_rgba(17,42,70,0.28)]"
+              : "bg-navy/90 backdrop-blur-lg border-ice/10 shadow-[0_4px_20px_rgba(17,42,70,0.20)]"
+          }`}
+        >
+          <div className="flex justify-between items-center h-14 pl-3.5 pr-2.5 md:pl-5 md:pr-2.5">
+            {/* Logo: nama brand selalu tampil */}
+            <Link href="/" className="flex items-center gap-2.5 group shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo-256.png"
+                alt={siteConfig.name}
+                width={32}
+                height={32}
+                fetchPriority="high"
+                decoding="async"
+                className="h-8 w-8 rounded-md object-contain"
+              />
+              <span className="font-bold text-[15px] text-ice tracking-tight group-hover:text-orange-soft transition-colors">
+                {siteConfig.name}
+              </span>
+            </Link>
 
-              {/* Desktop Nav */}
-              <nav className="hidden md:flex items-center gap-6 lg:gap-7">
+            {/* Navigasi desktop */}
+            <nav className="hidden md:flex items-center gap-6 lg:gap-7" aria-label="Navigasi utama">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={isActive(item.href) ? "page" : undefined}
+                  className={`text-[13.5px] font-medium transition-colors duration-200 relative group ${
+                    isActive(item.href) ? "text-ice" : "text-ice/70 hover:text-ice"
+                  }`}
+                >
+                  {item.label}
+                  {/* Garis penanda halaman aktif. Orange dipakai di sini karena
+                      ini satu-satunya penanda posisi di navigasi, sesuai aturan
+                      "orange untuk aksen saja". */}
+                  <span
+                    className={`absolute -bottom-1 left-0 h-0.5 rounded-full bg-orange transition-all duration-300 ${
+                      isActive(item.href) ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
+                </Link>
+              ))}
+            </nav>
+
+            {ctaText && ctaHref ? (
+              <Link
+                href={ctaHref}
+                className="hidden md:inline-flex items-center px-4 py-2 rounded-full text-[13.5px] font-bold text-navy bg-orange hover:bg-orange-soft transition-colors"
+              >
+                {ctaText}
+              </Link>
+            ) : (
+              // Penyeimbang lebar agar nav tetap di tengah kapsul saat tidak ada CTA
+              <span className="hidden md:block w-8" aria-hidden="true" />
+            )}
+
+            {/* Tombol menu mobile */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-ice/80 hover:text-ice hover:bg-ice/10 transition-colors"
+              aria-label={isOpen ? "Tutup menu" : "Buka menu"}
+              aria-expanded={isOpen}
+              aria-controls="menu-mobile"
+            >
+              {isOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
+            </button>
+          </div>
+
+          {/* Menu mobile: tetap di dalam kapsul */}
+          {isOpen && (
+            <div
+              id="menu-mobile"
+              className="md:hidden px-2.5 pb-2.5 pt-1 border-t border-ice/12 animate-in fade-in slide-in-from-top-2 duration-200"
+            >
+              <div className="flex flex-col gap-0.5 pt-1.5">
                 {navItems.map((item) => (
-                  <Link key={item.href} href={item.href} className={`text-sm font-medium transition-all duration-200 relative group ${isActive(item.href) ? "text-carbon" : "text-carbon/60 hover:text-carbon"}`}>
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    aria-current={isActive(item.href) ? "page" : undefined}
+                    className={`py-2.5 px-3 rounded-xl text-[13.5px] font-medium transition-colors ${
+                      isActive(item.href)
+                        ? "text-ice bg-ice/12"
+                        : "text-ice/75 hover:text-ice hover:bg-ice/8"
+                    }`}
+                  >
                     {item.label}
-                    <span className={`absolute -bottom-1 left-0 h-0.5 rounded-full bg-steel transition-all duration-300 ${isActive(item.href) ? "w-full" : "w-0 group-hover:w-full"}`} />
                   </Link>
                 ))}
-              </nav>
-
-              {ctaText && ctaHref ? (
-                <Link href={ctaHref} className="hidden md:inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold text-carbon bg-steel hover:bg-powder transition-colors">
-                  {ctaText}
-                </Link>
-              ) : (
-                // Penyeimbang lebar agar nav tetap di tengah kapsul saat tidak ada CTA
-                <span className="hidden md:block w-8" aria-hidden="true" />
-              )}
-
-              {/* Mobile toggle */}
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="md:hidden w-9 h-9 rounded-full flex items-center justify-center text-black/60 hover:text-black hover:bg-black/5 transition-colors"
-                aria-label="Toggle menu"
-                aria-expanded={isOpen}
-              >
-                {isOpen
-                  ? <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                  : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                }
-              </button>
-            </div>
-
-            {/* Mobile menu — tetap di dalam kapsul */}
-            {isOpen && (
-              <div className="md:hidden px-2.5 pb-2.5 pt-1 border-t border-black/8 animate-in fade-in slide-in-from-top-2 duration-200">
-                <div className="flex flex-col gap-0.5 pt-1.5">
-                  {navItems.map((item) => (
-                    <Link key={item.href} href={item.href} onClick={() => setIsOpen(false)}
-                      className={`py-2 px-3 rounded-xl text-[13px] font-medium transition-colors ${isActive(item.href) ? "text-carbon bg-platinum-dim" : "text-black/60 hover:text-black hover:bg-black/5"}`}>
-                      {item.label}
-                    </Link>
-                  ))}
-                  {ctaText && ctaHref && (
-                    <Link href={ctaHref} onClick={() => setIsOpen(false)} className="mt-1.5 py-2.5 px-3 rounded-xl text-[13px] font-semibold text-carbon bg-steel hover:bg-powder transition-colors text-center">
-                      {ctaText}
-                    </Link>
-                  )}
-                </div>
+                {ctaText && ctaHref && (
+                  <Link
+                    href={ctaHref}
+                    onClick={() => setIsOpen(false)}
+                    className="mt-1.5 py-2.5 px-3 rounded-xl text-[13.5px] font-bold text-navy bg-orange hover:bg-orange-soft transition-colors text-center"
+                  >
+                    {ctaText}
+                  </Link>
+                )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
-      </header>
-    </>
+      </div>
+    </header>
   )
 }

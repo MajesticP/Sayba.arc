@@ -1,11 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Halaman /products sudah digantikan /informasi — arahkan tautan lama
-  // supaya tidak ada pengunjung atau mesin pencari yang mendarat di 404.
+  // Redirect tautan lama supaya tidak ada pengunjung atau mesin pencari yang
+  // mendarat di 404 setelah modul Produk dan Applications digabung.
   async redirects() {
     return [
       { source: '/products', destination: '/informasi', permanent: true },
       { source: '/products/:slug', destination: '/informasi/:slug', permanent: true },
+      { source: '/applications', destination: '/services', permanent: true },
+      { source: '/applications/:slug', destination: '/services', permanent: true },
     ]
   },
   // TypeScript errors must be fixed — never suppress them in production builds

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback, useRef, useId } from "react"
-import type { Portfolio, PortfolioInsert, Layanan, Informasi, PriceTier, Berita, PromoBanner, ContentBlock, LayananFAQ, ProcessStep } from "@/lib/database.types"
+import type { Portfolio, PortfolioInsert, Layanan, Informasi, Berita, PromoBanner, ContentBlock, LayananFAQ, ProcessStep, KategoriScope } from "@/lib/database.types"
 import { LAYANAN_DEPTS as DEFAULT_DEPTS, type LayananDept } from "@/lib/layanan-config"
 import {
   LayoutGrid, Layers, Settings, Plus, Pencil, Trash2,
@@ -11,17 +11,35 @@ import {
   Heading, AlignLeft, ImagePlus, Info,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { newsCategories, getCategoryLabel, slugifyTitle } from "@/lib/news-data"
+/**
+ * Slug dari judul: huruf kecil, tanda baca dibuang, spasi jadi tanda hubung.
+ * Dulu ada di lib/news-data; dipindah ke sini karena hanya admin yang memakainya.
+ */
+function slugifyTitle(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+}
 
-// Departemen layanan bersifat tetap — dua dept dari lib/layanan-config.ts,
+// Departemen layanan bersifat tetap, dua dept dari lib/layanan-config.ts,
 // dibaca lewat /api/admin/tipe. Kategori informasi dikelola di tab tersendiri
-// (tabel `informasi_kategori`, lewat /api/admin/informasi-kategori).
+// (tabel `kategori`, lewat /api/admin/kategori, mencakup tiga modul).
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type Tab = "portfolio" | "layanan" | "informasi" | "kategori" | "berita" | "promo" | "tim"
 
-/** Satu kategori informasi yang dikelola admin (tabel `informasi_kategori`). */
-interface InformasiKategori {
+/**
+ * Satu kategori terpusat (tabel `kategori`). Kolom `scope` menentukan modul
+ * pemakainya: "layanan", "berita", atau "informasi". Satu daftar melayani
+ * ketiganya, jadi admin tidak perlu mengelola tiga tempat terpisah.
+ */
+interface KategoriRow {
+  id: string
+  scope: KategoriScope
   slug: string
   label: string
   description: string | null
@@ -46,7 +64,7 @@ interface TimMember {
 
 function gdriveToImg(url: string): string {
   if (!url) return url
-  // Already a proxied URL — use as-is
+  // Already a proxied URL: use as-is
   if (url.startsWith("/api/gdrive-img")) return url
   // Extract file ID from any Drive share link format
   const fileMatch = url.match(/\/d\/([\w-]+)/)
@@ -54,6 +72,18 @@ function gdriveToImg(url: string): string {
   const idMatch = url.match(/[?&]id=([\w-]+)/)
   if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
   return url
+}
+
+// Format gambar yang boleh diunggah. Pemeriksaan di klien ini hanya untuk
+// umpan balik cepat; server tetap memvalidasi format sebenarnya dari isi
+// berkas. Semua gambar (JPG/PNG/WebP/GIF/SVG) otomatis dikonversi ke WebP.
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"]
+const ALLOWED_IMAGE_EXT = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"]
+const IMAGE_ACCEPT = ".jpg,.jpeg,.png,.webp,.gif,.svg,image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+
+function isAllowedImageFile(file: File): boolean {
+  const name = file.name.toLowerCase()
+  return ALLOWED_IMAGE_TYPES.includes(file.type) || ALLOWED_IMAGE_EXT.some((ext) => name.endsWith(ext))
 }
 
 type DeptFilter = "semua" | string
@@ -136,7 +166,7 @@ export default function AdminDashboard() {
   const getDept = (value: string) => depts.find(d => d.value === value)
 
   const [katModal, setKatModal] = useState(false)
-  const [katEdit, setKatEdit] = useState<InformasiKategori | null>(null)
+  const [katEdit, setKatEdit] = useState<KategoriRow | null>(null)
   const [search, setSearch] = useState("")
   const [showSearch, setShowSearch] = useState(false)
 
@@ -146,7 +176,18 @@ export default function AdminDashboard() {
   const [timData, setTimData] = useState<TimMember[]>([])
   const [beritaData, setBeritaData] = useState<Berita[]>([])
   const [promoData, setPromoData] = useState<PromoBanner[]>([])
-  const [kategoriData, setKategoriData] = useState<InformasiKategori[]>([])
+  const [kategoriData, setKategoriData] = useState<KategoriRow[]>([])
+
+  // Penyaring kategori per modul. Dipakai form Layanan, Berita, dan Informasi
+  // supaya tiap form hanya menampilkan kategorinya sendiri.
+  const kategoriBerita = kategoriData.filter((k) => k.scope === "berita")
+  const kategoriLayanan = kategoriData.filter((k) => k.scope === "layanan")
+  const kategoriInformasi = kategoriData.filter((k) => k.scope === "informasi")
+
+  /** Label kategori untuk sebuah slug; tampilkan slug apa adanya bila tak ada. */
+  const kategoriLabel = (scope: KategoriScope, slug: string): string =>
+    kategoriData.find((k) => k.scope === scope && k.slug === slug)?.label ?? slug
+  const kategoriLabelBerita = (slug: string) => kategoriLabel("berita", slug)
   const [loadingP, setLoadingP] = useState(true)
   const [loadingL, setLoadingL] = useState(true)
   const [loadingI, setLoadingI] = useState(true)
@@ -227,10 +268,12 @@ export default function AdminDashboard() {
     setLoadingPm(false)
   }, [showToast])
 
+  // Kategori terpusat: satu endpoint melayani Layanan, Berita, dan Informasi.
+  // Data disimpan lengkap lalu disaring per scope saat dipakai.
   const fetchKategori = useCallback(async () => {
     setLoadingK(true)
-    const res = await fetch("/api/admin/informasi-kategori")
-    if (!res.ok) showToast("Gagal memuat kategori informasi", "error")
+    const res = await fetch("/api/admin/kategori")
+    if (!res.ok) showToast("Gagal memuat kategori", "error")
     else setKategoriData(await res.json())
     setLoadingK(false)
   }, [showToast])
@@ -261,7 +304,7 @@ export default function AdminDashboard() {
     const q = search.toLowerCase()
     return b.title.toLowerCase().includes(q)
       || (b.excerpt ?? "").toLowerCase().includes(q)
-      || getCategoryLabel(b.category).toLowerCase().includes(q)
+      || (kategoriLabelBerita(b.category) ?? "").toLowerCase().includes(q)
   })
 
   const filteredKategori = kategoriData.filter(k => {
@@ -281,7 +324,7 @@ export default function AdminDashboard() {
     try {
       // Kategori informasi memakai kolom `slug` sebagai kunci, bukan `id`.
       const res = target.table === "kategori"
-        ? await fetch(`/api/admin/informasi-kategori?slug=${encodeURIComponent(target.id)}`, { method: "DELETE" })
+        ? await fetch(`/api/admin/kategori?scope=${encodeURIComponent((target as { scope?: string }).scope ?? "informasi")}&slug=${encodeURIComponent(target.id)}`, { method: "DELETE" })
         : await fetch(`/api/admin/${target.table}?id=${target.id}`, { method: "DELETE" })
       if (!res.ok) {
         let errMsg = "Delete gagal"
@@ -323,7 +366,7 @@ export default function AdminDashboard() {
   const isLoading = (tab === "portfolio" && loadingP) || (tab === "layanan" && loadingL) || (tab === "informasi" && loadingI) || (tab === "kategori" && loadingK) || (tab === "tim" && loadingT) || (tab === "berita" && loadingB) || (tab === "promo" && loadingPm)
 
   return (
-    <div className="min-h-screen bg-[#1c2321] text-white font-sans">
+    <div className="min-h-screen bg-navy text-white font-sans">
 
       {/* Sidebar overlay (mobile) */}
       {sidebarOpen && (
@@ -463,7 +506,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Dept filter pills — hanya untuk konten yang memang ber-departemen */}
+        {/* Dept filter pills: hanya untuk konten yang memang ber-departemen */}
         {(tab === "portfolio" || tab === "layanan") && (
           <div className="bg-[#242c29] border-b border-white/[0.07] px-3 py-2 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
             {(["semua", ...depts.map(d => d.value)] as DeptFilter[]).map(d => (
@@ -487,9 +530,9 @@ export default function AdminDashboard() {
         <main className="p-3 sm:p-5 flex-1">
           {/* Stats */}
           <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-3 overflow-x-auto sm:overflow-visible scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0">
-            <StatCard label="Total Portofolio" value={portfolioData.length} color="#a9b4c2" />
-            <StatCard label="Total Layanan" value={layananData.length} color="#a9b4c2" />
-            <StatCard label="Total Informasi" value={informasiData.length} color="#7d98a1" />
+            <StatCard label="Total Portofolio" value={portfolioData.length} color="#f07a26" />
+            <StatCard label="Total Layanan" value={layananData.length} color="#f07a26" />
+            <StatCard label="Total Informasi" value={informasiData.length} color="#f07a26" />
             {depts.map(d => (
               <StatCard key={d.value} label={`Layanan ${d.label}`} value={layananData.filter(l => l.dept === d.value).length} color={d.color} />
             ))}
@@ -530,11 +573,12 @@ export default function AdminDashboard() {
               <KategoriTable
                 data={filteredKategori} loading={loadingK}
                 onEdit={k => { setKatEdit(k); setKatModal(true) }}
-                onDelete={k => { const t = { table: "kategori" as Tab, id: k.slug, name: k.label }; deleteRef.current = t; setDeleteTarget(t) }}
+                onDelete={k => { const t = { table: "kategori" as Tab, id: k.slug, name: k.label, scope: k.scope }; deleteRef.current = t; setDeleteTarget(t) }}
               />
             ) : tab === "berita" ? (
               <BeritaTable
                 data={filteredBerita} loading={loadingB}
+                labelKategori={kategoriLabelBerita}
                 onEdit={b => { setBrEdit(b); setBrModal(true) }}
                 onDelete={b => { const t = { table: "berita" as Tab, id: b.id, name: b.title }; deleteRef.current = t; setDeleteTarget(t) }}
               />
@@ -585,7 +629,7 @@ export default function AdminDashboard() {
       <InformasiModal open={inModal} initial={inEdit} kategori={kategoriData} onClose={() => setInModal(false)}
         onSaved={() => { setInModal(false); fetchInformasi(); showToast(inEdit ? "Informasi diperbarui" : "Informasi ditambahkan") }}
         onError={showToast} />
-      <BeritaModal open={brModal} initial={brEdit} onClose={() => setBrModal(false)}
+      <BeritaModal open={brModal} initial={brEdit} kategori={kategoriBerita} labelKategori={kategoriLabelBerita} onClose={() => setBrModal(false)}
         onSaved={() => { setBrModal(false); fetchBerita(); showToast(brEdit ? "Berita diperbarui" : "Berita ditambahkan") }}
         onError={showToast} />
       <PromoModal open={pmModal} initial={pmEdit} nextOrder={promoData.length + 1} onClose={() => setPmModal(false)}
@@ -756,19 +800,13 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
                       />
                     </div>
                   ) : (
-                    <code className="text-[10px] bg-powder/10 text-powder px-1.5 py-0.5 rounded-md">{l.icon || "—"}</code>
+                    <code className="text-[10px] bg-powder/10 text-powder px-1.5 py-0.5 rounded-md">{l.icon || ", "}</code>
                   )}
                 </td>
                 <td className="px-4 py-3">
-                  {l.prices && l.prices.length > 0 ? (
-                    <div className="flex flex-col gap-0.5">
-                      {(l.prices as PriceTier[]).map((t, i) => (
-                        <span key={i} className="text-[10px] text-white/40">
-                          <span className="text-white/60 font-medium">{t.name}</span> — {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(t.price)}
-                        </span>
-                      ))}
-                    </div>
-                  ) : <span className="text-[10px] text-white/20 italic">Belum ada</span>}
+                  <span className="text-[10px] text-white/40">
+                    {l.featured_order ? `Unggulan #${l.featured_order}` : "Reguler"}
+                  </span>
                 </td>
                 <td className="px-4 py-3"><StatusBadge status={l.status} /></td>
                 <td className="px-4 py-3">
@@ -803,13 +841,6 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
                 </div>
               )}
             </div>
-            {l.prices && l.prices.length > 0 && (
-              <div className="flex gap-2 mt-1 flex-wrap">
-                {(l.prices as PriceTier[]).map((t, i) => (
-                  <span key={i} className="text-[10px] text-white/30">{t.name}: {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(t.price)}</span>
-                ))}
-              </div>
-            )}
           </CardRow>
         ))}
       </div>
@@ -828,7 +859,7 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
   const [saving, setSaving] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
   // Files uploaded (or replaced) during this modal session. Only actually
-  // deleted from Storage once we know the outcome — see handleSubmit/handleClose.
+  // deleted from Storage once we know the outcome, see handleSubmit/handleClose.
   const stagedUploads = useRef<Set<string>>(new Set())
   const replacedUrls = useRef<Set<string>>(new Set())
   const trackImageChange = (oldUrl: string, newUrl: string) => {
@@ -894,7 +925,7 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
         </div>
         <Field label="Deskripsi"><Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi singkat proyek…" /></Field>
 
-        <SvgUploadField value={form.image_url ?? ""} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="portfolio" label="Gambar Utama" />
+        <ImageUploadField value={form.image_url ?? ""} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="portfolio" label="Gambar Utama" />
 
         <SeoFields
           metaTitle={form.meta_title ?? ""} onMetaTitle={v => set("meta_title", v)}
@@ -926,48 +957,6 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
   )
 }
 
-// ── Layanan Modal (editor paket harga) ──────────────────────────────────────
-const DEFAULT_TIERS: PriceTier[] = [
-  { name: "Starter", price: 3000000, bio: "Cocok untuk kebutuhan dasar dan organisasi kecil.", features: [""] },
-  { name: "Standard", price: 7500000, bio: "Solusi lengkap untuk kebutuhan profesional.", features: [""] },
-  { name: "Premium", price: 15000000, bio: "Paket terlengkap dengan dukungan penuh.", features: [""] },
-]
-
-function PriceTierEditor({ tier, index, onChange }: { tier: PriceTier; index: number; onChange: (t: PriceTier) => void }) {
-  const COLORS = ["bg-white/5 border-white/[0.08]", "bg-powder/5 border-powder/20", "bg-white/5 border-white/[0.08]"]
-  const LABELS = ["Paket 1 — Terendah", "Paket 2 — Tengah", "Paket 3 — Tertinggi"]
-  const features = tier.features ?? [""]
-  const setFeat = (fi: number, val: string) => { const f = [...features]; f[fi] = val; onChange({ ...tier, features: f }) }
-  return (
-    <div className={cn("rounded-xl border p-3.5 space-y-3", COLORS[index])}>
-      <p className="text-[9.5px] font-bold uppercase tracking-widest text-white/30">{LABELS[index]}</p>
-      <div className="grid grid-cols-2 gap-2.5">
-        <Field label="Nama Paket"><Input value={tier.name ?? ""} onChange={v => onChange({ ...tier, name: v })} placeholder="Starter" /></Field>
-        <Field label="Harga (IDR)">
-          <input type="number" value={tier.price ?? 0} onChange={e => onChange({ ...tier, price: Number(e.target.value) })} placeholder="3000000"
-            className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors" />
-        </Field>
-      </div>
-      <Field label="Bio / Tagline"><Input value={tier.bio ?? ""} onChange={v => onChange({ ...tier, bio: v })} placeholder="Cocok untuk…" /></Field>
-      <Field label="Fitur yang Didapat">
-        <div className="space-y-1.5">
-          {features.map((f, fi) => (
-            <div key={fi} className="flex gap-2">
-              <input value={f ?? ""} onChange={e => setFeat(fi, e.target.value)} placeholder={`Fitur ${fi + 1}…`}
-                className="flex-1 bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-1.5 text-[12px] text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors" />
-              {features.length > 1 && (
-                <button onClick={() => onChange({ ...tier, features: features.filter((_, i) => i !== fi) })} className="text-white/20 hover:text-red-400 transition-colors"><X size={12} /></button>
-              )}
-            </div>
-          ))}
-          <button onClick={() => onChange({ ...tier, features: [...features, ""] })} className="text-[11px] text-white/30 hover:text-powder flex items-center gap-1 transition-colors">
-            <Plus size={11} /> Tambah fitur
-          </button>
-        </div>
-      </Field>
-    </div>
-  )
-}
 
 // ── Editor galeri multi-foto ────────────────────────────────────────────────
 function GalleryEditor({ items, onChange, onTrackChange }: {
@@ -983,10 +972,7 @@ function GalleryEditor({ items, onChange, onTrackChange }: {
     setErr(""); setUploading(true)
     const added: string[] = []
     for (const file of Array.from(files)) {
-      const name = file.name.toLowerCase()
-      const ok = ["image/svg+xml", "image/png", "image/webp"].includes(file.type)
-        || name.endsWith(".svg") || name.endsWith(".png") || name.endsWith(".webp")
-      if (!ok) { setErr("Hanya file SVG, PNG, atau WebP yang diizinkan"); continue }
+      if (!isAllowedImageFile(file)) { setErr("Hanya gambar JPG, PNG, WebP, GIF, atau SVG yang diizinkan"); continue }
       if (file.size > 4.5 * 1024 * 1024) { setErr("Ukuran tiap file maksimal 4,5MB"); continue }
       const fd = new FormData(); fd.append("file", file); fd.append("folder", "layanan")
       const res = await fetch("/api/admin/upload", { method: "POST", body: fd })
@@ -1008,7 +994,7 @@ function GalleryEditor({ items, onChange, onTrackChange }: {
 
   return (
     <Field label="Galeri Foto" hint="Beberapa gambar sekaligus. Tampil sebagai grid di halaman layanan; urutan mengikuti daftar ini (foto #1 paling atas).">
-      <input id={inputId} type="file" multiple accept=".svg,.png,.webp,image/svg+xml,image/png,image/webp" className="hidden"
+      <input id={inputId} type="file" multiple accept={IMAGE_ACCEPT} className="hidden"
         onChange={e => { handleFiles(e.target.files); e.target.value = "" }} />
       <label htmlFor={inputId} aria-disabled={uploading}
         className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold bg-[#2d3733] border border-white/[0.07] text-white/60 hover:text-white hover:border-white/20 transition-all cursor-pointer aria-disabled:opacity-50 aria-disabled:pointer-events-none">
@@ -1079,7 +1065,7 @@ function ContentBlocksEditor({ blocks, onChange, onTrackChange }: {
             )}
             {b.type === "image" && (
               <>
-                <SvgUploadField value={b.image_url ?? ""} onChange={v => update(i, { image_url: v })} onTrackChange={onTrackChange} folder="layanan" label="Gambar Blok" />
+                <ImageUploadField value={b.image_url ?? ""} onChange={v => update(i, { image_url: v })} onTrackChange={onTrackChange} folder="layanan" label="Gambar Blok" />
                 <Input value={b.caption ?? ""} onChange={v => update(i, { caption: v })} placeholder="Keterangan gambar (opsional)" />
               </>
             )}
@@ -1163,7 +1149,7 @@ type LayananForm = {
   title: string; slug: string; dept: string; category: string; description: string
   icon: string; image_url: string; status: Status
   gallery: string[]; content_blocks: ContentBlock[]; faqs: LayananFAQ[]; process_steps: ProcessStep[]
-  prices: PriceTier[]; featured_order: number | null
+  featured_order: number | null
   meta_title: string; meta_description: string; meta_keywords: string; og_image: string; canonical_url: string
 }
 
@@ -1174,14 +1160,14 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
   const blank: LayananForm = {
     title: "", slug: "", dept: depts[0]?.value ?? "it_konsulting", category: "", description: "",
     icon: "map", image_url: "", status: "active", gallery: [], content_blocks: [], faqs: [], process_steps: [],
-    prices: DEFAULT_TIERS, featured_order: null,
+    featured_order: null,
     meta_title: "", meta_description: "", meta_keywords: "", og_image: "", canonical_url: "",
   }
   const [form, setForm] = useState<LayananForm>(blank)
   const [saving, setSaving] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
   // Files uploaded (or replaced) during this modal session. Only actually
-  // deleted from Storage once we know the outcome — see handleSubmit/handleClose.
+  // deleted from Storage once we know the outcome, see handleSubmit/handleClose.
   const stagedUploads = useRef<Set<string>>(new Set())
   const replacedUrls = useRef<Set<string>>(new Set())
   const trackImageChange = (oldUrl: string, newUrl: string) => {
@@ -1199,7 +1185,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
         description: initial.description ?? "", icon: initial.icon ?? "map", image_url: initial.image_url ?? "",
         status: initial.status, gallery: initial.gallery ?? [], content_blocks: initial.content_blocks ?? [],
         faqs: initial.faqs ?? [], process_steps: initial.process_steps ?? [],
-        prices: (initial.prices as PriceTier[]) ?? DEFAULT_TIERS, featured_order: initial.featured_order ?? null,
+        featured_order: initial.featured_order ?? null,
         meta_title: initial.meta_title ?? "", meta_description: initial.meta_description ?? "",
         meta_keywords: (initial.meta_keywords ?? []).join("\n"), og_image: initial.og_image ?? "",
         canonical_url: initial.canonical_url ?? "",
@@ -1211,9 +1197,8 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
 
   const set = <K extends keyof LayananForm>(k: K, v: LayananForm[K]) => setForm(f => ({ ...f, [k]: v }))
   const handleTitle = (v: string) => { set("title", v); if (!slugManual) set("slug", slugify(v)) }
-  const updateTier = (i: number, t: PriceTier) => { const tiers = [...form.prices]; tiers[i] = t; set("prices", tiers) }
 
-  // Modal closed/cancelled without saving — none of this session's uploads
+  // Modal closed/cancelled without saving, none of this session's uploads
   // ever made it into the DB, so they're all safe (and only them) to delete.
   const handleClose = () => {
     stagedUploads.current.forEach(deleteMediaFile)
@@ -1229,7 +1214,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
       title: form.title, slug: form.slug, dept: form.dept, category: form.category || null,
       description: form.description || null, icon: form.icon || "map", image_url: form.image_url || null,
       gallery: form.gallery, content_blocks: form.content_blocks, faqs: form.faqs, process_steps: form.process_steps,
-      prices: form.prices, status: form.status, featured_order: form.featured_order,
+      status: form.status, featured_order: form.featured_order,
       meta_title: form.meta_title || null, meta_description: form.meta_description || null,
       meta_keywords: form.meta_keywords ? form.meta_keywords.split("\n").map(s => s.trim()).filter(Boolean) : null,
       og_image: form.og_image || null, canonical_url: form.canonical_url || null,
@@ -1239,7 +1224,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
       : await fetch("/api/admin/layanan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
     setSaving(false)
     if (!res.ok) { onError((await res.json()).error ?? "Save failed", "error"); return }
-    // Saved successfully — anything replaced/abandoned along the way is now
+    // Saved successfully: anything replaced/abandoned along the way is now
     // safe to delete, as long as it isn't one of the URLs that actually got saved.
     const finalUrls = new Set([
       payload.image_url, payload.og_image,
@@ -1275,10 +1260,10 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Icon (Lucide)" hint="Nama ikon dari lucide.dev, mis. map, globe, code."><Input value={form.icon ?? ""} onChange={v => set("icon", v)} placeholder="map, globe, code…" /></Field>
-          <Field label="Status" hint="Draft disembunyikan dari publik."><Select value={form.status} onChange={v => set("status", v as Status)} options={[{ value: "active", label: "Active — tampil" }, { value: "draft", label: "Draft — tersembunyi" }, { value: "archived", label: "Archived — arsip" }]} /></Field>
+          <Field label="Status" hint="Draft disembunyikan dari publik."><Select value={form.status} onChange={v => set("status", v as Status)} options={[{ value: "active", label: "Active: tampil" }, { value: "draft", label: "Draft: tersembunyi" }, { value: "archived", label: "Archived: arsip" }]} /></Field>
         </div>
 
-        <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="layanan" label="Gambar Utama" />
+        <ImageUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="layanan" label="Gambar Utama" />
         <p className="text-[10px] text-white/25 leading-relaxed -mt-1.5">
           Gambar utama halaman layanan. Bila kolom gambar pratinjau sosial (og:image) di bagian SEO dikosongkan,
           gambar inilah yang dipakai saat tautan dibagikan.
@@ -1301,7 +1286,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
         <div className="rounded-xl border border-powder/15 bg-powder/5 p-4 space-y-2.5">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold uppercase tracking-widest text-powder">Layanan Unggulan</span>
-            <span className="text-[10px] text-white/30">— tampil di beranda (maks 3 posisi)</span>
+            <span className="text-[10px] text-white/30">, tampil di beranda (maks 3 posisi)</span>
           </div>
           <div className="flex gap-2 flex-wrap">
             {([null, 1, 2, 3] as (number | null)[]).map(v => {
@@ -1368,17 +1353,6 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
           <Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi layanan…" />
         </Field>
 
-        <div className="pt-1">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-[9.5px] font-bold uppercase tracking-widest text-white/30">Paket Harga (3 Tier)</span>
-            <div className="flex-1 h-px bg-white/[0.06]" />
-          </div>
-          <div className="space-y-3">
-            {form.prices.map((tier, i) => <PriceTierEditor key={i} tier={tier} index={i} onChange={t => updateTier(i, t)} />)}
-          </div>
-        </div>
-
         <GalleryEditor items={form.gallery} onChange={v => set("gallery", v)} onTrackChange={trackImageChange} />
         <ContentBlocksEditor blocks={form.content_blocks} onChange={v => set("content_blocks", v)} onTrackChange={trackImageChange} />
         <FaqEditor items={form.faqs} onChange={v => set("faqs", v)} />
@@ -1397,12 +1371,12 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
 
 // ── Informasi Table ───────────────────────────────────────────────────────────
 /** Label kategori dari daftar yang dikelola admin; fallback ke slug apa adanya. */
-function kategoriLabel(kategori: InformasiKategori[], slug: string): string {
+function kategoriLabel(kategori: KategoriRow[], slug: string): string {
   return kategori.find(k => k.slug === slug)?.label ?? slug
 }
 
 function InformasiTable({ data, loading, kategori, onEdit, onDelete }: {
-  data: Informasi[]; loading: boolean; kategori: InformasiKategori[]
+  data: Informasi[]; loading: boolean; kategori: KategoriRow[]
   onEdit: (b: Informasi) => void; onDelete: (b: Informasi) => void
 }) {
   if (loading) return <TableLoading />
@@ -1438,7 +1412,7 @@ function InformasiTable({ data, loading, kategori, onEdit, onDelete }: {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={gdriveToImg(b.image_url)} alt={b.title} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
                     </div>
-                  ) : <span className="text-[10px] text-white/20 italic">—</span>}
+                  ) : <span className="text-[10px] text-white/20 italic">, </span>}
                 </td>
                 <td className="px-4 py-3">
                   <span className="text-[11.5px] text-white/50">{beritaDateLabel(b.published_at)}</span>
@@ -1477,7 +1451,7 @@ function InformasiTable({ data, loading, kategori, onEdit, onDelete }: {
 
 // ── Informasi Modal ───────────────────────────────────────────────────────────
 function InformasiModal({ open, initial, kategori, onClose, onSaved, onError }: {
-  open: boolean; initial: Informasi | null; kategori: InformasiKategori[]
+  open: boolean; initial: Informasi | null; kategori: KategoriRow[]
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
   const today = new Date().toISOString().slice(0, 10)
@@ -1568,7 +1542,7 @@ function InformasiModal({ open, initial, kategori, onClose, onSaved, onError }: 
           <Field label="Slug / URL" required hint={`Alamat akhir: /informasi/${form.slug || "slug"}. Huruf kecil, pakai tanda hubung.`}>
             <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="pemetaan-partisipatif-desa" />
           </Field>
-          <Field label="Kategori" required hint={kategori.length ? "Daftar ini diatur di tab Kategori Informasi." : "Belum ada kategori — buat dulu di tab Kategori Informasi."}>
+          <Field label="Kategori" required hint={kategori.length ? "Daftar ini diatur di tab Kategori Informasi." : "Belum ada kategori: buat dulu di tab Kategori Informasi."}>
             <Select value={form.category} onChange={v => set("category", v)} options={kategori.map(c => ({ value: c.slug, label: c.label }))} />
           </Field>
         </div>
@@ -1577,7 +1551,7 @@ function InformasiModal({ open, initial, kategori, onClose, onSaved, onError }: 
           <Textarea value={form.excerpt} onChange={v => set("excerpt", v)} placeholder="Bagaimana data lapangan yang dikumpulkan bersama warga desa diubah menjadi basis data spasial…" />
         </Field>
 
-        <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="informasi" label="Gambar Artikel (SVG/PNG/WebP)" />
+        <ImageUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="informasi" label="Gambar Artikel (JPG/PNG/WebP/GIF/SVG)" />
 
         <Field
           label="Isi Artikel"
@@ -1610,7 +1584,7 @@ function InformasiModal({ open, initial, kategori, onClose, onSaved, onError }: 
               className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
           </Field>
           <Field label="Status" hint="Draft disembunyikan dari publik.">
-            <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active — tampil" }, { value: "draft", label: "Draft — tersembunyi" }, { value: "archived", label: "Archived — arsip" }]} />
+            <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active: tampil" }, { value: "draft", label: "Draft: tersembunyi" }, { value: "archived", label: "Archived: arsip" }]} />
           </Field>
         </div>
 
@@ -1630,7 +1604,7 @@ function InformasiModal({ open, initial, kategori, onClose, onSaved, onError }: 
           </span>
           <span>
             <span className={cn("block text-[12.5px] font-semibold", form.featured ? "text-powder" : "text-white/70")}>Jadikan artikel Sorotan</span>
-            <span className="block text-[10.5px] text-white/30 mt-0.5">Tampil sebagai kartu besar di atas halaman /informasi. Hanya satu artikel yang bisa jadi Sorotan — menandai ini otomatis melepas tanda dari artikel lain.</span>
+            <span className="block text-[10.5px] text-white/30 mt-0.5">Tampil sebagai kartu besar di atas halaman /informasi. Hanya satu artikel yang bisa jadi Sorotan: menandai ini otomatis melepas tanda dari artikel lain.</span>
           </span>
         </button>
 
@@ -1713,7 +1687,7 @@ function Select({ value, onChange, options }: { value: string; onChange: (v: str
   )
 }
 
-// Public URL prefix for objects in the "media" bucket — used to recognize
+// Public URL prefix for objects in the "media" bucket, used to recognize
 // (and clean up) our own uploads while leaving old Google Drive links alone.
 const MEDIA_URL_PREFIX = `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}/storage/v1/object/public/media/`
 
@@ -1728,15 +1702,15 @@ async function deleteMediaFile(url: string) {
   try {
     await fetch(`/api/admin/upload?path=${encodeURIComponent(path)}`, { method: "DELETE" })
   } catch {
-    // best-effort cleanup — a failed delete just leaves an orphaned file, not a broken UI
+    // best-effort cleanup, a failed delete just leaves an orphaned file, not a broken UI
   }
 }
 
-function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG/PNG/WebP)", onTrackChange }: {
+function ImageUploadField({ value, onChange, folder, label = "Gambar (JPG/PNG/WebP/GIF/SVG)", onTrackChange }: {
   value: string; onChange: (v: string) => void; folder: "informasi" | "layanan" | "portfolio" | "tim" | "berita" | "promo"; label?: string
   // Reports (oldUrl, newUrl) whenever the field's value changes, so the
   // parent modal can decide when it's actually safe to delete the old file
-  // (only after the record is saved — never on a cancelled edit).
+  // (only after the record is saved, never on a cancelled edit).
   onTrackChange?: (oldUrl: string, newUrl: string) => void
 }) {
   const [uploading, setUploading] = useState(false)
@@ -1746,11 +1720,8 @@ function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG/PNG/WebP
   const handleFile = async (file: File | undefined) => {
     if (!file) return
     setErr("")
-    const name = file.name.toLowerCase()
-    const isAllowed = ["image/svg+xml", "image/png", "image/webp"].includes(file.type)
-      || name.endsWith(".svg") || name.endsWith(".png") || name.endsWith(".webp")
-    if (!isAllowed) { setErr("Hanya file SVG, PNG, atau WebP yang diizinkan"); return }
-    if (file.size > 4.5 * 1024 * 1024) { setErr("Ukuran file maksimal 4,5MB — batas request Vercel"); return }
+    if (!isAllowedImageFile(file)) { setErr("Hanya gambar JPG, PNG, WebP, GIF, atau SVG yang diizinkan"); return }
+    if (file.size > 4.5 * 1024 * 1024) { setErr("Ukuran file maksimal 4,5MB: batas request Vercel"); return }
 
     setUploading(true)
     const fd = new FormData()
@@ -1770,8 +1741,8 @@ function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG/PNG/WebP
   }
 
   return (
-    <Field label={label} hint="SVG, PNG, atau WebP — maksimal 4,5MB. Semua foto otomatis dikonversi ke WebP; gambar di atas 2000px ikut dikecilkan. SVG tetap SVG.">
-      <input id={inputId} type="file" accept=".svg,.png,.webp,image/svg+xml,image/png,image/webp" className="hidden"
+    <Field label={label} hint="JPG, PNG, WebP, GIF, atau SVG: maksimal 4,5MB. Setiap gambar otomatis dikonversi ke WebP dan dikompres di bawah 100KB; gambar besar ikut dikecilkan.">
+      <input id={inputId} type="file" accept={IMAGE_ACCEPT} className="hidden"
         onChange={e => { handleFile(e.target.files?.[0]); e.target.value = "" }} />
       <div className="flex items-center gap-2">
         <label htmlFor={inputId} aria-disabled={uploading}
@@ -1842,7 +1813,7 @@ function SeoFields({
       </div>
       <p className="text-[10.5px] text-white/30 leading-relaxed">
         Kolom di bawah mengatur bagaimana halaman ini tampil di hasil pencarian Google
-        dan saat tautannya dibagikan ke media sosial. Semuanya opsional — bila dikosongkan,
+        dan saat tautannya dibagikan ke media sosial. Semuanya opsional: bila dikosongkan,
         situs memakai nilai otomatis yang wajar.
       </p>
 
@@ -1851,7 +1822,7 @@ function SeoFields({
           <span className="text-[11px] font-semibold text-white/50">Meta Title</span>
           <CharCount value={metaTitle} ideal={60} />
         </div>
-        <Input value={metaTitle} onChange={onMetaTitle} placeholder="Judul untuk hasil pencarian — SAYBA ARC" />
+        <Input value={metaTitle} onChange={onMetaTitle} placeholder="Judul untuk hasil pencarian: SAYBA ARC" />
         <p className="text-[10px] text-white/25 leading-relaxed">
           Judul biru yang tampil di Google. Kosongkan untuk memakai {titleFallback} + “SAYBA ARC”.
           Idealnya 50–60 karakter; lebih panjang akan dipotong dengan “…”.
@@ -1889,7 +1860,7 @@ function SeoFields({
         </p>
       </div>
 
-      <SvgUploadField
+      <ImageUploadField
         value={ogImage}
         onChange={onOgImage}
         onTrackChange={onTrackChange}
@@ -1907,8 +1878,8 @@ function SeoFields({
 
 // ── Kategori Informasi Table ────────────────────────────────────────────────
 function KategoriTable({ data, loading, onEdit, onDelete }: {
-  data: InformasiKategori[]; loading: boolean
-  onEdit: (k: InformasiKategori) => void; onDelete: (k: InformasiKategori) => void
+  data: KategoriRow[]; loading: boolean
+  onEdit: (k: KategoriRow) => void; onDelete: (k: KategoriRow) => void
 }) {
   if (loading) return <TableLoading />
   if (!data.length) return <TableEmpty label="kategori informasi" />
@@ -1980,20 +1951,20 @@ function KategoriTable({ data, loading, onEdit, onDelete }: {
 
 // ── Kategori Informasi Modal ────────────────────────────────────────────────
 const KATEGORI_COLORS = [
-  { color: "#1c2321", label: "Carbon" },
-  { color: "#5e6572", label: "Slate" },
+  { color: "#112a46", label: "Navy" },
+  { color: "#5a5c62", label: "Slate" },
   { color: "#5e7a85", label: "Steel Deep" },
-  { color: "#7d98a1", label: "Steel" },
-  { color: "#a9b4c2", label: "Powder" },
+  { color: "#f07a26", label: "Orange" },
+  { color: "#f07a26", label: "Orange" },
   { color: "#4a5a63", label: "Operasional" },
 ]
 
 function KategoriModal({ open, initial, onClose, onSaved, onError }: {
-  open: boolean; initial: InformasiKategori | null
+  open: boolean; initial: KategoriRow | null
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
-  const blank: InformasiKategori = { slug: "", label: "", description: "", color: KATEGORI_COLORS[1].color, sort_order: 0, status: "active" }
-  const [form, setForm] = useState<InformasiKategori>(blank)
+  const blank: KategoriRow = { id: "", scope: "informasi", slug: "", label: "", description: "", color: KATEGORI_COLORS[1].color, sort_order: 0, status: "active" }
+  const [form, setForm] = useState<KategoriRow>(blank)
   const [saving, setSaving] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
 
@@ -2004,7 +1975,7 @@ function KategoriModal({ open, initial, onClose, onSaved, onError }: {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initial])
 
-  const set = <K extends keyof InformasiKategori>(k: K, v: InformasiKategori[K]) => setForm(f => ({ ...f, [k]: v }))
+  const set = <K extends keyof KategoriRow>(k: K, v: KategoriRow[K]) => setForm(f => ({ ...f, [k]: v }))
   const handleLabel = (v: string) => {
     set("label", v)
     if (!slugManual) set("slug", v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40))
@@ -2017,15 +1988,15 @@ function KategoriModal({ open, initial, onClose, onSaved, onError }: {
     const payload = {
       label: form.label.trim(),
       description: form.description || null,
-      color: form.color || "#5e6572",
+      color: form.color || "#5a5c62",
       sort_order: Number(form.sort_order) || 0,
       status: form.status,
     }
     // Slug hanya dikirim saat membuat baru; mengubah slug akan memutus kaitan
     // dengan artikel lama yang memakai slug tersebut.
     const res = initial
-      ? await fetch(`/api/admin/informasi-kategori?slug=${encodeURIComponent(initial.slug)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
-      : await fetch("/api/admin/informasi-kategori", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...payload, slug: form.slug.trim() }) })
+      ? await fetch(`/api/admin/kategori?scope=${encodeURIComponent(initial.scope ?? form.scope ?? "informasi")}&slug=${encodeURIComponent(initial.slug)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      : await fetch("/api/admin/kategori", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...payload, slug: form.slug.trim() }) })
     setSaving(false)
     if (!res.ok) { onError((await res.json()).error ?? "Gagal menyimpan", "error"); return }
     onSaved()
@@ -2063,8 +2034,8 @@ function KategoriModal({ open, initial, onClose, onSaved, onError }: {
             <input
               value={form.color}
               onChange={e => set("color", e.target.value)}
-              onBlur={e => { const v = e.target.value.trim(); if (!/^#[0-9a-fA-F]{6}$/.test(v)) set("color", "#5e6572") }}
-              placeholder="#5e6572"
+              onBlur={e => { const v = e.target.value.trim(); if (!/^#[0-9a-fA-F]{6}$/.test(v)) set("color", "#5a5c62") }}
+              placeholder="#5a5c62"
               className="w-28 bg-[#2d3733] border border-white/[0.07] rounded-lg px-2 py-1 text-[12px] font-mono text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors"
             />
           </div>
@@ -2126,7 +2097,7 @@ function TimTable({ data, loading, onEdit, onDelete }: {
                     </div>
                   </td>
                   <td className="px-4 py-3"><p className="text-[12px] text-powder font-medium">{m.role}</p></td>
-                  <td className="px-4 py-3 max-w-[200px]"><p className="text-[11px] text-white/35 line-clamp-2">{m.bio ?? "—"}</p></td>
+                  <td className="px-4 py-3 max-w-[200px]"><p className="text-[11px] text-white/35 line-clamp-2">{m.bio ?? ", "}</p></td>
                   <td className="px-4 py-3"><span className="text-[12px] text-white/40 font-mono">{m.order_num}</span></td>
                   <td className="px-4 py-3">
                     <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1", m.status === "active" ? "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20" : "bg-yellow-500/10 text-yellow-400 ring-yellow-500/20")}>
@@ -2186,7 +2157,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
   const [form, setForm] = useState({ ...blank })
   const [saving, setSaving] = useState(false)
   // Files uploaded (or replaced) during this modal session. Only actually
-  // deleted from Storage once we know the outcome — see handleSubmit/handleClose.
+  // deleted from Storage once we know the outcome, see handleSubmit/handleClose.
   const stagedUploads = useRef<Set<string>>(new Set())
   const replacedUrls = useRef<Set<string>>(new Set())
   const trackImageChange = (oldUrl: string, newUrl: string) => {
@@ -2243,7 +2214,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
           <Textarea value={form.bio} onChange={v => set("bio", v)} placeholder="Menangani pengembangan web dan mobile…" />
         </Field>
 
-        <SvgUploadField value={form.photo_url} onChange={v => set("photo_url", v)} onTrackChange={trackImageChange} folder="tim" label="Foto Profil (SVG/PNG/WebP)" />
+        <ImageUploadField value={form.photo_url} onChange={v => set("photo_url", v)} onTrackChange={trackImageChange} folder="tim" label="Foto Profil (JPG/PNG/WebP/GIF/SVG)" />
 
         <div className="space-y-2.5">
           <p className="text-[9.5px] font-bold uppercase tracking-widest text-white/25">Social Links (opsional)</p>
@@ -2257,7 +2228,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
               className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
           </Field>
           <Field label="Status">
-            <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active — tampil" }, { value: "draft", label: "Draft — tersembunyi" }]} />
+            <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active: tampil" }, { value: "draft", label: "Draft: tersembunyi" }]} />
           </Field>
         </div>
       </div>
@@ -2279,9 +2250,10 @@ function beritaDateLabel(iso: string) {
   return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
 }
 
-function BeritaTable({ data, loading, onEdit, onDelete }: {
+function BeritaTable({ data, loading, labelKategori, onEdit, onDelete }: {
   data: Berita[]; loading: boolean
-  onEdit: (b: Berita) => void; onDelete: (b: Berita) => void
+  onEdit: (b: Berita) => void; labelKategori: (slug: string) => string
+  onDelete: (b: Berita) => void
 }) {
   if (loading) return <TableLoading />
   if (!data.length) return <TableEmpty label="berita" />
@@ -2307,7 +2279,7 @@ function BeritaTable({ data, loading, onEdit, onDelete }: {
                   {b.excerpt && <p className="text-[11px] text-white/30 mt-0.5 max-w-[260px] truncate">{b.excerpt}</p>}
                 </td>
                 <td className="px-4 py-3">
-                  <span className="inline-flex items-center gap-1 text-[10px] text-white/35"><Tag size={8} />{getCategoryLabel(b.category)}</span>
+                  <span className="inline-flex items-center gap-1 text-[10px] text-white/35"><Tag size={8} />{labelKategori(b.category)}</span>
                 </td>
                 <td className="px-4 py-3"><code className="text-[10px] bg-[#2d3733] text-white/40 px-1.5 py-0.5 rounded-md">/berita/{b.slug}</code></td>
                 <td className="px-4 py-3">
@@ -2316,7 +2288,7 @@ function BeritaTable({ data, loading, onEdit, onDelete }: {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={gdriveToImg(b.image_url)} alt={b.title} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
                     </div>
-                  ) : <span className="text-[10px] text-white/20 italic">—</span>}
+                  ) : <span className="text-[10px] text-white/20 italic">, </span>}
                 </td>
                 <td className="px-4 py-3">
                   <span className="text-[11.5px] text-white/50">{beritaDateLabel(b.published_at)}</span>
@@ -2342,7 +2314,7 @@ function BeritaTable({ data, loading, onEdit, onDelete }: {
             {b.excerpt && <p className="text-[11px] text-white/30 mt-0.5 line-clamp-1">{b.excerpt}</p>}
             <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
               {b.featured && <span className="text-[8.5px] font-black uppercase tracking-widest text-powder bg-powder/10 border border-powder/25 px-1.5 py-0.5 rounded-md">Sorotan</span>}
-              <span className="text-[10px] text-white/35">{getCategoryLabel(b.category)}</span>
+              <span className="text-[10px] text-white/35">{labelKategori(b.category)}</span>
               <StatusBadge status={b.status} />
               <span className="text-[10px] text-white/40">{beritaDateLabel(b.published_at)}</span>
             </div>
@@ -2354,13 +2326,17 @@ function BeritaTable({ data, loading, onEdit, onDelete }: {
 }
 
 // ── Berita Modal ───────────────────────────────────────────────────────────
-function BeritaModal({ open, initial, onClose, onSaved, onError }: {
+function BeritaModal({ open, initial, kategori, labelKategori, onClose, onSaved, onError }: {
   open: boolean; initial: Berita | null
+  /** Kategori scope "berita" dari tabel `kategori` */
+  kategori: KategoriRow[]
+  /** Ubah slug kategori jadi label yang terbaca */
+  labelKategori: (slug: string) => string
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
   const today = new Date().toISOString().slice(0, 10)
   const blank = {
-    title: "", slug: "", excerpt: "", category: newsCategories[0]?.slug ?? "gis", image_url: "",
+    title: "", slug: "", excerpt: "", category: kategori[0]?.slug ?? "", image_url: "",
     author: "Redaksi SAYBA ARC", body: "", published_at: today, read_minutes: 3, views: 0,
     featured: false, tags: "", status: "active" as Status,
     meta_title: "", meta_description: "", meta_keywords: "", og_image: "", canonical_url: "",
@@ -2446,7 +2422,7 @@ function BeritaModal({ open, initial, onClose, onSaved, onError }: {
             <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="pemetaan-partisipatif-desa" />
           </Field>
           <Field label="Kategori" required>
-            <Select value={form.category} onChange={v => set("category", v)} options={newsCategories.map(c => ({ value: c.slug, label: c.label }))} />
+            <Select value={form.category} onChange={v => set("category", v)} options={kategori.map((c) => ({ value: c.slug, label: c.label }))} />
           </Field>
         </div>
 
@@ -2454,11 +2430,11 @@ function BeritaModal({ open, initial, onClose, onSaved, onError }: {
           <Textarea value={form.excerpt} onChange={v => set("excerpt", v)} placeholder="Bagaimana data lapangan yang dikumpulkan bersama warga desa diubah menjadi basis data spasial…" />
         </Field>
 
-        <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="berita" label="Gambar Artikel (SVG/PNG/WebP)" />
+        <ImageUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="berita" label="Gambar Artikel (JPG/PNG/WebP/GIF/SVG)" />
 
         <Field
           label="Isi Artikel"
-          hint='Markdown ringan — awali baris dengan "## " untuk sub-judul, dan pisahkan paragraf dengan satu baris kosong.'
+          hint='Markdown ringan: awali baris dengan "## " untuk sub-judul, dan pisahkan paragraf dengan satu baris kosong.'
         >
           <textarea
             value={form.body}
@@ -2507,7 +2483,7 @@ function BeritaModal({ open, initial, onClose, onSaved, onError }: {
           </span>
           <span>
             <span className={cn("block text-[12.5px] font-semibold", form.featured ? "text-powder" : "text-white/70")}>Jadikan artikel Sorotan</span>
-            <span className="block text-[10.5px] text-white/30 mt-0.5">Tampil sebagai kartu besar di atas halaman /berita. Hanya satu artikel yang bisa jadi Sorotan — menandai ini otomatis melepas tanda dari artikel lain.</span>
+            <span className="block text-[10.5px] text-white/30 mt-0.5">Tampil sebagai kartu besar di atas halaman /berita. Hanya satu artikel yang bisa jadi Sorotan: menandai ini otomatis melepas tanda dari artikel lain.</span>
           </span>
         </button>
 
@@ -2571,7 +2547,7 @@ function PromoTable({ data, loading, onEdit, onDelete }: {
                 <td className="px-4 py-3">
                   {b.cta_text && b.cta_href
                     ? <><span className="text-[11.5px] text-white/60">{b.cta_text}</span><code className="block text-[10px] text-white/30 mt-0.5">{b.cta_href}</code></>
-                    : <span className="text-[10px] text-white/20 italic">—</span>}
+                    : <span className="text-[10px] text-white/20 italic">, </span>}
                 </td>
                 <td className="px-4 py-3"><StatusBadge status={b.status} /></td>
                 <td className="px-4 py-3">
@@ -2670,9 +2646,9 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
     <Modal open={open} onClose={handleClose} maxW="max-w-lg">
       <ModalHeader icon={<GalleryHorizontalEnd size={15} className="text-powder" />} iconBg="bg-powder/10" title={initial ? "Edit Banner" : "Tambah Banner"} onClose={handleClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
-        <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="promo" label="Gambar Banner (SVG/PNG/WebP)" />
+        <ImageUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="promo" label="Gambar Banner (JPG/PNG/WebP/GIF/SVG)" />
         <p className="text-[10.5px] text-white/30 -mt-1.5 leading-relaxed">
-          Rasio ideal <span className="text-white/50">1600 × 600 px</span>. Sisi kiri banner tertutup gradient gelap untuk teks — letakkan visual utama di sisi kanan.
+          Rasio ideal <span className="text-white/50">1600 × 600 px</span>. Sisi kiri banner tertutup gradient gelap untuk teks, letakkan visual utama di sisi kanan.
         </p>
 
         <Field label="Teks Alternatif (alt)" hint="Deskripsi gambar untuk pembaca layar dan SEO">
@@ -2684,12 +2660,12 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
             <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Teks di atas gambar</span>
           </div>
           <p className="text-[10.5px] text-white/30 leading-relaxed">
-            Kosongkan ketiganya kalau gambar Anda sudah memuat teksnya sendiri — overlay teks otomatis hilang dan gambar tampil penuh.
+            Kosongkan ketiganya kalau gambar Anda sudah memuat teksnya sendiri, overlay teks otomatis hilang dan gambar tampil penuh.
           </p>
           <Field label="Label Kecil (eyebrow)"><Input value={form.eyebrow} onChange={v => set("eyebrow", v)} placeholder="GIS & Pemetaan" /></Field>
           <Field label="Judul"><Input value={form.title} onChange={v => set("title", v)} placeholder="Pemetaan & Analisis Spasial" /></Field>
           <Field label="Subjudul" hint="Disembunyikan otomatis di layar ponsel">
-            <Textarea value={form.subtitle} onChange={v => set("subtitle", v)} placeholder="Survei, pengolahan data spasial, sampai peta siap cetak — dikerjakan satu tim." />
+            <Textarea value={form.subtitle} onChange={v => set("subtitle", v)} placeholder="Survei, pengolahan data spasial, sampai peta siap cetak, dikerjakan satu tim." />
           </Field>
         </div>
 

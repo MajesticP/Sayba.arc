@@ -9,7 +9,8 @@ import Footer from "@/components/footer"
 import PageTransition from "@/components/page-transition"
 import FeatureTabs from "@/components/portfolio-feature-tabs"
 import { ArrowLeft, ExternalLink, Globe, Map, ChevronRight } from "lucide-react"
-import { generatePortfolioDetailMetadata, generatePortfolioSchema, generateBreadcrumbSchema } from "@/lib/structured-data"
+import { generatePortfolioSchema, generateBreadcrumbSchema } from "@/lib/structured-data"
+import { buildSeoMetadata } from "@/lib/seo"
 
 function resolveThumbnail(url: string | null): string | null {
   return !url || url === "-" ? null : url
@@ -25,26 +26,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq("slug", slug)
     .single()
 
-  if (!data) return { title: `Portofolio — ${siteConfig.name}` }
+  if (!data) return { title: `Portofolio: ${siteConfig.name}` }
 
-  const meta = generatePortfolioDetailMetadata({
-    title: data.meta_title || `${data.title} — ${siteConfig.name}`,
-    description: data.meta_description || data.description || siteConfig.description,
-    slug,
-    portfolioTitle: data.title,
-    keywords: data.meta_keywords ?? undefined,
-    ogImage: data.og_image || data.image_url || undefined,
-    canonicalUrl: data.canonical_url || undefined,
+  return buildSeoMetadata({
+    title: data.title,
+    metaTitle: data.meta_title,
+    description: data.description,
+    metaDescription: data.meta_description,
+    metaKeywords: data.meta_keywords,
+    image: resolveThumbnail(data.og_image) || resolveThumbnail(data.image_url),
+    path: `/portfolio/${slug}`,
+    canonicalUrl: data.canonical_url,
+    type: "article",
   })
-
-  return {
-    title: meta.title,
-    description: meta.description,
-    keywords: meta.keywords,
-    alternates: { canonical: meta.canonical },
-    openGraph: meta.openGraph,
-    twitter: meta.twitter,
-  }
 }
 
 export default async function PortfolioSlugPage({ params }: Props) {
@@ -73,7 +67,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
 
   const thumbnail = resolveThumbnail(item.image_url)
   const isArcgis = item.dept === "arcgis"
-  const accent = isArcgis ? "#5e6572" : "#1c2321"
+  const accent = isArcgis ? "#f07a26" : "#112a46"
   const features: string[] = item.features ?? []
   const techStack: string[] = item.tech_stack ?? []
 
@@ -91,14 +85,14 @@ export default async function PortfolioSlugPage({ params }: Props) {
 
       <div className="flex-1 pt-[72px] md:pt-20">
         {/* Breadcrumb */}
-        <div className="border-b border-platinum-line bg-platinum">
+        <div className="border-b border-ice-line bg-ice">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
             <nav className="flex items-center gap-1.5 text-[12.5px] text-slate-brand">
-              <Link href="/" className="hover:text-carbon transition-colors">Beranda</Link>
+              <Link href="/" className="hover:text-navy transition-colors">Beranda</Link>
               <ChevronRight size={13} />
-              <Link href="/portfolio" className="hover:text-carbon transition-colors">Portofolio</Link>
+              <Link href="/portfolio" className="hover:text-navy transition-colors">Portofolio</Link>
               <ChevronRight size={13} />
-              <span className="text-carbon font-medium truncate max-w-[200px]">{item.title}</span>
+              <span className="text-navy font-medium truncate max-w-[200px]">{item.title}</span>
             </nav>
           </div>
         </div>
@@ -121,7 +115,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
                     }
                   </div>
 
-                  <h1 className="text-[24px] md:text-[36px] font-bold text-carbon mb-1.5 md:mb-2 leading-tight">
+                  <h1 className="text-[24px] md:text-[36px] font-bold text-navy mb-1.5 md:mb-2 leading-tight">
                     {item.title}
                   </h1>
 
@@ -141,7 +135,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
                         href={item.result_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-platinum text-[13.5px] transition-opacity duration-200 hover:opacity-90"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-ice text-[13.5px] transition-opacity duration-200 hover:opacity-90"
                         style={{ backgroundColor: accent }}
                       >
                         Lihat Hasil Proyek
@@ -150,7 +144,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
                     )}
                     <Link
                       href="/contact"
-                      className="inline-flex items-center gap-2 px-5 md:px-7 py-2.5 md:py-3.5 rounded-xl font-semibold border border-platinum-line text-carbon text-[13.5px] hover:border-steel transition-all duration-200"
+                      className="inline-flex items-center gap-2 px-5 md:px-7 py-2.5 md:py-3.5 rounded-xl font-semibold border border-ice-line text-navy text-[13.5px] hover:border-orange transition-all duration-200"
                     >
                       Diskusikan Proyek Serupa
                     </Link>
@@ -159,7 +153,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
                   <div className="mt-4 md:mt-6">
                     <Link
                       href="/portfolio"
-                      className="inline-flex items-center gap-2 text-[12.5px] text-slate-brand hover:text-carbon transition-colors group"
+                      className="inline-flex items-center gap-2 text-[12.5px] text-slate-brand hover:text-navy transition-colors group"
                     >
                       <ArrowLeft size={12} className="transition-transform group-hover:-translate-x-1" />
                       Kembali ke Portofolio

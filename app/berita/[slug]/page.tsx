@@ -2,11 +2,13 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { siteConfig, navItems, footerLinks, socialLinks } from "@/lib/data"
-import { formatNewsDate, getCategoryColor, getCategoryLabel, parseArticleBody } from "@/lib/news-data"
+import { formatNewsDate } from "@/lib/news-data"
+import { getKategori, resolveKategori } from "@/lib/kategori"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import ViewCounter from "@/components/view-counter"
 import { generateBreadcrumbSchema } from "@/lib/structured-data"
+import { buildSeoMetadata, gdriveToProxy } from "@/lib/seo"
 import { supabase } from "@/lib/supabase"
 import type { Berita } from "@/lib/database.types"
 
@@ -20,17 +22,25 @@ const FALLBACK_IMG = "/berita/berita-1-800x500.png"
 
 /** Link Google Drive → proxy gambar lokal */
 function gdriveToImg(url: string | null): string {
-  if (!url) return FALLBACK_IMG
-  if (url.startsWith("/api/gdrive-img")) return url
-  const fileMatch = url.match(/\/d\/([\w-]+)/)
-  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
-  const idMatch = url.match(/[?&]id=([\w-]+)/)
-  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
-  return url
+  return gdriveToProxy(url) || FALLBACK_IMG
 }
 
 function absoluteUrl(url: string): string {
   return url.startsWith("http") ? url : `${siteConfig.url}${url}`
+}
+
+/**
+ * Pecah isi artikel (Markdown ringan dari textarea admin) menjadi blok:
+ * baris kosong memisah paragraf, awalan "## " menandai sub-judul.
+ * Disimpan lokal karena helper kategori/berita tidak lagi memuatnya.
+ */
+function parseArticleBody(body: string | null): string[] {
+  if (!body) return []
+  return body
+    .replace(/\r\n/g, "\n")
+    .split(/\n\s*\n/)
+    .map((b) => b.trim())
+    .filter(Boolean)
 }
 
 async function getArticle(slug: string): Promise<Berita | null> {
@@ -48,25 +58,20 @@ async function getArticle(slug: string): Promise<Berita | null> {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
   const article = await getArticle(slug)
-  if (!article) return { title: `Berita — ${siteConfig.name}` }
+  if (!article) return { title: `Berita: ${siteConfig.name}` }
 
-  const url = `${siteConfig.url}/berita/${article.slug}`
-  const image = absoluteUrl(article.og_image || article.image_url || FALLBACK_IMG)
-
-  return {
-    title: article.meta_title || `${article.title} — ${siteConfig.name}`,
-    description: article.meta_description || article.excerpt || undefined,
-    keywords: article.meta_keywords ?? undefined,
-    alternates: { canonical: article.canonical_url || url },
-    openGraph: {
-      title: article.title,
-      description: article.meta_description || article.excerpt || undefined,
-      url,
-      type: "article",
-      publishedTime: article.published_at,
-      images: [{ url: image, alt: article.title }],
-    },
-  }
+  return buildSeoMetadata({
+    title: article.title,
+    metaTitle: article.meta_title,
+    excerpt: article.excerpt,
+    metaDescription: article.meta_description,
+    metaKeywords: article.meta_keywords,
+    image: gdriveToProxy(article.og_image) || gdriveToProxy(article.image_url) || FALLBACK_IMG,
+    path: `/berita/${article.slug}`,
+    canonicalUrl: article.canonical_url,
+    type: "article",
+    publishedTime: article.published_at,
+  })
 }
 
 export default async function BeritaDetailPage({ params }: PageProps) {
@@ -74,7 +79,10 @@ export default async function BeritaDetailPage({ params }: PageProps) {
   const article = await getArticle(slug)
   if (!article) notFound()
 
-  const color = getCategoryColor(article.category)
+  const kategoriBerita = await getKategori("berita")
+  const cat = resolveKategori(article.category, kategoriBerita)
+  const color = cat.color
+  const catLabel = cat.label
   const heroImg = gdriveToImg(article.image_url)
   const blocks = parseArticleBody(article.body)
 
@@ -125,7 +133,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen flex flex-col bg-platinum">
-      {/* Penghitung tampilan — naik saat halaman dibuka atau di-refresh */}
+      {/* Penghitung tampilan: naik saat halaman dibuka atau di-refresh */}
       <ViewCounter table="berita" slug={article.slug} />
 
       <script
@@ -156,25 +164,25 @@ export default async function BeritaDetailPage({ params }: PageProps) {
           </nav>
 
           <span
-            className="inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider text-white mb-4"
+            className="inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider text-ice mb-4"
             style={{ backgroundColor: color }}
           >
-            {getCategoryLabel(article.category)}
+            {catLabel}
           </span>
 
-          <h1 className="text-[24px] md:text-[36px] font-bold text-platinum leading-[1.2] tracking-tight mb-4">
+          <h1 className="text-[24px] md:text-[36px] font-bold text-ice leading-[1.2] tracking-tight mb-4">
             {article.title}
           </h1>
 
           {article.excerpt && (
-            <p className="text-steel text-[14px] md:text-[16px] leading-relaxed mb-6">{article.excerpt}</p>
+            <p className="text-ice/75 text-[14px] md:text-[16px] leading-relaxed mb-6">{article.excerpt}</p>
           )}
 
-          <div className="flex items-center flex-wrap gap-x-3 gap-y-2 pt-5 border-t border-white/10 text-[12px] text-steel">
-            <span className="text-platinum font-medium">{article.author}</span>
-            <span aria-hidden="true" className="text-steel/75">·</span>
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-2 pt-5 border-t border-white/10 text-[12px] text-ice/70">
+            <span className="text-ice font-medium">{article.author}</span>
+            <span aria-hidden="true">·</span>
             <span>{formatNewsDate(article.published_at)}</span>
-            <span aria-hidden="true" className="text-steel/75">·</span>
+            <span aria-hidden="true">·</span>
             <span>{article.read_minutes} menit baca</span>
           </div>
         </div>
@@ -183,7 +191,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
       {/* ══ ISI ══ */}
       <article className="relative z-10 -mt-6 md:-mt-8 rounded-t-[28px] md:rounded-t-[40px] bg-platinum flex-1 pb-14 md:pb-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-12">
-          <figure className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-platinum-line bg-platinum-dim mb-8 md:mb-10">
+          <figure className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-ice-line bg-platinum-dim mb-8 md:mb-10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={heroImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
           </figure>
@@ -193,7 +201,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
               block.startsWith("## ") ? (
                 <h2
                   key={i}
-                  className="text-[17px] md:text-[22px] font-bold text-carbon mt-9 mb-4 pb-2 border-b border-platinum-line leading-snug"
+                  className="text-[17px] md:text-[22px] font-bold text-carbon mt-9 mb-4 pb-2 border-b border-ice-line leading-snug"
                 >
                   {block.slice(3)}
                 </h2>
@@ -209,11 +217,11 @@ export default async function BeritaDetailPage({ params }: PageProps) {
           </div>
 
           {article.tags && article.tags.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 mt-9 pt-6 border-t border-platinum-line">
+            <div className="flex flex-wrap items-center gap-2 mt-9 pt-6 border-t border-ice-line">
               {article.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="px-3 py-1 rounded-lg bg-white border border-platinum-line text-[11px] font-medium text-slate-brand"
+                  className="px-3 py-1 rounded-lg bg-white border border-ice-line text-[11px] font-medium text-slate-brand"
                 >
                   #{tag}
                 </span>
@@ -241,7 +249,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
 
       {/* ══ ARTIKEL LAIN ══ */}
       {related.length > 0 && (
-        <section className="bg-platinum-dim py-12 md:py-16 border-t border-platinum-line">
+        <section className="bg-platinum-dim py-12 md:py-16 border-t border-ice-line">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-baseline justify-between gap-3 mb-5">
               <h2 className="text-[18px] md:text-2xl font-bold text-carbon">Artikel Lainnya</h2>
@@ -258,7 +266,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
                 <Link
                   key={item.id}
                   href={`/berita/${item.slug}`}
-                  className="group flex flex-col bg-white rounded-2xl border border-platinum-line overflow-hidden hover:border-steel hover:shadow-lg transition-all duration-200"
+                  className="group flex flex-col bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-steel hover:shadow-lg transition-all duration-200"
                 >
                   <div className="relative w-full aspect-[16/10] overflow-hidden bg-platinum-dim">
                     {/* eslint-disable-next-line @next/next/no-img-element */}

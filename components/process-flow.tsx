@@ -5,7 +5,7 @@ import { ChevronRight } from "lucide-react"
 import type { ProcessStep } from "@/lib/database.types"
 
 /**
- * ProcessFlow — diagram alir proses kerja layanan (horizontal, 6 tahap).
+ * ProcessFlow: diagram alir proses kerja layanan (horizontal, 6 tahap).
  *
  * Dipakai di halaman slug layanan (`service-detail-client.tsx`).
  * Bila admin belum mengisi kolom `process_steps`, dipakai 6 tahap bawaan
@@ -57,7 +57,7 @@ export default function ProcessFlow({ steps }: { steps?: ProcessStep[] }) {
     <section className="mt-12 md:mt-16" aria-labelledby="process-flow-title">
       <h2
         id="process-flow-title"
-        className="text-[18px] md:text-2xl font-bold text-carbon mb-1.5"
+        className="text-[18px] md:text-2xl font-bold text-navy mb-1.5"
       >
         Proses Kerja Layanan
       </h2>
@@ -65,8 +65,8 @@ export default function ProcessFlow({ steps }: { steps?: ProcessStep[] }) {
         Enam tahap yang kami lalui bersama klien, dari konsultasi awal sampai serah terima berkas.
       </p>
 
-      <div ref={ref} className="relative rounded-2xl border border-platinum-line bg-white p-5 md:p-8 overflow-hidden">
-        {/* Kisi meja potong — sangat tipis, hanya memberi tekstur teknis */}
+      <div ref={ref} className="relative rounded-2xl border border-ice-line bg-white p-5 md:p-8 overflow-hidden">
+        {/* Kisi meja potong: sangat tipis, hanya memberi tekstur teknis */}
         <div className="cutting-grid absolute inset-0 pointer-events-none" aria-hidden="true" />
 
         <div className="relative">
@@ -84,18 +84,18 @@ export default function ProcessFlow({ steps }: { steps?: ProcessStep[] }) {
                     className="absolute top-[22px] left-1/2 z-0 flex w-[calc(100%+1rem)] -translate-y-1/2 items-center"
                   >
                     <span
-                      className={`h-px flex-1 origin-left bg-platinum-line transition-transform duration-700 ease-out ${inView ? "scale-x-100" : "scale-x-0"}`}
+                      className={`h-px flex-1 origin-left bg-ice-line transition-transform duration-700 ease-out ${inView ? "scale-x-100" : "scale-x-0"}`}
                       style={{ transitionDelay: `${i * 110 + 150}ms` }}
                     />
-                    <ChevronRight className="w-3.5 h-3.5 shrink-0 text-platinum-line" aria-hidden="true" />
+                    <ChevronRight className="w-3.5 h-3.5 shrink-0 text-ice-line" aria-hidden="true" />
                   </span>
                 )}
 
-                <span className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full border border-platinum-line bg-white text-[13px] font-bold text-carbon tabular-nums">
+                <span className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full border border-ice-line bg-white text-[13px] font-bold text-navy tabular-nums">
                   {i + 1}
                 </span>
 
-                <h3 className="relative z-10 text-[14px] font-semibold text-carbon leading-snug mt-3">
+                <h3 className="relative z-10 text-[14px] font-semibold text-navy leading-snug mt-3">
                   {step.title}
                 </h3>
                 {step.description && (
@@ -118,16 +118,16 @@ export default function ProcessFlow({ steps }: { steps?: ProcessStep[] }) {
                 {i < items.length - 1 && (
                   <span
                     aria-hidden="true"
-                    className="absolute left-[21px] top-11 bottom-0 w-px bg-platinum-line"
+                    className="absolute left-[21px] top-11 bottom-0 w-px bg-ice-line"
                   />
                 )}
 
-                <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-platinum-line bg-white text-[13px] font-bold text-carbon tabular-nums">
+                <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-ice-line bg-white text-[13px] font-bold text-navy tabular-nums">
                   {i + 1}
                 </span>
 
                 <div className="pt-1.5 min-w-0">
-                  <h3 className="text-[14px] font-semibold text-carbon leading-snug">
+                  <h3 className="text-[14px] font-semibold text-navy leading-snug">
                     {step.title}
                   </h3>
                   {step.description && (

@@ -1,7 +1,7 @@
 // Structured Data untuk SEO Rich Snippets
 //
 // Konteks usaha: SAYBA ARC adalah konsultan IT & engineering di Pontianak.
-// Skema di bawah disesuaikan dengan konteks itu — bukan skema produk/e-commerce.
+// Skema di bawah disesuaikan dengan konteks itu, bukan skema produk/e-commerce.
 
 const BASE_URL = "https://sayba.id"
 const LOGO_URL = `${BASE_URL}/logo-256.png`

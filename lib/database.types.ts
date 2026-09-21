@@ -1,11 +1,10 @@
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[]
 
-export interface PriceTier {
-  name: string       // e.g. "Starter", "Standard", "Premium"
-  price: number      // in IDR, e.g. 3000000
-  bio: string        // short tagline for this tier
-  features: string[] // list of what's included
-}
+/**
+ * Scope kategori. Satu tabel `kategori` melayani tiga modul supaya admin
+ * hanya perlu mengelola satu daftar.
+ */
+export type KategoriScope = "layanan" | "berita" | "informasi"
 
 /** Satu blok isi yang bisa disusun bebas dari admin (halaman slug layanan). */
 export interface ContentBlock {
@@ -13,9 +12,9 @@ export interface ContentBlock {
   type: "heading" | "paragraph" | "list" | "image"
   /** Teks isi. Untuk list, pisahkan tiap butir dengan baris baru. */
   text?: string
-  /** URL gambar — hanya dipakai bila type = "image" */
+  /** URL gambar: hanya dipakai bila type = "image" */
   image_url?: string
-  /** Keterangan gambar — hanya dipakai bila type = "image" */
+  /** Keterangan gambar: hanya dipakai bila type = "image" */
   caption?: string
 }
 
@@ -35,8 +34,7 @@ export type Database = {
   /**
    * Supabase JS v2.104+ membaca versi PostgREST dari sini untuk menyimpulkan
    * tipe operasi tulis (insert/update/upsert). Tanpa blok ini, tipe Insert
-   * runtuh menjadi `never` dan semua operasi tulis gagal type-check —
-   * itulah alasan route admin lama memakai `as any`.
+   * runtuh menjadi `never` dan semua operasi tulis gagal type-check.
    *
    * Nilai "13" sesuai PostgREST yang dipakai proyek Supabase ini.
    * Bila Supabase di-upgrade, nilai ini boleh ikut disesuaikan.
@@ -50,13 +48,56 @@ export type Database = {
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
     Tables: {
+      /**
+       * Kategori untuk Layanan, Berita, dan Informasi.
+       *
+       * Kolom `scope` memisahkan ketiganya dalam satu tabel, jadi admin
+       * mengelola satu daftar dan halaman publik menyaring sesuai modulnya.
+       * Nilai `slug` disimpan di kolom `category` tabel terkait.
+       */
+      kategori: {
+        Row: {
+          id: string
+          scope: KategoriScope
+          slug: string
+          label: string
+          description: string | null
+          color: string
+          sort_order: number
+          status: "active" | "draft"
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          scope: KategoriScope
+          slug: string
+          label: string
+          description?: string | null
+          color?: string
+          sort_order?: number
+          status?: "active" | "draft"
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          scope?: KategoriScope
+          slug?: string
+          label?: string
+          description?: string | null
+          color?: string
+          sort_order?: number
+          status?: "active" | "draft"
+          created_at?: string
+        }
+        Relationships: []
+      }
       portfolio: {
         Row: {
           id: string
           title: string
           slug: string
           category: string | null
-          dept: string                  // open string — driven by LAYANAN_DEPTS config (same as layanan)
+          dept: string
           description: string | null
           image_url: string | null
           result_url: string | null
@@ -103,53 +144,22 @@ export type Database = {
         }
         Relationships: []
       }
-      informasi_kategori: {
-        Row: {
-          id: string
-          slug: string
-          label: string
-          color: string
-          sort_order: number
-          status: "active" | "draft"
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          slug: string
-          label: string
-          color?: string
-          sort_order?: number
-          status?: "active" | "draft"
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          slug?: string
-          label?: string
-          color?: string
-          sort_order?: number
-          status?: "active" | "draft"
-          created_at?: string
-        }
-        Relationships: []
-      }
       layanan: {
         Row: {
           id: string
           title: string
           slug: string
           dept: string                  // "it_konsulting" | "engineering_konsulting"
-          category: string | null       // sub-kategori dalam departemen (mis. "Web GIS")
+          category: string | null       // slug kategori dari tabel `kategori` (scope "layanan")
           description: string | null
           icon: string | null
-          image_url: string | null      // gambar utama — tampil 1:1 di kiri kartu
+          image_url: string | null      // gambar utama, tampil 1:1 di kiri kartu
           gallery: string[] | null      // foto tambahan di halaman slug
           content_blocks: ContentBlock[] | null  // isi halaman yang disusun admin
           faqs: LayananFAQ[] | null     // FAQ yang diinput manual per layanan
           process_steps: ProcessStep[] | null    // tahap proses kerja (diagram alir)
-          prices: PriceTier[] | null
           status: "active" | "draft" | "archived"
-          featured_order: number | null   // 1, 2, or 3 = shown on homepage; null = not featured
+          featured_order: number | null   // 1, 2, 3 = tampil di beranda; null = tidak
           meta_title: string | null
           meta_description: string | null
           meta_keywords: string[] | null
@@ -169,14 +179,14 @@ export type Database = {
           title: string
           slug: string
           excerpt: string | null
-          category: string              
+          category: string              // slug kategori dari tabel `kategori` (scope "informasi")
           image_url: string | null
           author: string
           body: string | null
           published_at: string          // date (YYYY-MM-DD)
           read_minutes: number
           views: number
-          featured: boolean             
+          featured: boolean
           tags: string[] | null
           status: "active" | "draft" | "archived"
           meta_title: string | null
@@ -198,14 +208,14 @@ export type Database = {
           title: string
           slug: string
           excerpt: string | null
-          category: string              // open string — lihat newsCategories di lib/news-data.ts
+          category: string              // slug kategori dari tabel `kategori` (scope "berita")
           image_url: string | null
           author: string
-          body: string | null           // Markdown ringan: "## " = sub-judul, baris kosong = paragraf baru
+          body: string | null           // Markdown ringan: "## " = sub-judul
           published_at: string          // date (YYYY-MM-DD)
           read_minutes: number
           views: number
-          featured: boolean             // true = tampil sebagai kartu Sorotan di /berita
+          featured: boolean
           tags: string[] | null
           status: "active" | "draft" | "archived"
           meta_title: string | null
@@ -227,7 +237,7 @@ export type Database = {
           image_url: string
           alt: string
           eyebrow: string | null
-          title: string | null          // kosongkan semua teks jika gambar sudah memuat teksnya sendiri
+          title: string | null          // kosongkan bila gambar sudah memuat teksnya
           subtitle: string | null
           cta_text: string | null       // kosong = slide tidak bisa diklik
           cta_href: string | null
@@ -251,7 +261,7 @@ export type Database = {
           github_url: string | null
           linkedin_url: string | null
           instagram_url: string | null
-          dept: "lingkungan" | "it" | "kelautan" | null
+          dept: string | null           // "it_konsulting" | "engineering_konsulting"
           order_num: number
           status: "active" | "draft"
           created_at: string
@@ -280,3 +290,6 @@ export type BeritaInsert = Database["public"]["Tables"]["berita"]["Insert"]
 
 export type PromoBanner = Database["public"]["Tables"]["promo_banner"]["Row"]
 export type PromoBannerInsert = Database["public"]["Tables"]["promo_banner"]["Insert"]
+
+export type Kategori = Database["public"]["Tables"]["kategori"]["Row"]
+export type KategoriInsert = Database["public"]["Tables"]["kategori"]["Insert"]

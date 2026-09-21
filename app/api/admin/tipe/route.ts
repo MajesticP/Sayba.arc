@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/admin-auth"
 import { LAYANAN_DEPTS } from "@/lib/layanan-config"
 
 /**
- * /api/admin/tipe — daftar departemen layanan.
+ * /api/admin/tipe, daftar departemen layanan.
  *
  * SAYBA ARC hanya punya DUA departemen tetap (lihat lib/layanan-config.ts).
  * Endpoint ini mengembalikannya sebagai sumber kebenaran tunggal supaya admin
@@ -30,11 +30,11 @@ function toClient(row: {
     value: row.value,
     label: row.label,
     description: row.description ?? "",
-    color: row.color ?? "#5e6572",
+    color: row.color ?? "#5a5c62",
   }
 }
 
-/** Bentuk bawaan dari kode — dipakai bila tabel belum ada atau belum diisi. */
+/** Bentuk bawaan dari kode: dipakai bila tabel belum ada atau belum diisi. */
 function fromConfig() {
   return LAYANAN_DEPTS.map((d) => ({
     value: d.value,
@@ -55,7 +55,7 @@ export async function GET() {
     .order("sort_order", { ascending: true })
 
   if (error) {
-    // Tabel belum dibuat — tetap layani dari konfigurasi kode.
+    // Tabel belum dibuat: tetap layani dari konfigurasi kode.
     return NextResponse.json(fromConfig())
   }
 
@@ -68,7 +68,7 @@ export async function GET() {
   return NextResponse.json(rows.map(toClient))
 }
 
-// POST /api/admin/tipe — tidak dipakai lagi (departemen bersifat tetap)
+// POST /api/admin/tipe: tidak dipakai lagi (departemen bersifat tetap)
 export async function POST(req: NextRequest) {
   const { user, unauthorized } = await requireAdmin()
   if (!user) return unauthorized()
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       value: body.value,
       label: body.label ?? body.value,
       description: body.description ?? null,
-      color: body.color ?? "#5e6572",
+      color: body.color ?? "#5a5c62",
     })
     .select()
     .maybeSingle()
@@ -126,7 +126,7 @@ export async function PUT(req: NextRequest) {
     .update({
       label: body.label,
       description: body.description ?? null,
-      color: body.color ?? "#5e6572",
+      color: body.color ?? "#5a5c62",
     })
     .eq("value", value)
 
@@ -142,7 +142,7 @@ export async function DELETE(req: NextRequest) {
   const value = req.nextUrl.searchParams.get("value")
   if (!value) return NextResponse.json({ error: "Missing value" }, { status: 400 })
 
-  // Dua departemen inti tidak boleh dihapus — struktur navigasi bergantung padanya.
+  // Dua departemen inti tidak boleh dihapus, struktur navigasi bergantung padanya.
   return NextResponse.json(
     { error: `Departemen "${value}" bersifat tetap dan tidak dapat dihapus.` },
     { status: 400 }
