@@ -99,7 +99,7 @@ export default async function PortfolioPage() {
               <p className="text-black/40 text-[12px] mb-3">Tertarik dengan proyek serupa?</p>
               <Link
                 href="/contact"
-                className="inline-block px-7 py-2.5 rounded-xl font-semibold bg-black text-white hover:bg-[#ff914d] transition-all duration-200 hover:scale-105 text-[13px]"
+                className="inline-block px-5 py-2.5 rounded-xl font-semibold bg-carbon text-platinum hover:bg-steel hover:text-carbon transition-all duration-200 text-[13px]"
               >
                 Diskusikan Proyek Anda
               </Link>
