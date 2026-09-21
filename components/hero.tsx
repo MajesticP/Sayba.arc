@@ -75,7 +75,7 @@ export default function Hero({ data }: { data: HeroData }) {
               </div>
 
               <div className="animate-fade-in-up stagger-5 flex flex-col sm:flex-row gap-2 pt-0.5">
-                <Link href={data.primaryButton.href} className="btn-shine px-5 py-2.5 md:py-3 rounded-xl font-semibold bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:shadow-xl hover:shadow-orange-500/30 hover:scale-105 text-center text-sm active:scale-95">
+                <Link href={data.primaryButton.href} className="btn-shine px-5 py-2.5 md:py-3 rounded-xl font-semibold bg-[#ff914d] text-[#111111] hover:bg-[#e07b3a] transition-all duration-200 hover:shadow-xl hover:shadow-orange-500/30 hover:scale-105 text-center text-sm active:scale-95">
                   {data.primaryButton.text}
                 </Link>
                 <Link href={data.secondaryButton.href} className="px-5 py-2.5 md:py-3 rounded-xl font-semibold bg-white/8 text-white border border-white/15 hover:bg-white/14 transition-all duration-200 hover:scale-105 text-center text-sm active:scale-95">

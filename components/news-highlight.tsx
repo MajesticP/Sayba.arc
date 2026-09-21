@@ -36,13 +36,13 @@ export default function NewsHighlight({ articles }: { articles: Berita[] }) {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ff914d]/10 mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-[#ff914d] animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#ff914d]">Ruang Baca</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#b35418]">Ruang Baca</span>
           </div>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
             <div>
               <h2 className="text-[22px] leading-tight md:text-5xl font-black text-black">
                 Berita &amp; Artikel<br className="hidden md:block" />
-                <span className="text-[#ff914d]"> Terbaru</span>
+                <span className="text-[#b35418]"> Terbaru</span>
               </h2>
               <p className="text-black/50 text-[13px] md:text-base mt-2 max-w-md">
                 Catatan proyek dan panduan teknis dari tim kami — ditulis dari pengalaman lapangan.
@@ -90,7 +90,7 @@ export default function NewsHighlight({ articles }: { articles: Berita[] }) {
               </div>
 
               <div className="flex flex-col flex-1 p-4">
-                <h3 className="text-[15px] font-black text-black leading-snug mb-1.5 line-clamp-2 group-hover:text-[#ff914d] transition-colors duration-200">
+                <h3 className="text-[15px] font-black text-black leading-snug mb-1.5 line-clamp-2 group-hover:text-[#b35418] transition-colors duration-200">
                   {article.title}
                 </h3>
                 {article.excerpt && (

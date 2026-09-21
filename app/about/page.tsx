@@ -61,7 +61,7 @@ export default async function AboutPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
             <div className="bg-white rounded-xl p-4 md:p-8 border border-black/8">
               <div className="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-[#ff914d]/10 flex items-center justify-center mb-3 md:mb-5">
-                <svg className="w-4 h-4 md:w-6 md:h-6 text-[#ff914d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 md:w-6 md:h-6 text-[#b35418]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -87,7 +87,7 @@ export default async function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <PageTransition delay={100}>
             <div className="text-center mb-5 md:mb-14">
-              <span className="text-[10px] font-bold text-[#ff914d] uppercase tracking-widest mb-1 block">Tim Kami</span>
+              <span className="text-[10px] font-bold text-[#b35418] uppercase tracking-widest mb-1 block">Tim Kami</span>
               <h2 className="text-[20px] md:text-3xl font-bold text-black mb-1 md:mb-3">Kenali Tim SAYBA ARC</h2>
               <p className="text-black/50 text-[12px] md:text-base">Para ahli di balik setiap proyek yang kami kerjakan</p>
             </div>
@@ -102,7 +102,7 @@ export default async function AboutPage() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-[20px] md:text-3xl font-bold text-white mb-2 md:mb-3">Siap Berkolaborasi?</h2>
             <p className="text-white/40 text-[13px] mb-5 md:mb-7">Mari diskusikan bagaimana SAYBA ARC dapat membantu proyek Anda.</p>
-            <Link href="/contact" className="inline-block px-7 py-2.5 md:py-3.5 rounded-xl font-semibold bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:scale-105 text-[13px]">
+            <Link href="/contact" className="inline-block px-7 py-2.5 md:py-3.5 rounded-xl font-semibold bg-[#ff914d] text-[#111111] hover:bg-[#e07b3a] transition-all duration-200 hover:scale-105 text-[13px]">
               Hubungi Kami
             </Link>
           </div>

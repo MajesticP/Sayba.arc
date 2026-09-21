@@ -31,7 +31,7 @@ export default function CTA({ data }: { data: CTAData }) {
               {data.subtitle}
             </p>
             <div className={`transition-all duration-700 ${inView ? "opacity-100 scale-100" : "opacity-0 scale-95"}`} style={{ transitionDelay: "440ms" }}>
-              <Link href={data.buttonHref} className="btn-shine inline-block px-8 py-3.5 rounded-xl font-bold text-[15px] bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:shadow-2xl hover:shadow-orange-500/40 hover:scale-105 active:scale-95 animate-glow">
+              <Link href={data.buttonHref} className="btn-shine inline-block px-8 py-3.5 rounded-xl font-bold text-[15px] bg-[#ff914d] text-[#111111] hover:bg-[#e07b3a] transition-all duration-200 hover:shadow-2xl hover:shadow-orange-500/40 hover:scale-105 active:scale-95 animate-glow">
                 {data.buttonText}
               </Link>
             </div>

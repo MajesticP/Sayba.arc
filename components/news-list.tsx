@@ -173,7 +173,7 @@ export default function NewsList({ articles, featured }: NewsListProps) {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Cari berita atau topik…"
                 aria-label="Cari berita"
-                className="w-full pl-9 pr-4 py-2 rounded-full border border-black/10 bg-white text-[13px] text-black placeholder-black/30 focus:outline-none focus:ring-2 focus:ring-[#ff914d]/40 focus:border-[#ff914d] transition-all"
+                className="w-full pl-9 pr-4 py-2 rounded-full border border-black/10 bg-white text-[13px] text-black placeholder-black/30 focus:outline-none focus:ring-2 focus:ring-[#ff914d]/40 focus:border-[#b35418] transition-all"
               />
             </div>
           </div>
@@ -193,7 +193,7 @@ export default function NewsList({ articles, featured }: NewsListProps) {
               <button
                 type="button"
                 onClick={() => { setQuery(""); setActive("semua") }}
-                className="text-[13px] font-semibold text-[#ff914d] hover:underline"
+                className="text-[13px] font-semibold text-[#b35418] hover:underline"
               >
                 Atur ulang filter
               </button>
@@ -224,7 +224,7 @@ export default function NewsList({ articles, featured }: NewsListProps) {
                   </div>
 
                   <div className="flex flex-col flex-1 p-4">
-                    <h3 className="text-[15px] font-black text-black leading-snug mb-1.5 line-clamp-2 group-hover:text-[#ff914d] transition-colors duration-200">
+                    <h3 className="text-[15px] font-black text-black leading-snug mb-1.5 line-clamp-2 group-hover:text-[#b35418] transition-colors duration-200">
                       {article.title}
                     </h3>
                     {article.excerpt && (

@@ -40,13 +40,13 @@ export default function Services({ allLayanan, depts }: { allLayanan: Layanan[];
         <div ref={header.ref} className={`mb-7 md:mb-16 transition-all duration-700 ease-out ${header.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ff914d]/10 mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-[#ff914d] animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#ff914d]">Layanan Unggulan</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#b35418]">Layanan Unggulan</span>
           </div>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
             <div>
               <h2 className="text-[22px] leading-tight md:text-5xl font-black text-black">
                 Solusi Terbaik<br className="hidden md:block" />
-                <span className="text-[#ff914d]"> untuk Anda</span>
+                <span className="text-[#b35418]"> untuk Anda</span>
               </h2>
               <p className="text-black/50 text-[13px] md:text-base mt-2 max-w-md">
                 Layanan paling diminati klien kami — dipilih langsung dari portofolio aktif.

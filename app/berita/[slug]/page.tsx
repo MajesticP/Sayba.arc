@@ -220,7 +220,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
             </p>
             <Link
               href="/contact"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#ff914d] text-white text-[13px] font-semibold hover:bg-[#e8823e] transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#ff914d] text-[#111111] text-[13px] font-semibold hover:bg-[#e8823e] transition-colors"
             >
               Hubungi Kami
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -265,7 +265,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
                     </span>
                   </div>
                   <div className="p-4">
-                    <h3 className="text-[15px] font-black text-black leading-snug line-clamp-2 mb-1.5 group-hover:text-[#ff914d] transition-colors">
+                    <h3 className="text-[15px] font-black text-black leading-snug line-clamp-2 mb-1.5 group-hover:text-[#b35418] transition-colors">
                       {item.title}
                     </h3>
                     <div className="text-[11px] text-black/40">

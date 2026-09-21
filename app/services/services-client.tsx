@@ -186,7 +186,7 @@ export default function ServicesClient({ allLayanan, allDepts }: Props) {
         {filtered.length === 0 && (
           <div className="text-center py-20">
             <p className="text-black/25 text-base">Tidak ada layanan untuk filter ini.</p>
-            <button onClick={() => { setActiveDept("semua"); setActiveCategory("semua"); setSearchQuery("") }} className="mt-3 text-sm text-[#ff914d] underline hover:text-[#e07b3a] transition-colors">Reset filter</button>
+            <button onClick={() => { setActiveDept("semua"); setActiveCategory("semua"); setSearchQuery("") }} className="mt-3 text-sm text-[#b35418] underline hover:text-[#8f400f] transition-colors">Reset filter</button>
           </div>
         )}
 
@@ -196,7 +196,7 @@ export default function ServicesClient({ allLayanan, allDepts }: Props) {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-0.5 bg-[#ff914d] rounded-full" />
           <h2 className="text-[18px] md:text-3xl font-bold text-white mb-1.5 md:mb-3 relative z-10">Butuh solusi kustom?</h2>
           <p className="text-white/40 text-[12px] md:text-base mb-5 md:mb-6 relative z-10">Setiap organisasi memiliki tantangan unik. Mari diskusikan solusi yang tepat.</p>
-          <Link href="/contact" className="inline-block px-7 py-2.5 rounded-xl font-semibold bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:scale-105 relative z-10 text-[13px]">
+          <Link href="/contact" className="inline-block px-7 py-2.5 rounded-xl font-semibold bg-[#ff914d] text-[#111111] hover:bg-[#e07b3a] transition-all duration-200 hover:scale-105 relative z-10 text-[13px]">
             Diskusikan Proyek Anda
           </Link>
         </div>

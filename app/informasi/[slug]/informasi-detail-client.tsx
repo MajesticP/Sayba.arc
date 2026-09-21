@@ -310,7 +310,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                       )}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="btn-shine inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#ff914d] text-white text-[13px] font-bold hover:bg-[#e07b3a] transition-colors"
+                      className="btn-shine inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#ff914d] text-[#111111] text-[13px] font-bold hover:bg-[#e07b3a] transition-colors"
                     >
                       Tanya via WhatsApp
                       <ArrowRight className="w-4 h-4" />
@@ -333,7 +333,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                 {toc.length > 0 && (
                   <div className="rounded-2xl border border-black/10 bg-[#fafafa] p-5">
                     <div className="flex items-center gap-2 mb-3.5">
-                      <ListOrdered className="w-4 h-4 text-[#ff914d]" />
+                      <ListOrdered className="w-4 h-4 text-[#b35418]" />
                       <h3 className="text-[13px] font-black text-black">Daftar Isi</h3>
                     </div>
                     <nav className="space-y-0.5">
@@ -366,7 +366,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
 
                 <div className="rounded-2xl border border-black/10 bg-[#fafafa] p-5">
                   <div className="flex items-center gap-2 mb-3.5">
-                    <BookOpen className="w-4 h-4 text-[#ff914d]" />
+                    <BookOpen className="w-4 h-4 text-[#b35418]" />
                     <h3 className="text-[13px] font-black text-black">Detail Dokumen</h3>
                   </div>
                   <dl className="space-y-2.5 text-[12px]">
@@ -406,7 +406,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                 {related.length > 0 && (
                   <div className="rounded-2xl border border-black/10 bg-[#fafafa] p-5">
                     <div className="flex items-center gap-2 mb-3.5">
-                      <FileText className="w-4 h-4 text-[#ff914d]" />
+                      <FileText className="w-4 h-4 text-[#b35418]" />
                       <h3 className="text-[13px] font-black text-black">Dokumen Terkait</h3>
                     </div>
                     <div className="space-y-1">
@@ -436,7 +436,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                     </div>
                     <Link
                       href="/informasi"
-                      className="mt-3.5 w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#ff914d]/10 border border-[#ff914d]/25 text-[#ff914d] text-[12px] font-bold hover:bg-[#ff914d]/20 transition-colors"
+                      className="mt-3.5 w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#ff914d]/10 border border-[#ff914d]/25 text-[#b35418] text-[12px] font-bold hover:bg-[#ff914d]/20 transition-colors"
                     >
                       Lihat Semua Informasi
                       <ArrowRight className="w-3.5 h-3.5" />

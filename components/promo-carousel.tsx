@@ -124,7 +124,7 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
                           )}
 
                           {cta && (
-                            <span className="mt-2 md:mt-6 inline-flex items-center gap-1.5 px-3 py-1 md:px-5 md:py-2.5 min-h-0 rounded-full bg-[#ff914d] text-white text-[10.5px] md:text-sm font-semibold shadow-lg shadow-orange-500/20 transition-transform duration-200 group-hover:scale-[1.03]">
+                            <span className="mt-2 md:mt-6 inline-flex items-center gap-1.5 px-3 py-1 md:px-5 md:py-2.5 min-h-0 rounded-full bg-[#ff914d] text-[#111111] text-[10.5px] md:text-sm font-semibold shadow-lg shadow-orange-500/20 transition-transform duration-200 group-hover:scale-[1.03]">
                               {cta.text}
                               <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />

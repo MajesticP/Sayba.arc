@@ -232,7 +232,7 @@ export default function InformasiClient({ initialArticles }: Props) {
               <button
                 type="button"
                 onClick={() => { setActiveCategory("semua"); setSearch("") }}
-                className="shrink-0 text-[12.5px] font-semibold text-[#ff914d] hover:text-[#e07b3a] transition-colors"
+                className="shrink-0 text-[12.5px] font-semibold text-[#b35418] hover:text-[#8f400f] transition-colors"
               >
                 Atur ulang
               </button>
@@ -296,7 +296,7 @@ export default function InformasiClient({ initialArticles }: Props) {
                     </div>
                   </div>
 
-                  <span className="btn-shine shrink-0 inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#ff914d] text-white text-[13px] font-bold group-hover:bg-[#e07b3a] transition-colors">
+                  <span className="btn-shine shrink-0 inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#ff914d] text-[#111111] text-[13px] font-bold group-hover:bg-[#e07b3a] transition-colors">
                     Buka Dokumen
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </span>
@@ -421,8 +421,8 @@ export default function InformasiClient({ initialArticles }: Props) {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
               <div className="lg:col-span-7">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ff914d]/10 mb-3">
-                  <HelpCircle className="w-3.5 h-3.5 text-[#ff914d]" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#ff914d]">Pertanyaan Umum</span>
+                  <HelpCircle className="w-3.5 h-3.5 text-[#b35418]" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#b35418]">Pertanyaan Umum</span>
                 </div>
                 <h2 className="text-[20px] md:text-3xl font-black text-black mb-2">
                   Hal yang Sering Ditanyakan
@@ -494,7 +494,7 @@ export default function InformasiClient({ initialArticles }: Props) {
                       href="https://wa.me/6287721916495?text=Halo%20SAYBA%20ARC,%20saya%20ingin%20bertanya%20mengenai%20informasi%20dan%20dokumen%20teknis."
                       target="_blank"
                       rel="noreferrer"
-                      className="btn-shine w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#ff914d] text-white text-[13px] font-bold hover:bg-[#e07b3a] transition-colors"
+                      className="btn-shine w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#ff914d] text-[#111111] text-[13px] font-bold hover:bg-[#e07b3a] transition-colors"
                     >
                       Hubungi via WhatsApp
                       <ArrowRight className="w-4 h-4" />
@@ -592,7 +592,7 @@ function DocumentCard({ article }: { article: Informasi }) {
           </span>
         </span>
 
-        <span className="block text-[15.5px] font-black text-black leading-snug mb-2 line-clamp-2 group-hover:text-[#ff914d] transition-colors duration-200">
+        <span className="block text-[15.5px] font-black text-black leading-snug mb-2 line-clamp-2 group-hover:text-[#b35418] transition-colors duration-200">
           {article.title}
         </span>
 

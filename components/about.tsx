@@ -84,13 +84,13 @@ export default function About({ data }: { data: AboutData }) {
           {/* Text */}
           <div ref={right.ref} className={`space-y-3.5 md:space-y-6 transition-all duration-700 ease-out ${right.inView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"}`} style={{ transitionDelay: "150ms" }}>
             <div>
-              <span className="inline-block text-[10px] font-bold text-[#ff914d] uppercase tracking-widest mb-1.5">Tentang Kami</span>
+              <span className="inline-block text-[10px] font-bold text-[#b35418] uppercase tracking-widest mb-1.5">Tentang Kami</span>
               <div className={`h-px bg-[#ff914d]/30 mb-2.5 transition-all duration-1000 ${right.inView ? "w-16" : "w-0"}`} style={{ transitionDelay: "300ms" }} />
               <h2 className="text-[20px] md:text-4xl font-bold text-black leading-tight">{data.title}</h2>
             </div>
             <p className="text-black/55 text-[13px] md:text-lg leading-relaxed">{data.description}</p>
             <div className="flex flex-wrap gap-2 pt-1">
-              <Link href={data.buttonHref} className="btn-shine px-5 py-2.5 rounded-xl font-semibold bg-[#ff914d] text-white hover:bg-[#e07b3a] transition-all duration-200 hover:scale-105 active:scale-95 text-[13px]">
+              <Link href={data.buttonHref} className="btn-shine px-5 py-2.5 rounded-xl font-semibold bg-[#ff914d] text-[#111111] hover:bg-[#e07b3a] transition-all duration-200 hover:scale-105 active:scale-95 text-[13px]">
                 {data.buttonText}
               </Link>
               <Link href="/services" className="px-5 py-2.5 rounded-xl font-semibold bg-black text-white hover:bg-black/80 transition-all duration-200 hover:scale-105 active:scale-95 text-[13px]">

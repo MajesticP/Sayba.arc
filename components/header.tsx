@@ -64,7 +64,7 @@ export default function Header({ navItems, ctaText, ctaHref }: HeaderProps) {
               </nav>
 
               {ctaText && ctaHref ? (
-                <Link href={ctaHref} className="hidden md:inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold text-white bg-[#ff914d] hover:bg-[#e8823e] transition-colors">
+                <Link href={ctaHref} className="hidden md:inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold text-[#111111] bg-[#ff914d] hover:bg-[#e8823e] transition-colors">
                   {ctaText}
                 </Link>
               ) : (
@@ -97,7 +97,7 @@ export default function Header({ navItems, ctaText, ctaHref }: HeaderProps) {
                     </Link>
                   ))}
                   {ctaText && ctaHref && (
-                    <Link href={ctaHref} onClick={() => setIsOpen(false)} className="mt-1.5 py-2.5 px-3 rounded-xl text-[13px] font-semibold text-white bg-[#ff914d] hover:bg-[#e8823e] transition-colors text-center">
+                    <Link href={ctaHref} onClick={() => setIsOpen(false)} className="mt-1.5 py-2.5 px-3 rounded-xl text-[13px] font-semibold text-[#111111] bg-[#ff914d] hover:bg-[#e8823e] transition-colors text-center">
                       {ctaText}
                     </Link>
                   )}
