@@ -55,12 +55,12 @@ export const navItems = [
 ]
 
 export const hero = {
-  title: "Solusi IT & Engineering oleh SAYBA ARC",
+  title: "Solusi Cerdas Engineering & IT",
   subtitle:
-    "Engineering Consultant untuk Desain Rancang Bangun, Pemetaan, AutoCAD 2D/3D, dan IT Consultant untuk Website, Aplikasi Desktop, Mobile, serta Machine Learning — kami mitra satu atap untuk beragam kebutuhan Anda.",
+    "Membangun Masa Depan Anda. Kami menyediakan layanan komprehensif mulai dari Desain Rancang Bangun, Pemetaan Canggih, hingga Inovasi Website, Aplikasi, dan Machine Learning.",
   primaryButton: { text: "Jelajahi Layanan Kami", href: "/services" },
   secondaryButton: { text: "Lihat Portofolio", href: "/portfolio" },
-  badge: "Engineering & IT Konsultan · Berbasis di Pontianak",
+  badge: "Inovasi Engineering & IT Terdepan",
 }
 
 export const features = [

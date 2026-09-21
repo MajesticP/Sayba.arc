@@ -14,7 +14,7 @@ interface HeroData {
 
 export default function Hero({ data }: { data: HeroData }) {
   return (
-    <section className="relative flex items-center justify-center overflow-hidden bg-black text-center pt-32 pb-16 md:pt-44 md:pb-24 px-2 min-h-[90vh]">
+    <section className="relative flex items-center justify-center overflow-hidden bg-black text-center pt-28 pb-16 md:pt-40 md:pb-24 px-4 sm:px-6 w-full min-h-[90vh]">
       {/* 3D WebGL Background */}
       <ThreeBackground />
       
@@ -22,7 +22,7 @@ export default function Hero({ data }: { data: HeroData }) {
       <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
       
       {/* Clean elegant glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-[#ff914d] opacity-[0.07] blur-[150px] rounded-[100%] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-[#ff914d] opacity-[0.12] blur-[150px] rounded-[100%] pointer-events-none" />
 
       <div className="w-full relative z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -36,19 +36,19 @@ export default function Hero({ data }: { data: HeroData }) {
           )}
 
           {/* Title */}
-          <h1 className="animate-blur-in stagger-2 text-[32px] sm:text-5xl lg:text-[72px] font-extrabold text-white tracking-tighter leading-[1.05] mb-6 drop-shadow-2xl">
+          <h1 className="animate-blur-in stagger-2 text-[32px] sm:text-4xl lg:text-[64px] font-extrabold text-white tracking-tight leading-[1.15] sm:leading-[1.1] mb-5 sm:mb-6 max-w-4xl mx-auto relative z-20">
             {data.title.split('SAYBA ARC').map((part, i, arr) => 
               i === arr.length - 1 ? part : <span key={i}>{part}<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff914d] to-[#ffb382]">SAYBA ARC</span></span>
             )}
           </h1>
 
           {/* Subtitle */}
-          <p className="animate-fade-in-up stagger-3 text-white/60 text-sm md:text-xl leading-relaxed max-w-3xl mx-auto mb-12 font-medium">
+          <p className="animate-fade-in-up stagger-3 text-white/75 text-[15px] sm:text-base lg:text-[18px] leading-relaxed max-w-3xl mx-auto mb-10 font-medium px-4 relative z-20">
             {data.subtitle}
           </p>
 
           {/* Buttons */}
-          <div className="animate-fade-in-up stagger-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="animate-fade-in-up stagger-4 flex flex-col sm:flex-row items-center justify-center gap-4 relative z-20">
             <Link href={data.primaryButton.href} className="group w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,145,77,0.4)] hover:-translate-y-1 text-[13px] tracking-wide uppercase">
               {data.primaryButton.text}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -59,7 +59,7 @@ export default function Hero({ data }: { data: HeroData }) {
           </div>
 
           {/* Minimalist Trust Badges */}
-          <div className="animate-fade-in-up stagger-5 mt-16 md:mt-24 flex justify-center gap-8 sm:gap-16 pt-8 md:pt-10 border-t border-white/[0.08]">
+          <div className="animate-fade-in-up stagger-5 mt-16 md:mt-20 flex justify-center gap-6 sm:gap-16 pt-8 md:pt-10 border-t border-white/[0.08] relative z-20">
             <div className="flex flex-col items-center gap-1.5">
               <span className="text-2xl sm:text-4xl font-black text-white tracking-tight drop-shadow-lg">50+</span>
               <span className="text-[9px] sm:text-[11px] text-white/50 uppercase tracking-[0.2em] font-bold">Proyek Selesai</span>
@@ -69,8 +69,8 @@ export default function Hero({ data }: { data: HeroData }) {
               <span className="text-[9px] sm:text-[11px] text-white/50 uppercase tracking-[0.2em] font-bold">Keberhasilan</span>
             </div>
             <div className="flex flex-col items-center gap-1.5">
-              <span className="text-2xl sm:text-4xl font-black text-white tracking-tight drop-shadow-lg">4+</span>
-              <span className="text-[9px] sm:text-[11px] text-white/50 uppercase tracking-[0.2em] font-bold">Keahlian Inti</span>
+              <span className="text-2xl sm:text-4xl font-black text-white tracking-tight drop-shadow-lg">2+</span>
+              <span className="text-[9px] sm:text-[11px] text-white/50 uppercase tracking-[0.2em] font-bold">Pilar Keahlian</span>
             </div>
           </div>
           
