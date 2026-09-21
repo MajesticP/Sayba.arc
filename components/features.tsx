@@ -22,28 +22,27 @@ export default function Features({ title, subtitle, items }: FeaturesProps) {
   const grid = useInView(0.08)
 
   return (
-    <section className="py-10 md:py-24 bg-black" id="features">
+    <section className="pt-20 pb-24 md:pt-32 md:pb-36 bg-black" id="features">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div ref={header.ref} className={`text-center mb-8 md:mb-16 transition-all duration-700 ease-out ${header.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-          <span className="inline-block text-[10px] font-bold text-[#ff914d] uppercase tracking-widest mb-2">Keunggulan Kami</span>
-          <div className={`h-px bg-[#ff914d]/40 max-w-xs mx-auto mb-3 transition-all duration-1000 ${header.inView ? "w-full" : "w-0"}`} style={{ transitionDelay: "200ms" }} />
-          <h2 className="text-[20px] md:text-4xl font-bold text-white mb-1.5 md:mb-4">{title}</h2>
-          <p className="text-white/40 text-[13px] md:text-base max-w-2xl mx-auto">{subtitle}</p>
+        <div ref={header.ref} className={`text-center mb-12 md:mb-20 transition-all duration-700 ease-out ${header.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+          <span className="inline-block text-[11px] font-bold text-[#ea580c] uppercase tracking-[0.2em] mb-4">Keunggulan Kami</span>
+          <h2 className="text-[28px] md:text-5xl font-extrabold text-white mb-4 tracking-tight leading-tight max-w-3xl mx-auto">{title}</h2>
+          <p className="text-white/50 text-[14px] md:text-lg max-w-2xl mx-auto font-medium">{subtitle}</p>
         </div>
 
-        <div ref={grid.ref} className="grid grid-cols-2 md:grid-cols-3 gap-2.5 md:gap-5">
+        <div ref={grid.ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {items.map((feature, index) => (
             <div key={index}
-              className={`group bg-white/[0.04] hover:bg-white/[0.08] border border-white/8 hover:border-[#ff914d]/35 rounded-xl p-3.5 md:p-6 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#ff914d]/5 ${grid.inView ? "animate-card-reveal" : "opacity-0"}`}
+              className={`group bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6 md:p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.2)] hover:border-[#ea580c]/30 ${grid.inView ? "animate-card-reveal" : "opacity-0"}`}
               style={{ animationDelay: `${index * 80}ms` }}>
-              <div className="w-8 h-8 md:w-11 md:h-11 rounded-lg bg-[#ff914d]/20 flex items-center justify-center mb-2.5 md:mb-4 group-hover:bg-[#ff914d]/35 group-hover:scale-110 transition-all duration-300">
-                <DynamicIcon name={feature.icon} color="#ff914d" size={17} />
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/[0.03] flex items-center justify-center mb-6 group-hover:bg-[#ea580c]/15 transition-colors duration-300 border border-white/[0.05]">
+                <DynamicIcon name={feature.icon} color="#ea580c" size={24} />
               </div>
-              <h3 className="text-white font-bold text-[13px] md:text-base mb-1 leading-snug group-hover:text-[#ff914d] transition-colors duration-300">
+              <h3 className="text-white font-bold text-[16px] md:text-lg mb-3 leading-snug group-hover:text-[#ea580c] transition-colors duration-300">
                 {feature.title}
               </h3>
-              <p className="text-white/40 text-[11px] md:text-sm leading-relaxed group-hover:text-white/55 transition-colors duration-300">
+              <p className="text-white/50 text-[13px] md:text-[15px] leading-relaxed transition-colors duration-300">
                 {feature.description}
               </p>
             </div>

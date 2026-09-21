@@ -19,115 +19,108 @@ function SocialIcon({ icon, className }: { icon: string; className: string }) {
 
 export default function Footer({ footerLinks, socialLinks }: FooterProps) {
   return (
-    <footer className="bg-black text-white/40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-6 md:gap-10 mb-5 md:mb-12">
-
+    <footer className="bg-black text-white/50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-12 mb-8 md:mb-16">
+          
           {/* Brand */}
-          <div className="col-span-2 order-1">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="col-span-2 md:col-span-1">
+            <div className="flex items-center gap-2.5 mb-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo-256.png" alt={siteConfig.name} width={32} height={32} loading="lazy" decoding="async" className="w-8 h-8 rounded-md object-contain opacity-90" />
-              <span className="font-bold text-white text-[15px]">{siteConfig.name}</span>
+              <img src="/logo-256.png" alt={siteConfig.name} width={32} height={32} loading="lazy" decoding="async" className="w-7 h-7 rounded-md object-contain opacity-90" />
+              <span className="font-extrabold text-white text-[14px] tracking-tight">{siteConfig.name}</span>
             </div>
-            <p className="text-[12px] leading-relaxed mb-1 max-w-sm">Art You Believe — Agensi Digital & Engineering dari Pontianak</p>
-            <p className="text-[11px] text-white/25">{siteConfig.address}</p>
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              <span className="text-[10px] px-2 py-0.5 rounded-full border border-[#ff914d]/30 text-[#ff914d]/70">Digital & Engineering</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/10 text-white/30">Solusi Teknis</span>
-            </div>
+            <p className="text-[11px] leading-relaxed mb-2 max-w-xs text-white/40">Art You Believe — Digital & Engineering dari Pontianak</p>
+            <p className="text-[10px] text-white/25">{siteConfig.address}</p>
+            <div className="flex flex-wrap gap-1.5 mt-4">
+                          <span className="text-[9px] px-2 py-0.5 rounded-full border border-[#ea580c]/30 text-[#ea580c]/70">Digital & Engineering</span>
+                          <span className="text-[9px] px-2 py-0.5 rounded-full border border-white/10 text-white/25">Solusi Teknis</span>
+                        </div>
           </div>
 
-          {/* Nav — di ponsel setiap blok melebar penuh dan dipisah garis tipis
-              supaya tidak berdesakan dua kolom bersebelahan. Urutan tampil di
-              ponsel: Brand, Navigasi, Legalitas, Kontak. Kelas order-* memulihkan
-              urutan desktop (Kontak sebelum Legalitas) tanpa mengubah urutan DOM. */}
-          <div className="col-span-2 md:col-span-1 order-2 border-t border-white/[0.06] pt-5 md:border-t-0 md:pt-0">
-            <h4 className="text-white font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Navigasi</h4>
-            {/* Dua kolom supaya daftarnya tidak memanjang ke bawah. Pembagiannya
-                dihitung dari jumlah tautan, jadi tetap seimbang kalau menu
-                ditambah atau dikurangi di lib/data.ts. */}
-            <ul className="grid grid-cols-2 gap-x-4 gap-y-2 md:gap-y-1.5">
+          {/* Nav */}
+          <div className="col-span-2 md:col-span-1 border-t border-white/[0.06] pt-6 md:border-t-0 md:pt-0">
+            <h4 className="text-white font-bold text-[10px] uppercase tracking-[0.15em] mb-4">Navigasi</h4>
+            <ul className="grid grid-cols-2 gap-x-6 gap-y-3 md:gap-y-2">
               {footerLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-[12px] hover:text-[#ff914d] transition-colors duration-200">{link.label}</Link>
+                  <Link href={link.href} className="text-[11px] hover:text-[#ea580c] transition-colors duration-200">{link.label}</Link>
                 </li>
               ))}
             </ul>
           </div>
 
           {/* Legalitas */}
-          <div className="col-span-2 md:col-span-1 order-3 md:order-4 border-t border-white/[0.06] pt-5 md:border-t-0 md:pt-0">
-            <h4 className="text-white font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Legalitas</h4>
+          <div className="col-span-2 md:col-span-1 border-t border-white/[0.06] pt-6 md:border-t-0 md:pt-0">
+            <h4 className="text-white font-bold text-[10px] uppercase tracking-[0.15em] mb-4">Legalitas</h4>
 
-            <p className="text-[12px] text-white/70 font-semibold">
+            <p className="text-[11px] text-white/70 font-bold">
               {legalitas.namaUsaha}
               {legalitas.bentukUsaha && (
-                <span className="text-white/30 font-normal"> · {legalitas.bentukUsaha}</span>
+                <span className="text-white/25 font-normal text-[10px]"> · {legalitas.bentukUsaha}</span>
               )}
             </p>
 
-            {/* Nomor ditulis dengan angka tabular agar deretnya rata */}
-            <dl className="mt-1.5 space-y-0.5 text-[11.5px] text-white/35 tabular-nums">
+            <dl className="mt-2 space-y-1.5 text-[10px] text-white/30 tabular-nums">
               {legalitas.nib && (
-                <div className="flex gap-1.5">
-                  <dt className="text-white/25">NIB</dt>
-                  <dd className="tracking-wide">{legalitas.nib}</dd>
+                <div className="flex gap-2">
+                  <dt className="text-white/20">NIB</dt>
+                  <dd className="tracking-widest">{legalitas.nib}</dd>
                 </div>
               )}
               {legalitas.kbli && (
-                <div className="flex gap-1.5">
-                  <dt className="text-white/25">KBLI</dt>
-                  <dd className="tracking-wide">
+                <div className="flex gap-2">
+                  <dt className="text-white/20">KBLI</dt>
+                  <dd className="tracking-widest">
                     {legalitas.kbli}
                     {legalitas.kbliVersi && (
-                      <span className="text-white/20"> · {legalitas.kbliVersi}</span>
+                      <span className="text-white/15"> · {legalitas.kbliVersi}</span>
                     )}
                   </dd>
                 </div>
               )}
             </dl>
 
-            <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/5 px-2 py-1.5">
+            <div className="mt-4 inline-flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/5 px-2.5 py-1.5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={legalitas.ossLogo}
                 alt="Logo OSS"
-                width={18}
-                height={18}
+                width={16}
+                height={16}
                 loading="lazy"
                 decoding="async"
-                className="w-[18px] h-[18px] rounded object-contain flex-shrink-0"
+                className="w-[16px] h-[16px] rounded object-contain flex-shrink-0"
               />
-              <span className="text-[10.5px] text-white/45 leading-tight">{legalitas.ossLabel}</span>
+              <span className="text-[9.5px] text-white/40 leading-tight">{legalitas.ossLabel}</span>
             </div>
           </div>
 
           {/* Contact */}
-          <div className="col-span-2 md:col-span-1 order-4 md:order-3 border-t border-white/[0.06] pt-5 md:border-t-0 md:pt-0">
-            <h4 className="text-white font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Kontak</h4>
-            <div className="space-y-1.5 mb-3">
-              <a href={`mailto:${siteConfig.email}`} className="inline-flex items-center gap-1.5 text-[12px] hover:text-[#ff914d] transition-colors break-all">
-                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+          <div className="col-span-2 md:col-span-1 border-t border-white/[0.06] pt-6 md:border-t-0 md:pt-0">
+            <h4 className="text-white font-bold text-[10px] uppercase tracking-[0.15em] mb-4">Kontak</h4>
+            <div className="space-y-2 mb-4">
+              <a href={`mailto:${siteConfig.email}`} className="inline-flex items-center gap-1.5 text-[11px] hover:text-[#ea580c] transition-colors break-all">
+                <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 {siteConfig.email}
               </a>
-              <p className="flex items-center gap-1.5 text-[12px]">
-                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+              <p className="flex items-center gap-1.5 text-[11px] text-white/40">
+                <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                 {siteConfig.phone}
               </p>
             </div>
             <div className="flex gap-2">
               {socialLinks.map((social) => (
-                <a key={social.name} href={social.href} target="_blank" rel="noopener noreferrer" title={social.name}
-                  className="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-white/5 border border-white/[0.08] hover:bg-[#ff914d]/20 hover:border-[#ff914d]/40 hover:text-[#ff914d] transition-all duration-200">
-                  <SocialIcon icon={social.icon} className="w-3.5 h-3.5" />
-                </a>
-              ))}
+                              <a key={social.name} href={social.href} target="_blank" rel="noopener noreferrer" title={social.name}
+                                className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 border border-white/[0.06] hover:bg-[#ea580c]/15 hover:border-[#ea580c]/30 hover:text-[#ea580c] transition-all duration-200">
+                                <SocialIcon icon={social.icon} className="w-3 h-3" />
+                              </a>
+                            ))}
             </div>
           </div>
         </div>
 
-        <div className="border-t border-white/[0.08] pt-4 flex flex-col sm:flex-row justify-between items-center gap-1 text-[11px] text-white/20">
+        <div className="border-t border-white/[0.06] pt-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] text-white/20">
           <span>© {new Date().getFullYear()} {siteConfig.name}. Hak cipta dilindungi.</span>
           <span className="hidden sm:block">Kecerdasan Digital & Rekayasa Teknis · Pontianak</span>
         </div>

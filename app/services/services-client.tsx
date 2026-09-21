@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import Link from "next/link"
 import PageTransition from "@/components/page-transition"
 import { DynamicIcon } from "@/lib/dynamic-icon"
+import ThreeCard from "@/components/three-card"
 import type { Layanan } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
 
@@ -233,18 +234,9 @@ function ServiceCard({ service, cfg }: { service: Layanan; cfg: { label: string;
       className={`group bg-white ${cfg.border} ${cfg.shadow} transition-all duration-300 hover:-translate-y-1 relative overflow-hidden rounded-xl border border-black/8 w-full flex flex-col`}
 
     >
-      {/* Image area — hard-capped height */}
-      <div className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "160px" }}>
-        {imgSrc ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={imgSrc} alt={service.title} className="w-full object-cover transition-transform duration-500 group-hover:scale-105 block"
-            style={{ height: "100%" }}
-            onError={e => { const el = e.currentTarget; el.style.display = "none"; const fb = el.nextElementSibling as HTMLElement | null; if (fb) fb.style.display = "flex" }} />
-        ) : null}
-        <div className={`absolute inset-0 items-center justify-center ${cfg.iconBg} transition-colors duration-300`} style={{ display: imgSrc ? "none" : "flex" }}>
-          <DynamicIcon name={service.icon ?? "map"} color={cfg.color} size={24} />
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: cfg.color }} />
+      {/* 3D Card — left side */}
+      <div className="relative w-full sm:w-[220px] lg:w-[260px] flex-shrink-0">
+        <ThreeCard color={cfg.color} height={180} className="w-full h-full" />
       </div>
 
       {/* Content — hard-capped at remaining 130px */}

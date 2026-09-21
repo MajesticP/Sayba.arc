@@ -11,7 +11,7 @@ interface PromoCarouselProps {
   interval?: number
 }
 
-/** Link Google Drive → proxy gambar lokal, sama seperti layanan/informasi */
+/** Link Google Drive → proxy gambar lokal, sama seperti layanan/produk */
 function gdriveToImg(url: string): string {
   if (!url) return url
   if (url.startsWith("/api/gdrive-img")) return url
@@ -49,12 +49,12 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
   if (!count) return null
 
   return (
-    <section className="bg-white pt-8 md:pt-16" aria-label="Banner promosi">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div
-          className="relative group rounded-xl md:rounded-3xl overflow-hidden border border-black/10 bg-black shadow-[0_10px_40px_rgba(0,0,0,0.10)]"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
+    <section className="bg-black pt-6 md:pt-12" aria-label="Banner promosi">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div
+              className="relative group rounded-xl md:rounded-3xl overflow-hidden border border-white/[0.06] bg-black shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
+              onMouseEnter={() => setPaused(true)}
+              onMouseLeave={() => setPaused(false)}
           onFocusCapture={() => setPaused(true)}
           onBlurCapture={() => setPaused(false)}
           onTouchStart={(e) => {
@@ -103,13 +103,13 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
                       <div className="md:relative md:h-full md:flex md:items-center">
                         <div className="md:px-12 lg:px-16 md:max-w-lg lg:max-w-xl">
                           {slide.eyebrow && (
-                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full bg-[#ff914d]/15 border border-[#ff914d]/30 mb-1.5 md:mb-4">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#ff914d] animate-pulse" />
-                              <span className="text-[9px] md:text-[11px] font-bold uppercase tracking-widest text-[#ff914d]">
-                                {slide.eyebrow}
-                              </span>
-                            </div>
-                          )}
+                                                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full bg-[#ea580c]/15 border border-[#ea580c]/30 mb-1.5 md:mb-4">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c] animate-pulse" />
+                                                        <span className="text-[9px] md:text-[11px] font-bold uppercase tracking-widest text-[#ea580c]">
+                                                          {slide.eyebrow}
+                                                        </span>
+                                                      </div>
+                                                    )}
 
                           {slide.title && (
                             <h3 className="text-[15px] sm:text-2xl md:text-4xl font-black text-white leading-[1.15] tracking-tight line-clamp-2">
@@ -124,13 +124,13 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
                           )}
 
                           {cta && (
-                            <span className="mt-2 md:mt-6 inline-flex items-center gap-1.5 px-3 py-1 md:px-5 md:py-2.5 min-h-0 rounded-full bg-[#ff914d] text-[#111111] text-[10.5px] md:text-sm font-semibold shadow-lg shadow-orange-500/20 transition-transform duration-200 group-hover:scale-[1.03]">
-                              {cta.text}
-                              <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                              </svg>
-                            </span>
-                          )}
+                                                      <span className="mt-2 md:mt-6 inline-flex items-center gap-1.5 px-3 py-1 md:px-5 md:py-2.5 min-h-0 rounded-full bg-[#ea580c] text-white text-[10.5px] md:text-sm font-semibold shadow-lg shadow-[#ea580c]/20 transition-transform duration-200 group-hover:scale-[1.03]">
+                                                        {cta.text}
+                                                        <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                                        </svg>
+                                                      </span>
+                                                    )}
                         </div>
                       </div>
                     </div>
@@ -154,47 +154,47 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
 
           {/* Panah */}
           {count > 1 && (
-            <>
-              <button
-                type="button"
-                onClick={prev}
-                aria-label="Banner sebelumnya"
-                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 min-h-0 rounded-full bg-black/40 backdrop-blur-sm border border-white/15 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[#ff914d] transition-all duration-200"
-              >
-                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={next}
-                aria-label="Banner berikutnya"
-                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 min-h-0 rounded-full bg-black/40 backdrop-blur-sm border border-white/15 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[#ff914d] transition-all duration-200"
-              >
-                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </>
-          )}
+                      <>
+                        <button
+                          type="button"
+                          onClick={prev}
+                          aria-label="Banner sebelumnya"
+                          className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 min-h-0 rounded-full bg-black/40 backdrop-blur-sm border border-white/15 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[#ea580c] transition-all duration-200"
+                        >
+                          <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={next}
+                          aria-label="Banner berikutnya"
+                          className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 min-h-0 rounded-full bg-black/40 backdrop-blur-sm border border-white/15 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[#ea580c] transition-all duration-200"
+                        >
+                          <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
 
-          {/* Indikator titik */}
-          {count > 1 && (
-            <div className="absolute bottom-2.5 md:bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/35 backdrop-blur-sm border border-white/10">
-              {slides.map((slide, i) => (
-                <button
-                  key={slide.id}
-                  type="button"
-                  onClick={() => goTo(i)}
-                  aria-label={`Ke banner ${i + 1}`}
-                  aria-current={i === index}
-                  className={`block h-1.5 min-h-0 shrink-0 rounded-full transition-all duration-300 ${
-                    i === index ? "w-6 bg-[#ff914d]" : "w-1.5 bg-white/45 hover:bg-white/70"
-                  }`}
-                />
-              ))}
-            </div>
-          )}
+                    {/* Indikator titik */}
+                    {count > 1 && (
+                      <div className="absolute bottom-2.5 md:bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/35 backdrop-blur-sm border border-white/10">
+                        {slides.map((slide, i) => (
+                          <button
+                            key={slide.id}
+                            type="button"
+                            onClick={() => goTo(i)}
+                            aria-label={`Ke banner ${i + 1}`}
+                            aria-current={i === index}
+                            className={`block h-1.5 min-h-0 shrink-0 rounded-full transition-all duration-300 ${
+                              i === index ? "w-6 bg-[#ea580c]" : "w-1.5 bg-white/45 hover:bg-white/70"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
         </div>
       </div>
     </section>

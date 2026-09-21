@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { siteConfig, hero, features, about, cta, navItems, footerLinks, socialLinks, ogImage } from "@/lib/data"
 import Header from "@/components/header"
-import Hero from "@/components/hero"
+import Hero3D from "@/components/hero-3d"
 import PromoCarousel from "@/components/promo-carousel"
 import NewsHighlight from "@/components/news-highlight"
 import Services from "@/components/services"
@@ -70,18 +70,19 @@ export default async function Home() {
   const localBusinessSchema = generateLocalBusinessSchema()
 
   return (
-    <main className="min-h-screen flex flex-col">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
-      />
-      <Header navItems={navItems} />
-      <Hero data={hero} />
-      <PromoCarousel slides={promoBanners} interval={5000} />
+      <main className="min-h-screen flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+        />
+        <Header navItems={navItems} />
+        <Hero3D data={hero} />
+        <PromoCarousel slides={promoBanners} interval={5000} />
+      <Services allLayanan={allLayanan} depts={depts} />
       <NewsHighlight articles={beritaTerbaru} />
       <Services allLayanan={allLayanan} depts={depts} />
       <Features

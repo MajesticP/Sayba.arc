@@ -46,7 +46,15 @@ export default async function InformasiPage() {
   return (
     <main className="min-h-screen flex flex-col bg-white">
       <Header navItems={navItems} />
-      <InformasiClient initialArticles={articles} />
+
+      <PageHero
+              eyebrow="Pusat Informasi"
+              title="Informasi Layanan"
+              subtitle="Temukan detail pengumuman, panduan layanan, serta informasi terkini dari layanan IT & Engineering kami."
+            />
+
+      <NewsList articles={articles} featured={featured} />
+
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />
     </main>
   )

@@ -25,7 +25,7 @@ export interface TimMember {
   status: string
 }
 
-const BRAND_COLOR = "#ff914d"
+const BRAND_COLOR = "#ea580c"
 
 function Avatar({ name, color, size }: { name: string; color: string; size: number }) {
   const initials = name.split(" ").filter((w: string) => !["Tim","dan","&"].includes(w)).slice(0,2).map((w: string) => w[0].toUpperCase()).join("")

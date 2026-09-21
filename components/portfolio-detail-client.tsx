@@ -176,7 +176,7 @@ export default function PortfolioDetailClient({ slug }: { slug: string }) {
   const bgColor = portfolioData["Background Color"] || "#ffffff"
   const titleColor = portfolioData["Title Color"] || "#313030"
   const textColor = portfolioData["Text Color"] || "#666666"
-  const buttonColor = portfolioData["Button Color"] || getValue("Header Button Color") || "#ff914d"
+  const buttonColor = portfolioData["Button Color"] || getValue("Header Button Color") || "#ea580c"
   const cardColor = portfolioData["Card Color"] || "#f8f8f8"
 
   const customTabs = parseCustomTabs()

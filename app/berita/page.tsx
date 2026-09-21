@@ -44,12 +44,10 @@ export default async function BeritaPage() {
       <Header navItems={navItems} />
 
       <PageHero
-        image="/banners/berita-1920x600.webp"
-        imageMobile="/banners/berita-mobile-900x450.webp"
-        eyebrow="Ruang Baca"
-        title="Berita & Artikel"
-        subtitle="Catatan proyek, panduan teknis, dan kabar terbaru dari tim SAYBA ARC — ditulis dari pengalaman lapangan."
-      />
+              eyebrow="Wawasan & Kabar"
+              title="Berita & Artikel"
+              subtitle="Ide, cerita, dan pembaruan terbaru seputar teknologi dan rekayasa dari balik layar SAYBA ARC."
+            />
 
       <NewsList articles={articles} featured={featured} />
 

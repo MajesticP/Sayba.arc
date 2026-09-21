@@ -26,9 +26,7 @@ export default function ContactPage() {
 
       {/* Hero */}
       <PageHero
-        image="/banners/contact-1920x600.webp"
-        imageMobile="/banners/contact-mobile-900x450.webp"
-        eyebrow="Ayo Bicara"
+        eyebrow="Mari Berbicara"
         title={contactPage.title}
         subtitle={contactPage.subtitle}
       />

@@ -54,7 +54,7 @@ export default function NewsList({ articles, featured }: NewsListProps) {
   // Hanya tampilkan kategori yang benar-benar punya artikel
   const availableCategories = useMemo(() => {
     const used = new Set(articles.map((a) => a.category))
-    return [{ slug: "semua", label: "Semua", color: "#ff914d" }, ...newsCategories.filter((c) => used.has(c.slug))]
+    return [{ slug: "semua", label: "Semua", color: "#ea580c" }, ...newsCategories.filter((c) => used.has(c.slug))]
   }, [articles])
 
   const filtered = useMemo(() => {
@@ -107,24 +107,24 @@ export default function NewsList({ articles, featured }: NewsListProps) {
               </div>
 
               <div className="flex flex-col justify-center p-5 md:p-10">
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#ff914d] mb-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#ff914d] animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#ea580c] mb-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c] animate-pulse" />
                   Sorotan
                 </span>
-                <h2 className="text-[19px] md:text-3xl font-black text-white leading-snug mb-2.5 group-hover:text-[#ff914d] transition-colors duration-200">
+                <h2 className="text-[19px] md:text-3xl font-black text-white leading-snug mb-2.5 group-hover:text-[#ea580c] transition-colors duration-200">
                   {featured.title}
                 </h2>
                 {featured.excerpt && (
                   <p className="text-white/50 text-[13px] md:text-base leading-relaxed mb-4 line-clamp-4">{featured.excerpt}</p>
                 )}
                 <div className="flex items-center gap-2.5 mb-4">
-                  <div className="w-7 h-7 rounded-full bg-[#ff914d]/20 border border-[#ff914d]/30 flex items-center justify-center text-[#ff914d] text-[11px] font-black">
+                  <div className="w-7 h-7 rounded-full bg-[#ea580c]/20 border border-[#ea580c]/30 flex items-center justify-center text-[#ea580c] text-[11px] font-black">
                     {featured.author.charAt(0)}
                   </div>
                   <span className="text-white/60 text-[13px] font-medium">{featured.author}</span>
                 </div>
                 <MetaRow article={featured} />
-                <span className="mt-5 inline-flex items-center gap-1.5 text-[13px] font-bold text-[#ff914d]">
+                <span className="mt-5 inline-flex items-center gap-1.5 text-[13px] font-bold text-[#ea580c]">
                   Baca selengkapnya
                   <svg className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -173,7 +173,7 @@ export default function NewsList({ articles, featured }: NewsListProps) {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Cari berita atau topik…"
                 aria-label="Cari berita"
-                className="w-full pl-9 pr-4 py-2 rounded-full border border-black/10 bg-white text-[13px] text-black placeholder-black/30 focus:outline-none focus:ring-2 focus:ring-[#ff914d]/40 focus:border-[#b35418] transition-all"
+                className="w-full pl-9 pr-4 py-2 rounded-full border border-black/10 bg-white text-[13px] text-black placeholder-black/30 focus:outline-none focus:ring-2 focus:ring-[#ea580c]/40 focus:border-[#ea580c] transition-all"
               />
             </div>
           </div>
@@ -193,7 +193,7 @@ export default function NewsList({ articles, featured }: NewsListProps) {
               <button
                 type="button"
                 onClick={() => { setQuery(""); setActive("semua") }}
-                className="text-[13px] font-semibold text-[#b35418] hover:underline"
+                className="text-[13px] font-semibold text-[#ea580c] hover:underline"
               >
                 Atur ulang filter
               </button>
@@ -224,7 +224,7 @@ export default function NewsList({ articles, featured }: NewsListProps) {
                   </div>
 
                   <div className="flex flex-col flex-1 p-4">
-                    <h3 className="text-[15px] font-black text-black leading-snug mb-1.5 line-clamp-2 group-hover:text-[#b35418] transition-colors duration-200">
+                    <h3 className="text-[15px] font-black text-black leading-snug mb-1.5 line-clamp-2 group-hover:text-[#ea580c] transition-colors duration-200">
                       {article.title}
                     </h3>
                     {article.excerpt && (
