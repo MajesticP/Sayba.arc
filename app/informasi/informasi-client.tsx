@@ -321,7 +321,7 @@ export default function InformasiClient({ initialArticles }: Props) {
                 title="Tampilan grid"
                 aria-pressed={viewMode === "grid"}
                 className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                  viewMode === "grid" ? "bg-white text-[#ff914d] shadow-sm" : "text-black/35 hover:text-black/60"
+                  viewMode === "grid" ? "bg-white text-[#b35418] shadow-sm" : "text-black/35 hover:text-black/60"
                 }`}
               >
                 <LayoutGrid className="w-4 h-4" />
@@ -332,7 +332,7 @@ export default function InformasiClient({ initialArticles }: Props) {
                 title="Tampilan daftar"
                 aria-pressed={viewMode === "list"}
                 className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                  viewMode === "list" ? "bg-white text-[#ff914d] shadow-sm" : "text-black/35 hover:text-black/60"
+                  viewMode === "list" ? "bg-white text-[#b35418] shadow-sm" : "text-black/35 hover:text-black/60"
                 }`}
               >
                 <List className="w-4 h-4" />
@@ -399,7 +399,7 @@ export default function InformasiClient({ initialArticles }: Props) {
                         </span>
                         <MetaLine article={article} />
                       </span>
-                      <span className="block text-[14.5px] font-bold text-black leading-snug group-hover:text-[#ff914d] transition-colors line-clamp-2">
+                      <span className="block text-[14.5px] font-bold text-black leading-snug group-hover:text-[#b35418] transition-colors line-clamp-2">
                         {article.title}
                       </span>
                       {article.excerpt && (
@@ -409,7 +409,7 @@ export default function InformasiClient({ initialArticles }: Props) {
                       )}
                     </span>
 
-                    <ArrowRight className="w-4 h-4 text-black/25 group-hover:text-[#ff914d] group-hover:translate-x-1 transition-all shrink-0 mt-3" />
+                    <ArrowRight className="w-4 h-4 text-black/25 group-hover:text-[#b35418] group-hover:translate-x-1 transition-all shrink-0 mt-3" />
                   </Link>
                 </PageTransition>
               ))}
@@ -442,10 +442,10 @@ export default function InformasiClient({ initialArticles }: Props) {
                           aria-expanded={isOpen}
                           className="w-full p-4 text-left flex items-start justify-between gap-4"
                         >
-                          <span className={`text-[13.5px] font-bold leading-snug transition-colors ${isOpen ? "text-[#ff914d]" : "text-black"}`}>
+                          <span className={`text-[13.5px] font-bold leading-snug transition-colors ${isOpen ? "text-[#b35418]" : "text-black"}`}>
                             {faq.q}
                           </span>
-                          <ChevronDown className={`w-4 h-4 shrink-0 mt-0.5 transition-transform duration-200 ${isOpen ? "rotate-180 text-[#ff914d]" : "text-black/30"}`} />
+                          <ChevronDown className={`w-4 h-4 shrink-0 mt-0.5 transition-transform duration-200 ${isOpen ? "rotate-180 text-[#b35418]" : "text-black/30"}`} />
                         </button>
                         {isOpen && (
                           <div className="px-4 pb-4 -mt-1 text-[12.5px] text-black/55 leading-relaxed">

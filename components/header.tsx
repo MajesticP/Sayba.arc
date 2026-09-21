@@ -50,13 +50,13 @@ export default function Header({ navItems, ctaText, ctaHref }: HeaderProps) {
               <Link href="/" className="flex items-center gap-2 group shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/logo-256.png" alt={siteConfig.name} width={32} height={32} fetchPriority="high" decoding="async" className="h-8 w-8 rounded-md object-contain transition-opacity group-hover:opacity-80" />
-                <span className="font-bold text-base text-black tracking-tight group-hover:text-[#ff914d] transition-colors">{siteConfig.name}</span>
+                <span className="font-bold text-base text-black tracking-tight group-hover:text-[#b35418] transition-colors">{siteConfig.name}</span>
               </Link>
 
               {/* Desktop Nav */}
               <nav className="hidden md:flex items-center gap-6 lg:gap-7">
                 {navItems.map((item) => (
-                  <Link key={item.href} href={item.href} className={`text-sm font-medium transition-all duration-200 relative group ${isActive(item.href) ? "text-[#ff914d]" : "text-black/60 hover:text-black"}`}>
+                  <Link key={item.href} href={item.href} className={`text-sm font-medium transition-all duration-200 relative group ${isActive(item.href) ? "text-[#b35418]" : "text-black/60 hover:text-black"}`}>
                     {item.label}
                     <span className={`absolute -bottom-1 left-0 h-0.5 rounded-full bg-[#ff914d] transition-all duration-300 ${isActive(item.href) ? "w-full" : "w-0 group-hover:w-full"}`} />
                   </Link>
@@ -92,7 +92,7 @@ export default function Header({ navItems, ctaText, ctaHref }: HeaderProps) {
                 <div className="flex flex-col gap-0.5 pt-1.5">
                   {navItems.map((item) => (
                     <Link key={item.href} href={item.href} onClick={() => setIsOpen(false)}
-                      className={`py-2 px-3 rounded-xl text-[13px] font-medium transition-colors ${isActive(item.href) ? "text-[#ff914d] bg-orange-50" : "text-black/60 hover:text-black hover:bg-black/5"}`}>
+                      className={`py-2 px-3 rounded-xl text-[13px] font-medium transition-colors ${isActive(item.href) ? "text-[#b35418] bg-orange-50" : "text-black/60 hover:text-black hover:bg-black/5"}`}>
                       {item.label}
                     </Link>
                   ))}

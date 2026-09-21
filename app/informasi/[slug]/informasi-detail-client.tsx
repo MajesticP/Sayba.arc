@@ -352,7 +352,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                             }}
                             className={`block text-[12px] leading-snug py-1.5 pl-3 border-l-2 transition-all ${
                               active
-                                ? "border-[#ff914d] text-[#ff914d] font-bold"
+                                ? "border-[#b35418] text-[#b35418] font-bold"
                                 : "border-black/10 text-black/50 hover:text-black hover:border-black/30"
                             }`}
                           >
@@ -425,7 +425,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
                           >
                             {getInformasiCategoryLabel(r.category)}
                           </span>
-                          <span className="block text-[12.5px] font-bold text-black/85 leading-snug group-hover:text-[#ff914d] transition-colors line-clamp-2 mb-1">
+                          <span className="block text-[12.5px] font-bold text-black/85 leading-snug group-hover:text-[#b35418] transition-colors line-clamp-2 mb-1">
                             {r.title}
                           </span>
                           <span className="text-[10.5px] text-black/35">
