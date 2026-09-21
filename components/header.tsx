@@ -50,21 +50,21 @@ export default function Header({ navItems, ctaText, ctaHref }: HeaderProps) {
               <Link href="/" className="flex items-center gap-2 group shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/logo-256.png" alt={siteConfig.name} width={32} height={32} fetchPriority="high" decoding="async" className="h-8 w-8 rounded-md object-contain transition-opacity group-hover:opacity-80" />
-                <span className="font-bold text-base text-black tracking-tight group-hover:text-[#b35418] transition-colors">{siteConfig.name}</span>
+                <span className="font-bold text-base text-black tracking-tight group-hover:text-carbon transition-colors">{siteConfig.name}</span>
               </Link>
 
               {/* Desktop Nav */}
               <nav className="hidden md:flex items-center gap-6 lg:gap-7">
                 {navItems.map((item) => (
-                  <Link key={item.href} href={item.href} className={`text-sm font-medium transition-all duration-200 relative group ${isActive(item.href) ? "text-[#b35418]" : "text-black/60 hover:text-black"}`}>
+                  <Link key={item.href} href={item.href} className={`text-sm font-medium transition-all duration-200 relative group ${isActive(item.href) ? "text-carbon" : "text-carbon/60 hover:text-carbon"}`}>
                     {item.label}
-                    <span className={`absolute -bottom-1 left-0 h-0.5 rounded-full bg-[#ff914d] transition-all duration-300 ${isActive(item.href) ? "w-full" : "w-0 group-hover:w-full"}`} />
+                    <span className={`absolute -bottom-1 left-0 h-0.5 rounded-full bg-steel transition-all duration-300 ${isActive(item.href) ? "w-full" : "w-0 group-hover:w-full"}`} />
                   </Link>
                 ))}
               </nav>
 
               {ctaText && ctaHref ? (
-                <Link href={ctaHref} className="hidden md:inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold text-[#111111] bg-[#ff914d] hover:bg-[#e8823e] transition-colors">
+                <Link href={ctaHref} className="hidden md:inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold text-carbon bg-steel hover:bg-powder transition-colors">
                   {ctaText}
                 </Link>
               ) : (
@@ -92,12 +92,12 @@ export default function Header({ navItems, ctaText, ctaHref }: HeaderProps) {
                 <div className="flex flex-col gap-0.5 pt-1.5">
                   {navItems.map((item) => (
                     <Link key={item.href} href={item.href} onClick={() => setIsOpen(false)}
-                      className={`py-2 px-3 rounded-xl text-[13px] font-medium transition-colors ${isActive(item.href) ? "text-[#b35418] bg-orange-50" : "text-black/60 hover:text-black hover:bg-black/5"}`}>
+                      className={`py-2 px-3 rounded-xl text-[13px] font-medium transition-colors ${isActive(item.href) ? "text-carbon bg-platinum-dim" : "text-black/60 hover:text-black hover:bg-black/5"}`}>
                       {item.label}
                     </Link>
                   ))}
                   {ctaText && ctaHref && (
-                    <Link href={ctaHref} onClick={() => setIsOpen(false)} className="mt-1.5 py-2.5 px-3 rounded-xl text-[13px] font-semibold text-[#111111] bg-[#ff914d] hover:bg-[#e8823e] transition-colors text-center">
+                    <Link href={ctaHref} onClick={() => setIsOpen(false)} className="mt-1.5 py-2.5 px-3 rounded-xl text-[13px] font-semibold text-carbon bg-steel hover:bg-powder transition-colors text-center">
                       {ctaText}
                     </Link>
                   )}

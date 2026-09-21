@@ -1,8 +1,8 @@
 // ============================================================
 // SAYBA ARC — Konfigurasi & Helper Berita
 // ------------------------------------------------------------
-// Isi artikel TIDAK lagi di file ini — sudah pindah ke tabel
-// `berita` di Supabase dan dikelola lewat Admin Dashboard.
+// Isi artikel TIDAK ada di file ini — tersimpan di tabel `berita`
+// di Supabase dan dikelola lewat Admin Dashboard.
 // File ini hanya menyimpan daftar kategori dan fungsi bantu.
 //
 // Menambah kategori: tambahkan satu baris di newsCategories,
@@ -13,15 +13,16 @@ export interface NewsCategory {
   /** disimpan di kolom `category` tabel berita */
   slug: string
   label: string
+  /** warna dari palet (lihat DESIGN.md) — semua lolos kontras di latar terang */
   color: string
 }
 
 export const newsCategories: NewsCategory[] = [
-  { slug: "gis", label: "GIS & Pemetaan", color: "#ff914d" },
-  { slug: "teknologi", label: "Teknologi", color: "#0a6e8a" },
-  { slug: "proyek", label: "Cerita Proyek", color: "#7c5cff" },
-  { slug: "engineering", label: "Engineering", color: "#111111" },
-  { slug: "perusahaan", label: "Kabar Perusahaan", color: "#1f9d55" },
+  { slug: "proyek", label: "Catatan Proyek", color: "#5e6572" },
+  { slug: "teknis", label: "Panduan Teknis", color: "#5e7a85" },
+  { slug: "perusahaan", label: "Kabar Perusahaan", color: "#7d98a1" },
+  { slug: "pemetaan", label: "Pemetaan & GIS", color: "#4a5a63" },
+  { slug: "pengembangan", label: "Pengembangan Perangkat Lunak", color: "#1c2321" },
 ]
 
 export function getCategory(slug: string): NewsCategory | undefined {
@@ -33,7 +34,7 @@ export function getCategoryLabel(slug: string): string {
 }
 
 export function getCategoryColor(slug: string): string {
-  return getCategory(slug)?.color ?? "#ff914d"
+  return getCategory(slug)?.color ?? "#5e6572"
 }
 
 /** "2026-09-05" → "5 Sep 2026" */

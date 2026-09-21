@@ -1,15 +1,28 @@
 // Structured Data untuk SEO Rich Snippets
+//
+// Konteks usaha: SAYBA ARC adalah konsultan IT & engineering di Pontianak.
+// Skema di bawah disesuaikan dengan konteks itu — bukan skema produk/e-commerce.
+
+const BASE_URL = "https://sayba.id"
+const LOGO_URL = `${BASE_URL}/logo-256.png`
+const OG_FALLBACK = `${BASE_URL}/og-image.png`
+
+const AREA_SERVED = {
+  "@type": "AdministrativeArea",
+  name: "Kalimantan Barat, Indonesia",
+}
 
 export function generateOrganizationSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "Organization",
+    "@type": "ProfessionalService",
+    "@id": `${BASE_URL}/#organization`,
     name: "SAYBA ARC",
-    alternateName: "Art You Believe",
-    url: "https://sayba.id",
-    logo: "https://sayba.id/Sayba%20Arc.png",
+    url: BASE_URL,
+    logo: LOGO_URL,
+    image: OG_FALLBACK,
     description:
-      "SAYBA ARC adalah agensi multidisiplin dari Pontianak yang menghadirkan solusi digital, rekayasa teknis, dan engineering untuk bisnis dan instansi di Indonesia.",
+      "SAYBA ARC adalah konsultan IT dan engineering dari Pontianak. Melayani pengembangan perangkat lunak, sistem informasi, pemetaan spasial, dan dokumen rancang bangun untuk bisnis dan instansi.",
     sameAs: [
       "https://instagram.com/sayba.arc",
       "https://linkedin.com/company/sayba-arc",
@@ -21,14 +34,58 @@ export function generateOrganizationSchema() {
       addressRegion: "Kalimantan Barat",
       addressCountry: "ID",
     },
+    areaServed: AREA_SERVED,
+    knowsAbout: [
+      "Pengembangan perangkat lunak",
+      "Sistem informasi",
+      "Pemetaan spasial",
+      "Sistem Informasi Geografis",
+      "Gambar teknik",
+      "Rancang bangun",
+    ],
     contactPoint: [
       {
         "@type": "ContactPoint",
         telephone: "+6287721916495",
-        contactType: "Customer Service",
+        contactType: "customer service",
         email: "sayba.help@gmail.com",
         areaServed: "ID",
-        availableLanguage: ["id", "en"],
+        availableLanguage: ["id"],
+      },
+    ],
+  }
+}
+
+export function generateLocalBusinessSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "@id": `${BASE_URL}/#localbusiness`,
+    name: "SAYBA ARC",
+    image: OG_FALLBACK,
+    url: BASE_URL,
+    telephone: "+6287721916495",
+    email: "sayba.help@gmail.com",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Pontianak",
+      addressRegion: "Kalimantan Barat",
+      addressCountry: "ID",
+    },
+    areaServed: AREA_SERVED,
+    priceRange: "Hubungi kami",
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        opens: "08:30",
+        closes: "17:00",
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Saturday"],
+        opens: "09:00",
+        closes: "15:00",
       },
     ],
   }
@@ -52,77 +109,22 @@ export function generateServiceSchema(service: {
   description: string
   url: string
   image?: string
+  serviceType?: string
 }) {
   return {
     "@context": "https://schema.org",
     "@type": "Service",
     name: service.name,
     description: service.description,
+    url: service.url,
+    image: service.image || OG_FALLBACK,
+    serviceType: service.serviceType,
     provider: {
       "@type": "Organization",
       name: "SAYBA ARC",
-      url: "https://sayba.id",
+      url: BASE_URL,
     },
-    url: service.url,
-    image: service.image || "https://sayba.id/Sayba%20Arc.png",
-    areaServed: {
-      "@type": "Country",
-      name: "ID",
-    },
-  }
-}
-
-export function generateInformasiSchema(article: {
-  headline: string
-  description: string
-  url: string
-  image?: string
-  datePublished?: string
-  author?: string
-}) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "TechArticle",
-    headline: article.headline,
-    description: article.description,
-    url: article.url,
-    image: article.image || "https://sayba.id/Sayba%20Arc.png",
-    datePublished: article.datePublished,
-    author: {
-      "@type": "Organization",
-      name: article.author || "SAYBA ARC",
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "SAYBA ARC",
-      url: "https://sayba.id",
-    },
-  }
-}
-
-export function generateLocalBusinessSchema() {
-  return {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    name: "SAYBA ARC",
-    image: "https://sayba.id/Sayba%20Arc.png",
-    url: "https://sayba.id",
-    telephone: "+6287721916495",
-    email: "sayba.help@gmail.com",
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: "Pontianak",
-      addressRegion: "Kalimantan Barat",
-      addressCountry: "ID",
-    },
-    openingHours: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        opens: "09:00",
-        closes: "17:00",
-      },
-    ],
+    areaServed: AREA_SERVED,
   }
 }
 
@@ -141,6 +143,7 @@ export function generateFAQSchema(faqs: Array<{ question: string; answer: string
   }
 }
 
+/** Metadata halaman detail layanan. */
 export function generateServiceDetailMetadata(options: {
   title: string
   description: string
@@ -150,32 +153,29 @@ export function generateServiceDetailMetadata(options: {
   ogImage?: string
   canonicalUrl?: string
 }) {
-  const image = options.ogImage || "https://sayba.id/Sayba%20Arc.png"
+  const image = options.ogImage || OG_FALLBACK
+  const url = `${BASE_URL}/services/${options.slug}`
+
   return {
     title: options.title,
     description: options.description,
-    keywords: options.keywords && options.keywords.length > 0 ? options.keywords : [
-      options.serviceTitle,
-      `jasa ${options.serviceTitle.toLowerCase()}`,
-      `layanan ${options.serviceTitle.toLowerCase()}`,
-      "SAYBA ARC",
-      "digital solutions",
-      "indonesia",
-    ],
-    canonical: options.canonicalUrl || `https://sayba.id/services/${options.slug}`,
+    keywords:
+      options.keywords && options.keywords.length > 0
+        ? options.keywords
+        : [
+            options.serviceTitle,
+            `jasa ${options.serviceTitle.toLowerCase()}`,
+            "konsultan IT Pontianak",
+            "konsultan engineering Pontianak",
+            "SAYBA ARC",
+          ],
+    canonical: options.canonicalUrl || url,
     openGraph: {
       title: options.title,
       description: options.description,
-      url: `https://sayba.id/services/${options.slug}`,
+      url,
       type: "website" as const,
-      images: [
-        {
-          url: image,
-          width: 1024,
-          height: 1024,
-          alt: options.serviceTitle,
-        },
-      ],
+      images: [{ url: image, width: 1200, height: 630, alt: options.serviceTitle }],
     },
     twitter: {
       card: "summary_large_image" as const,
@@ -186,6 +186,7 @@ export function generateServiceDetailMetadata(options: {
   }
 }
 
+/** Metadata halaman detail informasi. */
 export function generateInformasiDetailMetadata(options: {
   title: string
   description: string
@@ -195,31 +196,23 @@ export function generateInformasiDetailMetadata(options: {
   ogImage?: string
   canonicalUrl?: string
 }) {
-  const image = options.ogImage || "https://sayba.id/Sayba%20Arc.png"
+  const image = options.ogImage || OG_FALLBACK
+  const url = `${BASE_URL}/informasi/${options.slug}`
+
   return {
     title: options.title,
     description: options.description,
-    keywords: options.keywords && options.keywords.length > 0 ? options.keywords : [
-      options.articleTitle,
-      `informasi ${options.articleTitle.toLowerCase()}`,
-      "SAYBA ARC",
-      "dokumen teknis",
-      "indonesia",
-    ],
-    canonical: options.canonicalUrl || `https://sayba.id/informasi/${options.slug}`,
+    keywords:
+      options.keywords && options.keywords.length > 0
+        ? options.keywords
+        : [options.articleTitle, "informasi teknis", "SAYBA ARC", "Pontianak"],
+    canonical: options.canonicalUrl || url,
     openGraph: {
       title: options.title,
       description: options.description,
-      url: `https://sayba.id/informasi/${options.slug}`,
+      url,
       type: "article" as const,
-      images: [
-        {
-          url: image,
-          width: 1200,
-          height: 630,
-          alt: options.articleTitle,
-        },
-      ],
+      images: [{ url: image, width: 1200, height: 630, alt: options.articleTitle }],
     },
     twitter: {
       card: "summary_large_image" as const,
@@ -230,73 +223,7 @@ export function generateInformasiDetailMetadata(options: {
   }
 }
 
-export function generateApplicationDetailMetadata(options: {
-  title: string
-  description: string
-  slug: string
-  appTitle: string
-}) {
-  return {
-    title: options.title,
-    description: options.description,
-    keywords: [
-      options.appTitle,
-      `aplikasi ${options.appTitle.toLowerCase()}`,
-      "SAYBA ARC",
-      "software",
-      "application",
-      "indonesia",
-    ],
-    canonical: `https://sayba.id/applications/${options.slug}`,
-    openGraph: {
-      title: options.title,
-      description: options.description,
-      url: `https://sayba.id/applications/${options.slug}`,
-      type: "website" as const,
-      images: [
-        {
-          url: "https://sayba.id/Sayba%20Arc.png",
-          width: 1024,
-          height: 1024,
-          alt: options.appTitle,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image" as const,
-      title: options.title,
-      description: options.description,
-      images: ["https://sayba.id/Sayba%20Arc.png"],
-    },
-  }
-}
-
-export function generateSoftwareApplicationSchema(app: {
-  name: string
-  description: string
-  url: string
-  image?: string
-}) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: app.name,
-    description: app.description,
-    url: app.url,
-    image: app.image || "https://sayba.id/Sayba%20Arc.png",
-    operatingSystem: ["Web", "Windows", "macOS", "Linux", "iOS", "Android"],
-    offers: {
-      "@type": "Offer",
-      price: "Contact for pricing",
-    },
-    creator: {
-      "@type": "Organization",
-      name: "SAYBA ARC",
-      url: "https://sayba.id",
-    },
-  }
-}
-
+/** Metadata halaman detail portofolio. */
 export function generatePortfolioDetailMetadata(options: {
   title: string
   description: string
@@ -306,33 +233,23 @@ export function generatePortfolioDetailMetadata(options: {
   ogImage?: string
   canonicalUrl?: string
 }) {
-  const image = options.ogImage || "https://sayba.id/Sayba%20Arc.png"
+  const image = options.ogImage || OG_FALLBACK
+  const url = `${BASE_URL}/portfolio/${options.slug}`
+
   return {
     title: options.title,
     description: options.description,
-    keywords: options.keywords && options.keywords.length > 0
-      ? options.keywords
-      : [
-          options.portfolioTitle,
-          `portfolio ${options.portfolioTitle.toLowerCase()}`,
-          "SAYBA ARC",
-          "digital solutions",
-          "indonesia",
-        ],
-    canonical: options.canonicalUrl || `https://sayba.id/portfolio/${options.slug}`,
+    keywords:
+      options.keywords && options.keywords.length > 0
+        ? options.keywords
+        : [options.portfolioTitle, "portofolio", "studi kasus", "SAYBA ARC", "Pontianak"],
+    canonical: options.canonicalUrl || url,
     openGraph: {
       title: options.title,
       description: options.description,
-      url: `https://sayba.id/portfolio/${options.slug}`,
-      type: "website" as const,
-      images: [
-        {
-          url: image,
-          width: 1024,
-          height: 1024,
-          alt: options.portfolioTitle,
-        },
-      ],
+      url,
+      type: "article" as const,
+      images: [{ url: image, width: 1200, height: 630, alt: options.portfolioTitle }],
     },
     twitter: {
       card: "summary_large_image" as const,
@@ -355,11 +272,11 @@ export function generatePortfolioSchema(item: {
     name: item.name,
     description: item.description,
     url: item.url,
-    image: item.image || "https://sayba.id/Sayba%20Arc.png",
+    image: item.image || OG_FALLBACK,
     creator: {
       "@type": "Organization",
       name: "SAYBA ARC",
-      url: "https://sayba.id",
+      url: BASE_URL,
     },
   }
 }

@@ -7,7 +7,43 @@ export interface PriceTier {
   features: string[] // list of what's included
 }
 
+/** Satu blok isi yang bisa disusun bebas dari admin (halaman slug layanan). */
+export interface ContentBlock {
+  /** heading = sub-judul, paragraph = teks, list = daftar berbutir, image = gambar */
+  type: "heading" | "paragraph" | "list" | "image"
+  /** Teks isi. Untuk list, pisahkan tiap butir dengan baris baru. */
+  text?: string
+  /** URL gambar — hanya dipakai bila type = "image" */
+  image_url?: string
+  /** Keterangan gambar — hanya dipakai bila type = "image" */
+  caption?: string
+}
+
+/** Satu butir FAQ di halaman slug layanan. */
+export interface LayananFAQ {
+  question: string
+  answer: string
+}
+
+/** Satu tahap pada diagram alir proses kerja. */
+export interface ProcessStep {
+  title: string
+  description?: string
+}
+
 export type Database = {
+  /**
+   * Supabase JS v2.104+ membaca versi PostgREST dari sini untuk menyimpulkan
+   * tipe operasi tulis (insert/update/upsert). Tanpa blok ini, tipe Insert
+   * runtuh menjadi `never` dan semua operasi tulis gagal type-check —
+   * itulah alasan route admin lama memakai `as any`.
+   *
+   * Nilai "13" sesuai PostgREST yang dipakai proyek Supabase ini.
+   * Bila Supabase di-upgrade, nilai ini boleh ikut disesuaikan.
+   */
+  __InternalSupabase: {
+    PostgrestVersion: "13"
+  }
   public: {
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -40,16 +76,77 @@ export type Database = {
         }
         Update: Partial<Database["public"]["Tables"]["portfolio"]["Insert"]>
       }
+      layanan_depts: {
+        Row: {
+          value: string
+          label: string
+          description: string | null
+          color: string
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          value: string
+          label: string
+          description?: string | null
+          color?: string
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          value?: string
+          label?: string
+          description?: string | null
+          color?: string
+          sort_order?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      informasi_kategori: {
+        Row: {
+          id: string
+          slug: string
+          label: string
+          color: string
+          sort_order: number
+          status: "active" | "draft"
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          label: string
+          color?: string
+          sort_order?: number
+          status?: "active" | "draft"
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          label?: string
+          color?: string
+          sort_order?: number
+          status?: "active" | "draft"
+          created_at?: string
+        }
+        Relationships: []
+      }
       layanan: {
         Row: {
           id: string
           title: string
           slug: string
-          dept: string                  // open string — driven by LAYANAN_DEPTS config
-          category: string | null       // sub-category within a dept (e.g. "Web GIS")
+          dept: string                  // "it_konsulting" | "engineering_konsulting"
+          category: string | null       // sub-kategori dalam departemen (mis. "Web GIS")
           description: string | null
           icon: string | null
-          image_url: string | null
+          image_url: string | null      // gambar utama — tampil 1:1 di kiri kartu
+          gallery: string[] | null      // foto tambahan di halaman slug
+          content_blocks: ContentBlock[] | null  // isi halaman yang disusun admin
+          faqs: LayananFAQ[] | null     // FAQ yang diinput manual per layanan
+          process_steps: ProcessStep[] | null    // tahap proses kerja (diagram alir)
           prices: PriceTier[] | null
           status: "active" | "draft" | "archived"
           featured_order: number | null   // 1, 2, or 3 = shown on homepage; null = not featured

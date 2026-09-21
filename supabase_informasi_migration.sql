@@ -2,6 +2,11 @@
 -- SAYBA ARC — Informasi (Pusat Dokumen) Table Migration
 -- Jalankan di: Supabase Dashboard → SQL Editor
 -- Aman dijalankan berulang (idempotent).
+--
+-- CATATAN: migrasi ini TIDAK mengisi data contoh apa pun.
+-- Tabel dibuat kosong; isi dokumen lewat Admin Dashboard →
+-- tab Informasi. Dengan begitu halaman publik tidak pernah
+-- menampilkan template yang belum Anda buat sendiri.
 -- ============================================================
 
 create table if not exists informasi (
@@ -9,13 +14,13 @@ create table if not exists informasi (
   title            text        not null,
   slug             text        unique not null,
   excerpt          text,                                -- ringkasan di kartu & meta description
-  category         text        not null default 'umum', -- lihat informasiCategories di lib/informasi-data.ts
+  category         text        not null default 'umum', -- slug dari tabel informasi_kategori
   image_url        text,                                -- gambar utama (upload admin / link Drive)
   author           text        not null default 'Tim SAYBA ARC',
   body             text,                                -- isi dokumen, Markdown ringan ("## " = sub-judul)
   published_at     date        not null default current_date,
   read_minutes     integer     not null default 3,
-  views            integer     not null default 0,
+  views            integer     not null default 0,      -- dihitung saat halaman dibuka/di-refresh
   featured         boolean     not null default false,  -- true = tampil sebagai kartu Sorotan
   tags             text[],
   status           text        not null default 'active' check (status in ('active', 'draft', 'archived')),
@@ -76,27 +81,3 @@ alter table informasi add column if not exists canonical_url    text;
 -- end $$;
 
 -- drop table if exists produk cascade;
-
--- ── Seed contoh (opsional, hapus jika tidak perlu) ───────────────────────
-insert into informasi (title, slug, excerpt, category, author, body, published_at, read_minutes, featured, tags, status)
-select * from (values
-  (
-    'Prosedur & Alur Kerja Konsultasi Teknis',
-    'prosedur-alur-kerja-konsultasi-teknis',
-    'Tahapan pengajuan proyek, pengumpulan data lapangan, asistensi berkala, hingga serah terima berkas teknis di SAYBA ARC.',
-    'panduan',
-    'Tim Teknis SAYBA ARC',
-    E'## 1. Tahap Inisiasi\nKlien menghubungi tim SAYBA ARC melalui portal kontak resmi atau WhatsApp. Kami mengidentifikasi ruang lingkup pekerjaan dan kebutuhan data awal.\n\n## 2. Penyusunan KAK & Penawaran\nTim engineer menyusun Kerangka Acuan Kerja beserta estimasi biaya dan jadwal milestone pengerjaan.\n\n## 3. Eksekusi Teknis & Supervisi\nPengerjaan dilakukan langsung oleh tim spesialis kami tanpa perantara pihak ketiga.',
-    current_date, 4, true, ARRAY['SOP','Konsultasi','Alur Kerja'], 'active'
-  ),
-  (
-    'Standar Format Deliverable CAD & Geospasial',
-    'standar-format-deliverable-cad-gis',
-    'Spesifikasi struktur layer AutoCAD, sistem proyeksi koordinat (UTM/TM-3°), dan format basis data geospasial resmi.',
-    'standar',
-    'Departemen GIS & Perkapalan',
-    E'## Standar Sistem Koordinat\nDatum WGS 1984 / SRGI 2013 dengan proyeksi UTM Zona 49S/50N atau TM-3°.\n\n## Standar Layering AutoCAD\nSatuan milimeter untuk perkapalan, meter untuk tata letak dan kontur. Format DWG 2018–2024 dan PDF terkalibrasi.\n\n## Integritas Geodatabase\nData vektor disimpan sebagai Shapefile (.shp) atau File Geodatabase (.gdb) dengan metadata ISO 19115.',
-    current_date, 3, false, ARRAY['AutoCAD','GIS','Standar Teknis'], 'active'
-  )
-) as seed(title, slug, excerpt, category, author, body, published_at, read_minutes, featured, tags, status)
-where not exists (select 1 from informasi);

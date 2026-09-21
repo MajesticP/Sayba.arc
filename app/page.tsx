@@ -10,9 +10,7 @@ import About from "@/components/about"
 import CTA from "@/components/cta"
 import Footer from "@/components/footer"
 import { supabase } from "@/lib/supabase"
-import { supabaseAdmin } from "@/lib/supabase-admin"
 import type { Layanan, PromoBanner, Berita } from "@/lib/database.types"
-import type { LayananDept } from "@/lib/layanan-config"
 import { LAYANAN_DEPTS } from "@/lib/layanan-config"
 import { generateOrganizationSchema, generateLocalBusinessSchema } from "@/lib/structured-data"
 
@@ -30,6 +28,7 @@ export const metadata: Metadata = {
 }
 
 export default async function Home() {
+  // Tiga layanan unggulan untuk section Layanan di beranda
   const { data: layananItems, error } = await supabase
     .from("layanan")
     .select("*")
@@ -44,11 +43,6 @@ export default async function Home() {
 
   const allLayanan: Layanan[] = layananItems ?? []
 
-  const { data: deptsData } = await supabaseAdmin.from("layanan_depts").select("*").order("sort_order", { ascending: true })
-  const depts: LayananDept[] = deptsData && deptsData.length > 0
-    ? deptsData.map((r: any) => ({ value: r.value, label: r.label, description: r.description ?? "", badgeClass: r.badge_class, color: r.color, subCategories: r.sub_categories ?? [] }))
-    : LAYANAN_DEPTS
-
   const { data: promoData } = await supabase
     .from("promo_banner")
     .select("*")
@@ -59,18 +53,18 @@ export default async function Home() {
 
   const { data: beritaData } = await supabase
     .from("berita")
-    .select("*")
+    .select("id, title, slug, excerpt, category, image_url, published_at, read_minutes, views")
     .eq("status", "active")
     .order("published_at", { ascending: false })
     .limit(3)
 
-  const beritaTerbaru: Berita[] = beritaData ?? []
+  const beritaTerbaru = (beritaData ?? []) as Berita[]
 
   const organizationSchema = generateOrganizationSchema()
   const localBusinessSchema = generateLocalBusinessSchema()
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="min-h-screen flex flex-col bg-platinum">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
@@ -79,16 +73,17 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
       />
+
       <Header navItems={navItems} />
       <Hero data={hero} />
-      <PromoCarousel slides={promoBanners} interval={5000} />
-      <NewsHighlight articles={beritaTerbaru} />
-      <Services allLayanan={allLayanan} depts={depts} />
+      <PromoCarousel slides={promoBanners} interval={6000} />
+      <Services allLayanan={allLayanan} depts={LAYANAN_DEPTS} />
       <Features
-        title="Mengapa Memilih SAYBA ARC"
-        subtitle="Yang membedakan kami dari agensi biasa"
+        title="Cara Kami Bekerja"
+        subtitle="Hal yang bisa Anda harapkan saat mengerjakan proyek bersama kami."
         items={features}
       />
+      <NewsHighlight articles={beritaTerbaru} />
       <About data={about} />
       <CTA data={cta} />
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />

@@ -1,16 +1,13 @@
 import type { Metadata } from "next"
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { siteConfig, navItems, footerLinks, socialLinks } from "@/lib/data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
+import ViewCounter from "@/components/view-counter"
 import { generateBreadcrumbSchema } from "@/lib/structured-data"
 import { supabase } from "@/lib/supabase"
 import type { Informasi } from "@/lib/database.types"
-import {
-  FALLBACK_INFORMASI,
-  parseInformasiBody,
-} from "@/lib/informasi-data"
+import { parseInformasiBody } from "@/lib/informasi-data"
 import InformasiDetailClient from "./informasi-detail-client"
 
 interface PageProps {
@@ -35,22 +32,16 @@ function absoluteUrl(url: string): string {
 }
 
 async function getArticle(slug: string): Promise<Informasi | null> {
-  try {
-    const { data, error } = await supabase
-      .from("informasi")
-      .select("*")
-      .eq("slug", slug)
-      .eq("status", "active")
-      .maybeSingle()
+  const { data, error } = await supabase
+    .from("informasi")
+    .select("*")
+    .eq("slug", slug)
+    .eq("status", "active")
+    .maybeSingle()
 
-    if (error) console.error("Error fetching informasi detail:", error)
-    if (data) return data
-  } catch (err) {
-    console.error("Supabase error:", err)
-  }
-
-  // Fallback ke data lokal bila tabel kosong / tidak tersedia
-  return FALLBACK_INFORMASI.find((a) => a.slug === slug) ?? null
+  if (error) console.error("Error fetching informasi detail:", error)
+  // Tidak ada data contoh — kalau tidak ada di database, halaman 404.
+  return data ?? null
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -71,7 +62,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url,
       type: "article",
       publishedTime: article.published_at,
-      images: article.image_url ? [{ url: absoluteUrl(article.image_url), alt: article.title }] : undefined,
+      images: article.image_url
+        ? [{ url: absoluteUrl(article.image_url), alt: article.title }]
+        : undefined,
     },
   }
 }
@@ -84,23 +77,22 @@ export default async function InformasiDetailPage({ params }: PageProps) {
   const blocks = parseInformasiBody(article.body)
 
   // Dokumen terkait: kategori sama lebih dulu
-  let others: Informasi[] = []
-  try {
-    const { data } = await supabase
-      .from("informasi")
-      .select("*")
-      .eq("status", "active")
-      .neq("slug", article.slug)
-      .order("published_at", { ascending: false })
-      .limit(12)
-    if (data && data.length > 0) others = data
-  } catch {
-    others = []
-  }
-  if (others.length === 0) {
-    others = FALLBACK_INFORMASI.filter((a) => a.slug !== article.slug)
-  }
+  const { data: othersData } = await supabase
+    .from("informasi")
+    .select("id, title, slug, category, published_at, read_minutes")
+    .eq("status", "active")
+    .neq("slug", article.slug)
+    .order("published_at", { ascending: false })
+    .limit(12)
 
+  const others = (othersData ?? []) as Array<{
+    id: string
+    title: string
+    slug: string
+    category: string
+    published_at: string
+    read_minutes: number
+  }>
   const related = [
     ...others.filter((a) => a.category === article.category),
     ...others.filter((a) => a.category !== article.category),
@@ -116,7 +108,7 @@ export default async function InformasiDetailPage({ params }: PageProps) {
     publisher: {
       "@type": "Organization",
       name: siteConfig.name,
-      logo: { "@type": "ImageObject", url: `${siteConfig.url}/logo.png` },
+      logo: { "@type": "ImageObject", url: `${siteConfig.url}/logo-256.png` },
     },
     mainEntityOfPage: `${siteConfig.url}/informasi/${article.slug}`,
   }
@@ -128,16 +120,25 @@ export default async function InformasiDetailPage({ params }: PageProps) {
   ])
 
   return (
-    <main className="min-h-screen flex flex-col bg-white">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+    <main className="min-h-screen flex flex-col bg-platinum">
+      {/* Penghitung tampilan — naik saat halaman dibuka atau di-refresh */}
+      <ViewCounter table="informasi" slug={article.slug} />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
 
       <Header navItems={navItems} />
 
       <InformasiDetailClient
         article={article}
         blocks={blocks}
-        related={related}
+        related={related as unknown as Informasi[]}
         heroImg={gdriveToImg(article.image_url)}
       />
 

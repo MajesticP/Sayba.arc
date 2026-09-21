@@ -1,108 +1,145 @@
-# SAYBA ARC — Arah Desain & Palet Warna
+# SAYBA ARC — Arah Desain & Sistem Warna
 
-Dokumen ini adalah sumber kebenaran tunggal untuk warna dan arah visual situs.
-Setiap keputusan warna harus bisa dijelaskan dalam satu baris (alasan tertulis).
+Sumber kebenaran tunggal untuk warna dan arah visual situs. Setiap keputusan
+warna harus bisa dijelaskan dalam satu baris.
 
-## Ringkasan arah
+## Arah
 
-**Dibaca sebagai:** situs agensi digital & engineering untuk klien bisnis dan
-instansi di Indonesia, dengan bahasa visual industrial-warm yang rapi,
-dial **ENERGY 2 / RHYTHM 2 / MOTION 2**.
+**Dibaca sebagai:** situs konsultan IT & engineering untuk klien bisnis dan
+instansi di Kalimantan Barat, dengan bahasa visual *technical drafting* —
+presisi, tenang, tanpa dekorasi berlebih. Dial **ENERGY 2 / RHYTHM 2 / MOTION 1**.
 
-- **ENERGY 2 (seimbang):** hero tegas, sisanya tenang. Bukan landing page yang berteriak.
-- **RHYTHM 2 (konsisten dengan beberapa jeda):** komposisi seragam, dengan 2-3 section yang sengaja dibedakan (hero, sorotan, CTA).
-- **MOTION 2 (reveal saat scroll):** animasi untuk memandu perhatian, bukan mengisi halaman. Tidak ada loop tanpa akhir kecuali orb latar yang sangat halus.
-
-## Skema harmoni
-
-**Analog hangat untuk warna inti, aksen komplementer.**
-
-- Inti: keluarga oranye (`#ff914d` dan turunannya). Satu hue, beberapa tingkat terang.
-- Netral: hitam `#111111` / `#000000` dan putih, dengan sedikit tarikan kroma hangat.
-- Semantik: hijau (`#25D366` untuk WhatsApp), merah (`#ef4444` untuk hapus).
-
-Ini memberi satu aksen yang jelas tanpa keluarga hue kedua yang bersaing.
+| Dial | Nilai | Artinya di situs ini |
+|---|---|---|
+| **ENERGY** | 2 | Hero tegas, sisanya tenang. Bukan halaman yang berteriak. |
+| **RHYTHM** | 2 | Komposisi seragam dengan 2-3 jeda yang sengaja dibedakan. |
+| **MOTION** | 1 | Hanya transisi masuk dan hover. Tidak ada animasi berjalan terus. |
 
 ## Palet
 
-### Brand orange (satu hue, beberapa tingkat)
+Lima warna, satu keluarga hue (cool steel). Netral hangat, aksen sejuk.
 
-| Token | Nilai | Peran | Alasan |
+| Nama | Hex | Peran | Alasan |
 |---|---|---|---|
-| `brand-400` | `#ff914d` | Fill, tombol, ikon & teks di atas gelap | Warna identitas SAYBA ARC; 9.41:1 di atas hitam |
-| `brand-500` | `#e07b3a` | Hover untuk fill | Satu tingkat lebih gelap, hue dipertahankan |
-| `brand-700` | `#b35418` | **Teks** orange di atas latar terang | 5.00:1 di putih, 4.79:1 di `#fafafa`, lolos WCAG AA |
-| `brand-800` | `#8f400f` | Hover untuk teks orange | 7.22:1 di putih |
+| **Carbon Black** | `#1c2321` | Latar gelap, teks utama di terang | Hitam dengan undertone hijau-kebiruan; menyatu dengan keluarga steel, tidak sekeras `#000` |
+| **Cool Steel** | `#7d98a1` | Aksen, garis penghubung, teks sekunder di gelap | Biru-kelabu yang mengingatkan garis teknik; 5.24:1 di atas Carbon |
+| **Blue Slate** | `#5e6572` | Teks sekunder di terang, permukaan panel | Abu-kebiruan untuk teks pendukung tanpa harus hitam; 5.16:1 di atas Platinum |
+| **Powder Blue** | `#a9b4c2` | Aksen terang di latar gelap | Untuk tombol dan penanda di atas Carbon; 7.62:1 dengan teks Carbon |
+| **Platinum** | `#eef1ef` | Latar terang utama | Putih gading yang lebih lembut dari `#fff`; mengurangi kelelahan mata pada teks panjang |
 
-**Aturan pakai:**
-- `#ff914d` **hanya** untuk fill, tombol, ikon, dan teks di atas latar gelap.
-- `#b35418` **wajib** untuk teks orange di atas latar terang.
-- Jangan pakai `#ff914d` sebagai teks di latar terang: 2.23:1, gagal WCAG AA.
+### Turunan
 
-### Netral
+Turunan dibuat dari lima warna di atas, bukan warna baru.
 
-| Token | Nilai | Peran | Alasan |
-|---|---|---|---|
-| `ink` | `#111111` | Teks utama, latar section gelap | 18.88:1 di putih, jauh di atas AAA |
-| `ink-soft` | `#000000` | Latar section paling gelap | Memberi kedalaman pada blok CTA |
-| `surface` | `#ffffff` | Latar utama | Netral bersih untuk konten panjang |
-| `surface-alt` | `#f7f7f7` | Latar section pembeda | Memisahkan blok tanpa menambah warna |
-
-### Semantik
-
-| Token | Nilai | Peran | Catatan |
-|---|---|---|---|
-| `success` | `#25D366` | Tombol WhatsApp | Warna resmi WhatsApp, dikenali pengguna |
-| `danger` | `#ef4444` | Aksi hapus di admin | Hanya di panel admin |
-
-## Kontras (diverifikasi)
-
-Semua pasangan diuji dengan `contrast-check.py` (WCAG 2.x).
-Ambang: 4.5:1 untuk teks normal, 3:1 untuk teks besar (18px+).
-
-| Pasangan | Rasio | Status |
+| Token | Hex | Asal |
 |---|---|---|
-| `#111111` di `#ffffff` | 18.88:1 | Lolos AAA |
-| `#b35418` di `#ffffff` | 5.00:1 | Lolos AA |
-| `#b35418` di `#fafafa` | 4.79:1 | Lolos AA |
-| `#b35418` di `#f7f7f7` | 4.67:1 | Lolos AA |
-| `#8f400f` di `#ffffff` | 7.22:1 | Lolos AAA |
-| `#111111` di `#ff914d` | 8.46:1 | Lolos AAA (teks tombol) |
-| `#111111` di `#e07b3a` | 6.35:1 | Lolos AA (hover tombol) |
-| `#ff914d` di `#000000` | 9.41:1 | Lolos AAA (teks di latar gelap) |
-| `#ff914d` di `#ffffff` | 2.23:1 | **GAGAL** — jangan dipakai untuk teks |
-| `#ffffff` di `#ff914d` | 2.23:1 | **GAGAL** — karena itu tombol pakai teks `#111111` |
+| `--carbon-800` | `#242c29` | Carbon dinaikkan 4% terang — permukaan terangkat |
+| `--carbon-700` | `#2d3733` | Carbon dinaikkan 8% — input di panel gelap |
+| `--platinum-dim` | `#e3e8e5` | Platinum diturunkan 5% — latar pembeda section |
+| `--platinum-line` | `#d3dad6` | Platinum diturunkan 12% — garis pemisah |
+| `--steel-deep` | `#5e7a85` | Steel digelapkan — kategori informasi |
 
-Cara memverifikasi ulang:
+## Kontras (terverifikasi)
+
+Diukur dengan `contrast-check.py` (WCAG 2.x). Ambang: 4.5:1 teks normal, 3:1 teks besar.
+
+| Teks | Latar | Rasio | Status |
+|---|---|---|---|
+| Carbon `#1c2321` | Platinum `#eef1ef` | 14.08:1 | AAA |
+| Platinum `#eef1ef` | Carbon `#1c2321` | 14.08:1 | AAA |
+| Blue Slate `#5e6572` | Platinum `#eef1ef` | 5.16:1 | AA |
+| Cool Steel `#7d98a1` | Carbon `#1c2321` | 5.24:1 | AA |
+| Powder Blue `#a9b4c2` | Carbon `#1c2321` | 7.62:1 | AA |
+| Carbon `#1c2321` | Powder Blue `#a9b4c2` | 7.62:1 | AAA |
+| Carbon `#1c2321` | Cool Steel `#7d98a1` | 5.24:1 | AA |
+| Platinum `#eef1ef` | Blue Slate `#5e6572` | 5.16:1 | AA |
+
+**Dilarang** (gagal WCAG AA):
+
+| Teks | Latar | Rasio |
+|---|---|---|
+| Powder Blue `#a9b4c2` | Platinum `#eef1ef` | 1.85:1 |
+| Cool Steel `#7d98a1` | Platinum `#eef1ef` | 2.68:1 |
+| Blue Slate `#5e6572` | Carbon `#1c2321` | 2.73:1 |
+| Carbon `#1c2321` | Blue Slate `#5e6572` | 2.73:1 |
+
+Cara verifikasi:
 
 ```bash
-python ~/AppData/Local/hermes/skills/design/antislop-human/contrast-check.py "#b35418" "#ffffff"
+python ~/AppData/Local/hermes/skills/design/antislop-human/contrast-check.py "#1c2321" "#eef1ef"
 ```
 
-## Aturan yang mengikat
+## Motif: Meja Potong Arsitek
 
-1. Maksimal **2-3 warna inti + 1 aksen**. Netral tidak dihitung.
-2. Setiap pasangan teks/latar wajib lolos WCAG AA, diverifikasi dengan alat, bukan dikira-kira.
-3. Setiap keputusan warna ditulis alasannya dalam satu baris.
-4. Tombol orange selalu berteks `#111111`, bukan putih.
-5. Teks orange di latar terang selalu `#b35418`, bukan `#ff914d`.
+Latar situs meniru meja potong *self-healing* yang dipakai arsitek dan drafter.
+Alasannya: situs ini menjual pekerjaan teknis, jadi latarnya mengingatkan ruang
+kerja teknis — bukan dekorasi abstrak.
+
+Tiga lapis, semuanya tipis:
+
+1. **Kisi ukur** — 24px halus + 120px tegas. Kelas `.cutting-grid` (terang) dan
+   `.cutting-grid-dark` (gelap). Opasitas 0.045–0.09, di bawah ambang gangguan.
+2. **Tanda registrasi** — sudut siku di empat pojok, seperti tanda potong di
+   meja cetak. Kelas `.reg-mark`.
+3. **Garis ukur** — garis dengan tick seperti penggaris baja. Kelas `.rule-line`.
+
+Komponen: `components/cutting-board-bg.tsx` (props `tone="dark" | "light"`).
+
+**Yang dihapus:** semua orb/lingkaran berdenyut, animasi glow, ikon landmark
+mengambang, dan putaran lambat. Alasan: gerakan tanpa fungsi mengalihkan
+perhatian dari isi, dan termasuk pola yang membuat situs terlihat dibuat
+template.
 
 ## Tipografi
 
-Geist (via `next/font/google`) untuk seluruh situs.
+**Geist** (via `next/font/google`) untuk seluruh situs.
 
 Alasan: sans-serif geometris dengan terminal terbuka, netral untuk teks
 Indonesia yang panjang, dan disajikan dari domain sendiri sehingga tidak ada
 permintaan ke Google Fonts saat runtime.
 
+Skala yang dipakai:
+
+| Peran | Mobile | Desktop |
+|---|---|---|
+| Judul halaman | 26–28px | 40–46px |
+| Judul section | 18px | 22–24px |
+| Judul kartu | 15–16px | 16–17px |
+| Teks isi | 13.5–14px | 15–15.5px |
+| Teks pendukung | 11.5–12.5px | 12.5–13px |
+
 ## Radius
 
 | Nilai | Dipakai untuk |
 |---|---|
-| `rounded-lg` | Tombol kecil, chip |
-| `rounded-xl` | Tombol utama, input, kartu kecil |
+| `rounded-lg` | Chip, badge |
+| `rounded-xl` | Tombol, input, kartu kecil |
 | `rounded-2xl` | Kartu konten, panel |
-| `rounded-3xl` | Blok sorotan, CTA besar |
-| `rounded-full` | Hanya badge status dan avatar |
+| `rounded-3xl` | Blok ajakan, sorotan |
+| `rounded-full` | Hanya penanda status dan avatar |
 
-Radius bervariasi menurut hierarki, bukan seragam di semua elemen.
+Radius bervariasi menurut hierarki, tidak seragam di semua elemen.
+
+## Aturan yang mengikat
+
+1. Maksimal **3 warna inti + 1 aksen** (Carbon, Steel, Slate + Powder). Platinum
+   netral tidak dihitung.
+2. Setiap pasangan teks/latar wajib lolos WCAG AA, diverifikasi dengan alat.
+3. Setiap keputusan warna ditulis alasannya dalam satu baris.
+4. Tombol di latar gelap: fill Powder + teks Carbon. Tombol di latar terang:
+   fill Carbon + teks Platinum.
+5. Tidak ada animasi yang berjalan terus tanpa fungsi.
+6. Tidak ada ikon sparkle, star, magic, lightning, diamond, robot.
+7. Tidak ada emoji di antarmuka.
+8. Semua gerakan menghormati `prefers-reduced-motion`.
+
+## Konteks usaha
+
+Dua departemen, tanpa sub-kategori terkelola:
+
+| Departemen | Value DB | Lingkup |
+|---|---|---|
+| **IT Consultant** | `it_konsulting` | Website, aplikasi web/mobile/desktop, backend & API, machine learning, cloud |
+| **Engineering Consultant** | `engineering_konsulting` | Pemetaan GIS, gambar teknik 2D/3D, desain rancang bangun, survey, dokumen teknis |
+
+Tidak ada layanan perkapalan, kelautan, atau maritim di situs ini.

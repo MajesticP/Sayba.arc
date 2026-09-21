@@ -2,15 +2,10 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { siteConfig, navItems, footerLinks, socialLinks } from "@/lib/data"
-import {
-  formatNewsDate,
-  getCategoryColor,
-  getCategoryLabel,
-  parseArticleBody,
-} from "@/lib/news-data"
+import { formatNewsDate, getCategoryColor, getCategoryLabel, parseArticleBody } from "@/lib/news-data"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
-import PageTransition from "@/components/page-transition"
+import ViewCounter from "@/components/view-counter"
 import { generateBreadcrumbSchema } from "@/lib/structured-data"
 import { supabase } from "@/lib/supabase"
 import type { Berita } from "@/lib/database.types"
@@ -23,7 +18,7 @@ export const revalidate = 60
 
 const FALLBACK_IMG = "/berita/berita-1-800x500.png"
 
-/** Link Google Drive → proxy gambar lokal, sama seperti layanan/informasi */
+/** Link Google Drive → proxy gambar lokal */
 function gdriveToImg(url: string | null): string {
   if (!url) return FALLBACK_IMG
   if (url.startsWith("/api/gdrive-img")) return url
@@ -34,7 +29,6 @@ function gdriveToImg(url: string | null): string {
   return url
 }
 
-/** Jadikan URL relatif menjadi absolut untuk metadata & JSON-LD */
 function absoluteUrl(url: string): string {
   return url.startsWith("http") ? url : `${siteConfig.url}${url}`
 }
@@ -87,13 +81,21 @@ export default async function BeritaDetailPage({ params }: PageProps) {
   // Artikel lain: kategori sama lebih dulu, lalu sisanya
   const { data: othersData } = await supabase
     .from("berita")
-    .select("*")
+    .select("id, title, slug, category, image_url, published_at, read_minutes")
     .eq("status", "active")
     .neq("slug", article.slug)
     .order("published_at", { ascending: false })
     .limit(12)
 
-  const others: Berita[] = othersData ?? []
+  const others = (othersData ?? []) as Array<{
+    id: string
+    title: string
+    slug: string
+    category: string
+    image_url: string | null
+    published_at: string
+    read_minutes: number
+  }>
   const related = [
     ...others.filter((a) => a.category === article.category),
     ...others.filter((a) => a.category !== article.category),
@@ -110,7 +112,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
     publisher: {
       "@type": "Organization",
       name: siteConfig.name,
-      logo: { "@type": "ImageObject", url: `${siteConfig.url}/logo.png` },
+      logo: { "@type": "ImageObject", url: `${siteConfig.url}/logo-256.png` },
     },
     mainEntityOfPage: `${siteConfig.url}/berita/${article.slug}`,
   }
@@ -122,122 +124,131 @@ export default async function BeritaDetailPage({ params }: PageProps) {
   ])
 
   return (
-    <main className="min-h-screen flex flex-col">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+    <main className="min-h-screen flex flex-col bg-platinum">
+      {/* Penghitung tampilan — naik saat halaman dibuka atau di-refresh */}
+      <ViewCounter table="berita" slug={article.slug} />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
 
       <Header navItems={navItems} />
 
-      {/* Hero artikel */}
-      <section className="relative bg-black overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={heroImg} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover opacity-40" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/80 to-black/95" />
+      {/* ══ JUDUL ARTIKEL ══ */}
+      <section className="bg-carbon">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-[96px] pb-10 md:pt-32 md:pb-14">
+          <nav
+            className="flex items-center gap-1.5 text-[12px] text-steel mb-6 flex-wrap"
+            aria-label="Breadcrumb"
+          >
+            <Link href="/" className="hover:text-platinum transition-colors">
+              Beranda
+            </Link>
+            <span aria-hidden="true">/</span>
+            <Link href="/berita" className="hover:text-platinum transition-colors">
+              Berita
+            </Link>
+          </nav>
 
-        <div className="relative z-10 pt-[88px] pb-10 md:pt-32 md:pb-20">
-          <PageTransition>
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-              <nav className="flex items-center gap-1.5 text-[11px] text-white/40 mb-5" aria-label="Breadcrumb">
-                <Link href="/" className="hover:text-white transition-colors">Beranda</Link>
-                <span aria-hidden="true">/</span>
-                <Link href="/berita" className="hover:text-white transition-colors">Berita</Link>
-                <span aria-hidden="true">/</span>
-                <span className="text-white/60 truncate">{getCategoryLabel(article.category)}</span>
-              </nav>
+          <span
+            className="inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider text-white mb-4"
+            style={{ backgroundColor: color }}
+          >
+            {getCategoryLabel(article.category)}
+          </span>
 
-              <span
-                className="inline-block px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-white mb-3"
-                style={{ backgroundColor: color }}
-              >
-                {getCategoryLabel(article.category)}
-              </span>
+          <h1 className="text-[24px] md:text-[36px] font-bold text-platinum leading-[1.2] tracking-tight mb-4">
+            {article.title}
+          </h1>
 
-              <h1 className="text-[22px] md:text-4xl lg:text-5xl font-black text-white leading-[1.15] tracking-tight mb-3">
-                {article.title}
-              </h1>
+          {article.excerpt && (
+            <p className="text-steel text-[14px] md:text-[16px] leading-relaxed mb-6">{article.excerpt}</p>
+          )}
 
-              {article.excerpt && (
-                <p className="text-white/55 text-[13px] md:text-lg leading-relaxed mb-6">{article.excerpt}</p>
-              )}
-
-              <div className="flex items-center flex-wrap gap-x-3 gap-y-2 pt-4 border-t border-white/10">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-[#ff914d]/20 border border-[#ff914d]/30 flex items-center justify-center text-[#ff914d] text-[13px] font-black">
-                    {article.author.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="text-white text-[13px] font-semibold">{article.author}</div>
-                    <div className="text-white/35 text-[11px]">{formatNewsDate(article.published_at)}</div>
-                  </div>
-                </div>
-                <span className="text-white/30" aria-hidden="true">·</span>
-                <span className="text-white/45 text-[11px]">{article.read_minutes} menit baca</span>
-                <span className="text-white/30" aria-hidden="true">·</span>
-                <span className="text-white/45 text-[11px]">{article.views.toLocaleString("id-ID")} dibaca</span>
-              </div>
-            </div>
-          </PageTransition>
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-2 pt-5 border-t border-white/10 text-[12px] text-steel">
+            <span className="text-platinum font-medium">{article.author}</span>
+            <span aria-hidden="true" className="text-steel/75">·</span>
+            <span>{formatNewsDate(article.published_at)}</span>
+            <span aria-hidden="true" className="text-steel/75">·</span>
+            <span>{article.read_minutes} menit baca</span>
+          </div>
         </div>
       </section>
 
-      {/* Isi artikel */}
-      <article className="bg-white py-8 md:py-16 flex-1">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <figure className="relative aspect-[16/9] rounded-xl md:rounded-2xl overflow-hidden border border-black/10 mb-7 md:mb-12 shadow-xl bg-black">
+      {/* ══ ISI ══ */}
+      <article className="relative z-10 -mt-6 md:-mt-8 rounded-t-[28px] md:rounded-t-[40px] bg-platinum flex-1 pb-14 md:pb-20">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-12">
+          <figure className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-platinum-line bg-platinum-dim mb-8 md:mb-10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={heroImg} alt={article.title} className="absolute inset-0 w-full h-full object-cover" />
+            <img src={heroImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
           </figure>
 
-          <div className="space-y-4">
+          <div>
             {blocks.map((block, i) =>
               block.startsWith("## ") ? (
-                <h2 key={i} className="text-[18px] md:text-2xl font-black text-black pt-3 leading-snug">
+                <h2
+                  key={i}
+                  className="text-[17px] md:text-[22px] font-bold text-carbon mt-9 mb-4 pb-2 border-b border-platinum-line leading-snug"
+                >
                   {block.slice(3)}
                 </h2>
               ) : (
-                <p key={i} className="text-black/65 text-[14px] md:text-base leading-[1.85] whitespace-pre-line">
+                <p
+                  key={i}
+                  className="text-[14px] md:text-[16px] text-slate-brand leading-[1.85] my-4 whitespace-pre-line"
+                >
                   {block}
                 </p>
-              ),
+              )
             )}
           </div>
 
-          {article.tags?.length ? (
-            <div className="flex flex-wrap gap-2 mt-8 pt-5 border-t border-black/8">
+          {article.tags && article.tags.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 mt-9 pt-6 border-t border-platinum-line">
               {article.tags.map((tag) => (
-                <span key={tag} className="px-3 py-1 rounded-full bg-black/[0.04] border border-black/8 text-[11px] font-semibold text-black/50">
+                <span
+                  key={tag}
+                  className="px-3 py-1 rounded-lg bg-white border border-platinum-line text-[11px] font-medium text-slate-brand"
+                >
                   #{tag}
                 </span>
               ))}
             </div>
-          ) : null}
+          )}
 
-          <div className="mt-8 rounded-xl md:rounded-2xl bg-black p-5 md:p-8 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-[#ff914d]" />
-            <h3 className="text-[17px] md:text-xl font-black text-white mb-1.5">Punya kebutuhan serupa?</h3>
-            <p className="text-white/50 text-[13px] leading-relaxed mb-4 max-w-lg">
-              Ceritakan proyek Anda — tim kami akan bantu petakan langkah pertamanya tanpa biaya konsultasi awal.
+          {/* Ajakan */}
+          <div className="mt-9 rounded-2xl bg-carbon p-6 md:p-8">
+            <h2 className="text-[17px] md:text-[20px] font-bold text-platinum mb-2">
+              Ada pekerjaan teknis yang sedang direncanakan?
+            </h2>
+            <p className="text-steel text-[14px] md:text-[15px] leading-relaxed mb-5 max-w-lg">
+              Ceritakan lingkupnya. Kami bantu petakan kebutuhan dan langkah pertamanya.
             </p>
             <Link
               href="/contact"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#ff914d] text-[#111111] text-[13px] font-semibold hover:bg-[#e8823e] transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-powder text-carbon text-[14px] font-semibold hover:bg-white transition-colors"
             >
               Hubungi Kami
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
             </Link>
           </div>
         </div>
       </article>
 
-      {/* Artikel terkait */}
+      {/* ══ ARTIKEL LAIN ══ */}
       {related.length > 0 && (
-        <section className="bg-[#f7f7f7] py-10 md:py-16 border-t border-black/8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-baseline justify-between mb-5">
-              <h2 className="text-[19px] md:text-2xl font-black text-black">Artikel Lainnya</h2>
-              <Link href="/berita" className="text-[13px] font-semibold text-black/50 hover:text-black transition-colors">
+        <section className="bg-platinum-dim py-12 md:py-16 border-t border-platinum-line">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-baseline justify-between gap-3 mb-5">
+              <h2 className="text-[18px] md:text-2xl font-bold text-carbon">Artikel Lainnya</h2>
+              <Link
+                href="/berita"
+                className="text-[13px] font-semibold text-slate-brand hover:text-carbon transition-colors"
+              >
                 Lihat semua
               </Link>
             </div>
@@ -247,28 +258,22 @@ export default async function BeritaDetailPage({ params }: PageProps) {
                 <Link
                   key={item.id}
                   href={`/berita/${item.slug}`}
-                  className="group flex flex-col items-stretch justify-start rounded-xl md:rounded-2xl overflow-hidden border border-black/10 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  className="group flex flex-col bg-white rounded-2xl border border-platinum-line overflow-hidden hover:border-steel hover:shadow-lg transition-all duration-200"
                 >
-                  <div className="relative w-full aspect-[8/5] overflow-hidden bg-black/5">
+                  <div className="relative w-full aspect-[16/10] overflow-hidden bg-platinum-dim">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={gdriveToImg(item.image_url)}
-                      alt={item.title}
+                      alt=""
                       loading="lazy"
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <span
-                      className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest text-white shadow"
-                      style={{ backgroundColor: getCategoryColor(item.category) }}
-                    >
-                      {getCategoryLabel(item.category)}
-                    </span>
                   </div>
                   <div className="p-4">
-                    <h3 className="text-[15px] font-black text-black leading-snug line-clamp-2 mb-1.5 group-hover:text-[#b35418] transition-colors">
+                    <h3 className="text-[14px] font-bold text-carbon leading-snug line-clamp-2 mb-2 group-hover:text-slate-brand transition-colors">
                       {item.title}
                     </h3>
-                    <div className="text-[11px] text-black/40">
+                    <div className="text-[11px] text-slate-brand">
                       {formatNewsDate(item.published_at)} · {item.read_minutes} mnt baca
                     </div>
                   </div>

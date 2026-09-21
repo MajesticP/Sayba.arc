@@ -41,6 +41,7 @@ async function getTeam(): Promise<TimMember[]> {
 
 export default async function AboutPage() {
   const team = await getTeam()
+  const hasTeam = team.length > 0
 
   return (
     <main className="min-h-screen flex flex-col">
@@ -56,53 +57,57 @@ export default async function AboutPage() {
       />
 
       {/* Misi & Visi */}
-      <section className="py-6 md:py-20 bg-white">
+      <section className="py-6 md:py-20 bg-platinum">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
-            <div className="bg-white rounded-xl p-4 md:p-8 border border-black/8">
-              <div className="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-[#ff914d]/10 flex items-center justify-center mb-3 md:mb-5">
-                <svg className="w-4 h-4 md:w-6 md:h-6 text-[#b35418]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-white rounded-xl p-4 md:p-8 border border-platinum-line">
+              <div className="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-platinum-dim flex items-center justify-center mb-3 md:mb-5">
+                <svg className="w-4 h-4 md:w-6 md:h-6 text-slate-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h2 className="text-[15px] md:text-xl font-bold text-black mb-1.5 md:mb-3">Misi Kami</h2>
-              <p className="text-black/55 leading-relaxed text-[12px] md:text-base">{aboutPage.mission}</p>
+              <h2 className="text-[15px] md:text-xl font-bold text-carbon mb-1.5 md:mb-3">Misi Kami</h2>
+              <p className="text-slate-brand leading-relaxed text-[12px] md:text-base">{aboutPage.mission}</p>
             </div>
-            <div className="bg-black rounded-xl p-4 md:p-8">
-              <div className="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-[#ff914d]/20 flex items-center justify-center mb-3 md:mb-5">
-                <svg className="w-4 h-4 md:w-6 md:h-6 text-[#ff914d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-carbon rounded-xl p-4 md:p-8">
+              <div className="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-steel/20 flex items-center justify-center mb-3 md:mb-5">
+                <svg className="w-4 h-4 md:w-6 md:h-6 text-powder" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
               </div>
-              <h2 className="text-[15px] md:text-xl font-bold text-white mb-1.5 md:mb-3">Visi Kami</h2>
-              <p className="text-white/45 leading-relaxed text-[12px] md:text-base">{aboutPage.vision}</p>
+              <h2 className="text-[15px] md:text-xl font-bold text-platinum mb-1.5 md:mb-3">Visi Kami</h2>
+              <p className="text-steel leading-relaxed text-[12px] md:text-base">{aboutPage.vision}</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Tim */}
-      <section className="py-6 md:py-20 bg-[#f7f7f7]" id="tim">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <PageTransition delay={100}>
-            <div className="text-center mb-5 md:mb-14">
-              <span className="text-[10px] font-bold text-[#b35418] uppercase tracking-widest mb-1 block">Tim Kami</span>
-              <h2 className="text-[20px] md:text-3xl font-bold text-black mb-1 md:mb-3">Kenali Tim SAYBA ARC</h2>
-              <p className="text-black/50 text-[12px] md:text-base">Para ahli di balik setiap proyek yang kami kerjakan</p>
-            </div>
-          </PageTransition>
-          <TeamSection team={team as TimMember[]} />
-        </div>
-      </section>
+      {/* Tim — hanya tampil kalau ada anggota aktif.
+          Kalau kosong, section disembunyikan sepenuhnya; instruksi internal
+          tidak pernah muncul di halaman publik. */}
+      {hasTeam && (
+        <section className="py-6 md:py-20 bg-platinum-dim" id="tim">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <PageTransition delay={100}>
+              <div className="text-center mb-5 md:mb-14">
+                <span className="text-[10px] font-bold text-slate-brand uppercase tracking-widest mb-1 block">Tim Kami</span>
+                <h2 className="text-[20px] md:text-3xl font-bold text-carbon mb-1 md:mb-3">Kenali Tim SAYBA ARC</h2>
+                <p className="text-slate-brand text-[12px] md:text-base">Para ahli di balik setiap proyek yang kami kerjakan</p>
+              </div>
+            </PageTransition>
+            <TeamSection team={team} />
+          </div>
+        </section>
+      )}
 
       {/* CTA */}
-      <section className="py-8 md:py-16 bg-black">
+      <section className="py-8 md:py-16 bg-carbon">
         <PageTransition delay={200}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-[20px] md:text-3xl font-bold text-white mb-2 md:mb-3">Siap Berkolaborasi?</h2>
-            <p className="text-white/40 text-[13px] mb-5 md:mb-7">Mari diskusikan bagaimana SAYBA ARC dapat membantu proyek Anda.</p>
-            <Link href="/contact" className="inline-block px-7 py-2.5 md:py-3.5 rounded-xl font-semibold bg-[#ff914d] text-[#111111] hover:bg-[#e07b3a] transition-all duration-200 hover:scale-105 text-[13px]">
+            <h2 className="text-[20px] md:text-3xl font-bold text-platinum mb-2 md:mb-3">Siap Berkolaborasi?</h2>
+            <p className="text-steel text-[13px] mb-5 md:mb-7">Mari diskusikan bagaimana SAYBA ARC dapat membantu proyek Anda.</p>
+            <Link href="/contact" className="inline-block px-7 py-2.5 md:py-3.5 rounded-xl font-semibold bg-steel text-carbon hover:bg-powder transition-all duration-200 text-[13px]">
               Hubungi Kami
             </Link>
           </div>

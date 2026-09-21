@@ -15,10 +15,10 @@ export default function Loading() {
       role="status"
       aria-live="polite"
       aria-label="Memuat halaman"
-      className="fixed inset-0 z-[100] bg-[#0a0a0a] flex flex-col items-center justify-center gap-5 opacity-0 animate-[loaderIn_.25s_ease-out_.15s_forwards]"
+      className="fixed inset-0 z-[100] bg-carbon flex flex-col items-center justify-center gap-5 opacity-0 animate-[loaderIn_.25s_ease-out_.15s_forwards]"
     >
-      {/* Glow oranye lembut di belakang logo */}
-      <div className="absolute w-64 h-64 rounded-full bg-[#ff914d] opacity-[0.10] blur-3xl pointer-events-none" />
+      {/* Kisi meja potong — motif ruang kerja teknis, menggantikan orb oranye */}
+      <div className="absolute inset-0 cutting-grid-dark pointer-events-none" aria-hidden="true" />
 
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -27,12 +27,12 @@ export default function Loading() {
         aria-hidden="true"
         width={64}
         height={64}
-        className="relative w-16 h-16 rounded-2xl object-contain animate-[loaderPulse_1.1s_ease-in-out_infinite]"
+        className="relative w-16 h-16 rounded-2xl object-contain"
       />
 
       {/* Bar tak tentu — tidak menjanjikan persentase yang tidak kita ketahui */}
-      <div className="relative w-32 h-[3px] rounded-full bg-white/10 overflow-hidden">
-        <div className="absolute inset-y-0 left-0 w-1/4 rounded-full bg-[#ff914d] animate-[loaderBar_1s_ease-in-out_infinite]" />
+      <div className="relative w-32 h-[3px] rounded-full bg-platinum/10 overflow-hidden">
+        <div className="absolute inset-y-0 left-0 w-1/4 rounded-full bg-steel animate-[loaderBar_1s_ease-in-out_infinite]" />
       </div>
 
       <span className="sr-only">Memuat halaman…</span>

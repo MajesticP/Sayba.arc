@@ -15,21 +15,20 @@ export const viewport: Viewport = {
 const geist = Geist({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "SAYBA ARC — ART YOU BELIEVE",
+  title: "SAYBA ARC — Konsultan IT & Engineering Pontianak",
   description:
-    "SAYBA ARC adalah agensi digital dan engineering dari Pontianak yang menghadirkan solusi teknis, rekayasa, dan pengembangan untuk bisnis dan instansi di Indonesia.",
+    "SAYBA ARC adalah konsultan IT dan engineering dari Pontianak. Melayani pengembangan perangkat lunak, sistem informasi, pemetaan spasial, dan dokumen rancang bangun untuk bisnis dan instansi di Kalimantan Barat.",
   applicationName: "SAYBA ARC",
   keywords: [
-    "agensi digital",
-    "engineering",
-    "GIS",
-    "Web GIS",
-    "pengembangan web",
-    "solusi IT",
+    "konsultan IT Pontianak",
+    "konsultan engineering Pontianak",
+    "jasa pembuatan aplikasi Pontianak",
+    "jasa pemetaan GIS Kalimantan Barat",
+    "jasa gambar teknik AutoCAD",
+    "pengembangan web Pontianak",
+    "sistem informasi instansi",
     "SAYBA ARC",
-    "Pontianak",
     "Kalimantan Barat",
-    "Art You Believe"
   ],
   authors: [{ name: "SAYBA ARC", url: "https://sayba.id" }],
   metadataBase: new URL("https://sayba.id"),
@@ -43,17 +42,24 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
+    locale: "id_ID",
     url: "https://sayba.id",
     siteName: "SAYBA ARC",
-    title: "SAYBA ARC — ART YOU BELIEVE",
-    description: "Agensi digital & engineering dari Pontianak. Solusi teknis nyata untuk bisnis dan instansi di Indonesia.",
+    title: "SAYBA ARC — Konsultan IT & Engineering Pontianak",
+    description:
+      "Pengembangan perangkat lunak, sistem informasi, pemetaan spasial, dan dokumen rancang bangun untuk bisnis dan instansi di Kalimantan Barat.",
     images: [ogImage],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SAYBA ARC — ART YOU BELIEVE",
-    description: "Agensi digital & engineering dari Pontianak. Solusi teknis nyata untuk bisnis dan instansi di Indonesia.",
+    title: "SAYBA ARC — Konsultan IT & Engineering Pontianak",
+    description:
+      "Pengembangan perangkat lunak, sistem informasi, pemetaan spasial, dan dokumen rancang bangun.",
     images: [ogImage.url],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
   other: {
     "facebook-domain-verification": "marr0bprnwfpm0mlot2sixgg29lv36",
@@ -67,11 +73,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const nonce = (await headers()).get("x-nonce") ?? undefined
 
   return (
-    <html lang="en">
+    <html lang="id">
       <head>
         {/* Exposes nonce to Next.js runtime so it stamps all its inline scripts */}
         {nonce && <meta property="csp-nonce" content={nonce} />}
-        <meta name="theme-color" content="#0A1628" />
+        <meta name="theme-color" content="#1c2321" />
         {/* Tidak ada preconnect ke Google Fonts: next/font/google mengunduh
             Geist saat build dan menyajikannya dari domain sendiri
             (/_next/static/media/*.woff2). Preconnect ke fonts.googleapis.com

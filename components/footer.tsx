@@ -19,7 +19,7 @@ function SocialIcon({ icon, className }: { icon: string; className: string }) {
 
 export default function Footer({ footerLinks, socialLinks }: FooterProps) {
   return (
-    <footer className="bg-black text-white/40">
+    <footer className="bg-carbon text-platinum/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-6 md:gap-10 mb-5 md:mb-12">
 
@@ -28,13 +28,13 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
             <div className="flex items-center gap-2 mb-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo-256.png" alt={siteConfig.name} width={32} height={32} loading="lazy" decoding="async" className="w-8 h-8 rounded-md object-contain opacity-90" />
-              <span className="font-bold text-white text-[15px]">{siteConfig.name}</span>
+              <span className="font-bold text-platinum text-[15px]">{siteConfig.name}</span>
             </div>
             <p className="text-[12px] leading-relaxed mb-1 max-w-sm">Art You Believe — Agensi Digital & Engineering dari Pontianak</p>
-            <p className="text-[11px] text-white/25">{siteConfig.address}</p>
+            <p className="text-[11px] text-platinum/25">{siteConfig.address}</p>
             <div className="flex flex-wrap gap-1.5 mt-3">
-              <span className="text-[10px] px-2 py-0.5 rounded-full border border-[#ff914d]/30 text-[#ff914d]/70">Digital & Engineering</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/10 text-white/30">Solusi Teknis</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full border border-steel/30 text-powder/70">Digital & Engineering</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full border border-platinum/10 text-platinum/30">Solusi Teknis</span>
             </div>
           </div>
 
@@ -42,53 +42,53 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
               supaya tidak berdesakan dua kolom bersebelahan. Urutan tampil di
               ponsel: Brand, Navigasi, Legalitas, Kontak. Kelas order-* memulihkan
               urutan desktop (Kontak sebelum Legalitas) tanpa mengubah urutan DOM. */}
-          <div className="col-span-2 md:col-span-1 order-2 border-t border-white/[0.06] pt-5 md:border-t-0 md:pt-0">
-            <h4 className="text-white font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Navigasi</h4>
+          <div className="col-span-2 md:col-span-1 order-2 border-t border-platinum/[0.06] pt-5 md:border-t-0 md:pt-0">
+            <h4 className="text-platinum font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Navigasi</h4>
             {/* Dua kolom supaya daftarnya tidak memanjang ke bawah. Pembagiannya
                 dihitung dari jumlah tautan, jadi tetap seimbang kalau menu
                 ditambah atau dikurangi di lib/data.ts. */}
             <ul className="grid grid-cols-2 gap-x-4 gap-y-2 md:gap-y-1.5">
               {footerLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-[12px] hover:text-[#ff914d] transition-colors duration-200">{link.label}</Link>
+                  <Link href={link.href} className="text-[12px] hover:text-powder transition-colors duration-200">{link.label}</Link>
                 </li>
               ))}
             </ul>
           </div>
 
           {/* Legalitas */}
-          <div className="col-span-2 md:col-span-1 order-3 md:order-4 border-t border-white/[0.06] pt-5 md:border-t-0 md:pt-0">
-            <h4 className="text-white font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Legalitas</h4>
+          <div className="col-span-2 md:col-span-1 order-3 md:order-4 border-t border-platinum/[0.06] pt-5 md:border-t-0 md:pt-0">
+            <h4 className="text-platinum font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Legalitas</h4>
 
-            <p className="text-[12px] text-white/70 font-semibold">
+            <p className="text-[12px] text-platinum/70 font-semibold">
               {legalitas.namaUsaha}
               {legalitas.bentukUsaha && (
-                <span className="text-white/30 font-normal"> · {legalitas.bentukUsaha}</span>
+                <span className="text-platinum/30 font-normal"> · {legalitas.bentukUsaha}</span>
               )}
             </p>
 
             {/* Nomor ditulis dengan angka tabular agar deretnya rata */}
-            <dl className="mt-1.5 space-y-0.5 text-[11.5px] text-white/35 tabular-nums">
+            <dl className="mt-1.5 space-y-0.5 text-[11.5px] text-platinum/35 tabular-nums">
               {legalitas.nib && (
                 <div className="flex gap-1.5">
-                  <dt className="text-white/25">NIB</dt>
+                  <dt className="text-platinum/25">NIB</dt>
                   <dd className="tracking-wide">{legalitas.nib}</dd>
                 </div>
               )}
               {legalitas.kbli && (
                 <div className="flex gap-1.5">
-                  <dt className="text-white/25">KBLI</dt>
+                  <dt className="text-platinum/25">KBLI</dt>
                   <dd className="tracking-wide">
                     {legalitas.kbli}
                     {legalitas.kbliVersi && (
-                      <span className="text-white/20"> · {legalitas.kbliVersi}</span>
+                      <span className="text-platinum/20"> · {legalitas.kbliVersi}</span>
                     )}
                   </dd>
                 </div>
               )}
             </dl>
 
-            <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/5 px-2 py-1.5">
+            <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-platinum/[0.08] bg-platinum/5 px-2 py-1.5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={legalitas.ossLogo}
@@ -99,15 +99,15 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
                 decoding="async"
                 className="w-[18px] h-[18px] rounded object-contain flex-shrink-0"
               />
-              <span className="text-[10.5px] text-white/45 leading-tight">{legalitas.ossLabel}</span>
+              <span className="text-[10.5px] text-platinum/45 leading-tight">{legalitas.ossLabel}</span>
             </div>
           </div>
 
           {/* Contact */}
-          <div className="col-span-2 md:col-span-1 order-4 md:order-3 border-t border-white/[0.06] pt-5 md:border-t-0 md:pt-0">
-            <h4 className="text-white font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Kontak</h4>
+          <div className="col-span-2 md:col-span-1 order-4 md:order-3 border-t border-platinum/[0.06] pt-5 md:border-t-0 md:pt-0">
+            <h4 className="text-platinum font-semibold text-[11px] uppercase tracking-wider mb-2 md:mb-4">Kontak</h4>
             <div className="space-y-1.5 mb-3">
-              <a href={`mailto:${siteConfig.email}`} className="inline-flex items-center gap-1.5 text-[12px] hover:text-[#ff914d] transition-colors break-all">
+              <a href={`mailto:${siteConfig.email}`} className="inline-flex items-center gap-1.5 text-[12px] hover:text-powder transition-colors break-all">
                 <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 {siteConfig.email}
               </a>
@@ -119,7 +119,7 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
             <div className="flex gap-2">
               {socialLinks.map((social) => (
                 <a key={social.name} href={social.href} target="_blank" rel="noopener noreferrer" title={social.name}
-                  className="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-white/5 border border-white/[0.08] hover:bg-[#ff914d]/20 hover:border-[#ff914d]/40 hover:text-[#ff914d] transition-all duration-200">
+                  className="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-platinum/5 border border-platinum/[0.08] hover:bg-steel/20 hover:border-steel/40 hover:text-powder transition-all duration-200">
                   <SocialIcon icon={social.icon} className="w-3.5 h-3.5" />
                 </a>
               ))}
@@ -127,7 +127,7 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
           </div>
         </div>
 
-        <div className="border-t border-white/[0.08] pt-4 flex flex-col sm:flex-row justify-between items-center gap-1 text-[11px] text-white/20">
+        <div className="border-t border-platinum/[0.08] pt-4 flex flex-col sm:flex-row justify-between items-center gap-1 text-[11px] text-platinum/20">
           <span>© {new Date().getFullYear()} {siteConfig.name}. Hak cipta dilindungi.</span>
           <span className="hidden sm:block">Kecerdasan Digital & Rekayasa Teknis · Pontianak</span>
         </div>

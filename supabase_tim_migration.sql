@@ -23,10 +23,9 @@ create policy "Public can view active tim"
 -- No extra policy needed for admin writes via service role key
 
 -- Optional: seed initial data
+-- SAYBA ARC punya dua departemen: IT Consultant dan Engineering Consultant.
 insert into public.tim (name, role, bio, order_num) values
-  ('Tim Teknik Lingkungan', 'Pemetaan ArcGIS & Analisis Spasial',
-   'Menangani seluruh pekerjaan pemetaan, GIS, penginderaan jauh, dan analisis data lingkungan. Berpengalaman dalam pengolahan data spasial untuk kebutuhan kajian lingkungan dan tata ruang.', 1),
-  ('Tim IT & Digital', 'Web, Mobile, ML & Data Science',
-   'Membangun aplikasi web dan mobile modern, model machine learning, sistem analitik data, dan sistem informasi — dari nol hingga deployment. Stack utama: Next.js, Python, React Native.', 2),
-  ('Tim Teknik Kelautan', 'Desain & Gambar Teknik Kapal',
-   'Mengerjakan seluruh gambar teknik kapal 2D menggunakan AutoCAD — lines plan, general arrangement, konstruksi, outfitting, hingga tata letak akomodasi sesuai standar teknis.', 3);
+  ('Tim IT Consultant', 'Perangkat Lunak & Sistem Informasi',
+   'Membangun aplikasi web dan mobile, backend dan API, basis data, machine learning, serta sistem informasi — dari perancangan sampai pemeliharaan. Stack utama: Next.js, TypeScript, Python, PostgreSQL.', 1),
+  ('Tim Engineering Consultant', 'Pemetaan Spasial & Rancang Bangun',
+   'Mengerjakan pemetaan GIS, penginderaan jauh, analisis spasial, gambar teknik CAD, dan dokumen rancang bangun untuk kebutuhan perizinan, konstruksi, dan tata ruang.', 2);

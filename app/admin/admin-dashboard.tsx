@@ -1,22 +1,34 @@
 "use client"
 
 import { useEffect, useState, useCallback, useRef, useId } from "react"
-import type { Portfolio, PortfolioInsert, Layanan, LayananInsert, Informasi, PriceTier, Berita, PromoBanner } from "@/lib/database.types"
-import { LAYANAN_DEPTS as DEFAULT_DEPTS, type LayananDept, getDept as getDefaultDept } from "@/lib/layanan-config"
+import type { Portfolio, PortfolioInsert, Layanan, Informasi, PriceTier, Berita, PromoBanner, ContentBlock, LayananFAQ, ProcessStep } from "@/lib/database.types"
+import { LAYANAN_DEPTS as DEFAULT_DEPTS, type LayananDept } from "@/lib/layanan-config"
 import {
   LayoutGrid, Layers, Settings, Plus, Pencil, Trash2,
-  RefreshCw, Search, X, Save, ChevronDown, ExternalLink,
+  RefreshCw, Search, X, Save, ChevronDown, ChevronUp, ExternalLink,
   Map, CheckCircle, AlertCircle, Loader2, Tag, Users, ImageIcon,
-  Menu, Package, Newspaper, GalleryHorizontalEnd,
+  Menu, Newspaper, GalleryHorizontalEnd, ListOrdered,
+  Heading, AlignLeft, ImagePlus, Info,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { newsCategories, getCategoryLabel, slugifyTitle } from "@/lib/news-data"
-import { informasiCategories, getInformasiCategoryLabel } from "@/lib/informasi-data"
 
-// Dept config is now persisted in Supabase via /api/admin/tipe
+// Departemen layanan bersifat tetap — dua dept dari lib/layanan-config.ts,
+// dibaca lewat /api/admin/tipe. Kategori informasi dikelola di tab tersendiri
+// (tabel `informasi_kategori`, lewat /api/admin/informasi-kategori).
 
 // ── Types ──────────────────────────────────────────────────────────────────
-type Tab = "portfolio" | "layanan" | "informasi" | "berita" | "promo" | "tipe" | "tim"
+type Tab = "portfolio" | "layanan" | "informasi" | "kategori" | "berita" | "promo" | "tim"
+
+/** Satu kategori informasi yang dikelola admin (tabel `informasi_kategori`). */
+interface InformasiKategori {
+  slug: string
+  label: string
+  description: string | null
+  color: string
+  sort_order: number
+  status: "active" | "draft"
+}
 
 interface TimMember {
   id: string
@@ -72,8 +84,15 @@ function DeptBadge({ dept, depts }: { dept: string; depts: LayananDept[] }) {
   if (!cfg) return (
     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/5 text-white/40 ring-1 ring-white/10">{dept}</span>
   )
+  // Warna aksen diambil dari data departemen (kolom `color`), bukan kelas Tailwind,
+  // supaya badge tetap benar walau warna dept diubah tanpa deploy.
   return (
-    <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ring-1", cfg.badgeClass)}>{cfg.label}</span>
+    <span
+      className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold"
+      style={{ color: cfg.color, backgroundColor: `${cfg.color}1a`, boxShadow: `inset 0 0 0 1px ${cfg.color}33` }}
+    >
+      {cfg.label}
+    </span>
   )
 }
 
@@ -81,6 +100,7 @@ function tabIcon(t: Tab, size = 14) {
   if (t === "portfolio") return <LayoutGrid size={size} />
   if (t === "layanan") return <Layers size={size} />
   if (t === "informasi") return <Newspaper size={size} />
+  if (t === "kategori") return <Tag size={size} />
   if (t === "berita") return <Newspaper size={size} />
   if (t === "promo") return <GalleryHorizontalEnd size={size} />
   if (t === "tim") return <Users size={size} />
@@ -90,10 +110,11 @@ function tabLabel(t: Tab) {
   if (t === "portfolio") return "Portofolio"
   if (t === "layanan") return "Layanan"
   if (t === "informasi") return "Informasi"
+  if (t === "kategori") return "Kategori Informasi"
   if (t === "berita") return "Berita"
   if (t === "promo") return "Banner"
   if (t === "tim") return "Tim"
-  return "Tipe"
+  return "Pengaturan"
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────
@@ -113,10 +134,9 @@ export default function AdminDashboard() {
   }, [])
 
   const getDept = (value: string) => depts.find(d => d.value === value)
-  const updateDepts = (newDepts: LayananDept[]) => { setDepts(newDepts) }
 
-  const [tipeModal, setTipeModal] = useState(false)
-  const [tipeEdit, setTipeEdit] = useState<LayananDept | null>(null)
+  const [katModal, setKatModal] = useState(false)
+  const [katEdit, setKatEdit] = useState<InformasiKategori | null>(null)
   const [search, setSearch] = useState("")
   const [showSearch, setShowSearch] = useState(false)
 
@@ -126,12 +146,14 @@ export default function AdminDashboard() {
   const [timData, setTimData] = useState<TimMember[]>([])
   const [beritaData, setBeritaData] = useState<Berita[]>([])
   const [promoData, setPromoData] = useState<PromoBanner[]>([])
+  const [kategoriData, setKategoriData] = useState<InformasiKategori[]>([])
   const [loadingP, setLoadingP] = useState(true)
   const [loadingL, setLoadingL] = useState(true)
   const [loadingI, setLoadingI] = useState(true)
   const [loadingT, setLoadingT] = useState(true)
   const [loadingB, setLoadingB] = useState(true)
   const [loadingPm, setLoadingPm] = useState(true)
+  const [loadingK, setLoadingK] = useState(true)
 
   const [toasts, setToasts] = useState<Toast[]>([])
   const toastCounter = useRef(0)
@@ -205,7 +227,15 @@ export default function AdminDashboard() {
     setLoadingPm(false)
   }, [showToast])
 
-  useEffect(() => { fetchDepts(); fetchPortfolio(); fetchLayanan(); fetchInformasi(); fetchTim(); fetchBerita(); fetchPromo() }, [fetchDepts, fetchPortfolio, fetchLayanan, fetchInformasi, fetchTim, fetchBerita, fetchPromo])
+  const fetchKategori = useCallback(async () => {
+    setLoadingK(true)
+    const res = await fetch("/api/admin/informasi-kategori")
+    if (!res.ok) showToast("Gagal memuat kategori informasi", "error")
+    else setKategoriData(await res.json())
+    setLoadingK(false)
+  }, [showToast])
+
+  useEffect(() => { fetchDepts(); fetchPortfolio(); fetchLayanan(); fetchInformasi(); fetchKategori(); fetchTim(); fetchBerita(); fetchPromo() }, [fetchDepts, fetchPortfolio, fetchLayanan, fetchInformasi, fetchKategori, fetchTim, fetchBerita, fetchPromo])
 
   const filteredPortfolio = portfolioData.filter(p => {
     const matchDept = deptFilter === "semua" || p.dept === deptFilter
@@ -234,6 +264,14 @@ export default function AdminDashboard() {
       || getCategoryLabel(b.category).toLowerCase().includes(q)
   })
 
+  const filteredKategori = kategoriData.filter(k => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return k.label.toLowerCase().includes(q)
+      || k.slug.toLowerCase().includes(q)
+      || (k.description ?? "").toLowerCase().includes(q)
+  })
+
   const [deleting, setDeleting] = useState(false)
 
   const handleDelete = async () => {
@@ -241,7 +279,10 @@ export default function AdminDashboard() {
     if (!target || deleting) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/admin/${target.table}?id=${target.id}`, { method: "DELETE" })
+      // Kategori informasi memakai kolom `slug` sebagai kunci, bukan `id`.
+      const res = target.table === "kategori"
+        ? await fetch(`/api/admin/informasi-kategori?slug=${encodeURIComponent(target.id)}`, { method: "DELETE" })
+        : await fetch(`/api/admin/${target.table}?id=${target.id}`, { method: "DELETE" })
       if (!res.ok) {
         let errMsg = "Delete gagal"
         try { errMsg = (await res.json()).error ?? errMsg } catch {}
@@ -252,6 +293,7 @@ export default function AdminDashboard() {
       if (target.table === "portfolio") fetchPortfolio()
       else if (target.table === "layanan") fetchLayanan()
       else if (target.table === "informasi") fetchInformasi()
+      else if (target.table === "kategori") fetchKategori()
       else if (target.table === "berita") fetchBerita()
       else if (target.table === "promo") fetchPromo()
       else fetchTim()
@@ -265,22 +307,23 @@ export default function AdminDashboard() {
     if (t === "tim") fetchTim()
     else if (t === "berita") fetchBerita()
     else if (t === "promo") fetchPromo()
+    else if (t === "kategori") fetchKategori()
   }
 
   const handleAdd = () => {
     if (tab === "portfolio") { setPfEdit(null); setPfModal(true) }
     else if (tab === "layanan") { setLvEdit(null); setLvModal(true) }
     else if (tab === "informasi") { setInEdit(null); setInModal(true) }
+    else if (tab === "kategori") { setKatEdit(null); setKatModal(true) }
     else if (tab === "berita") { setBrEdit(null); setBrModal(true) }
     else if (tab === "promo") { setPmEdit(null); setPmModal(true) }
     else if (tab === "tim") { setTimEdit(null); setTimModal(true) }
-    else { setTipeEdit(null); setTipeModal(true) }
   }
 
-  const isLoading = (tab === "portfolio" && loadingP) || (tab === "layanan" && loadingL) || (tab === "informasi" && loadingI) || (tab === "tim" && loadingT) || (tab === "berita" && loadingB) || (tab === "promo" && loadingPm)
+  const isLoading = (tab === "portfolio" && loadingP) || (tab === "layanan" && loadingL) || (tab === "informasi" && loadingI) || (tab === "kategori" && loadingK) || (tab === "tim" && loadingT) || (tab === "berita" && loadingB) || (tab === "promo" && loadingPm)
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans">
+    <div className="min-h-screen bg-[#1c2321] text-white font-sans">
 
       {/* Sidebar overlay (mobile) */}
       {sidebarOpen && (
@@ -289,14 +332,14 @@ export default function AdminDashboard() {
 
       {/* ── SIDEBAR ─────────────────────────────────────────── */}
       <aside className={cn(
-        "fixed top-0 left-0 bottom-0 z-50 w-[210px] bg-[#111] border-r border-white/[0.07] flex flex-col transition-transform duration-200 ease-out",
+        "fixed top-0 left-0 bottom-0 z-50 w-[210px] bg-[#242c29] border-r border-white/[0.07] flex flex-col transition-transform duration-200 ease-out",
         "lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Logo */}
         <div className="px-4 py-4 border-b border-white/[0.07] flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[#ff914d] flex items-center justify-center flex-shrink-0">
-            <Map size={13} className="text-white" />
+          <div className="w-7 h-7 rounded-lg bg-powder flex items-center justify-center flex-shrink-0">
+            <Map size={13} className="text-carbon" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-extrabold text-[12.5px] tracking-tight leading-none">SAYBA ARC</p>
@@ -310,31 +353,31 @@ export default function AdminDashboard() {
         {/* Nav */}
         <nav className="flex-1 py-3 px-2.5 space-y-0.5 overflow-y-auto">
           <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 px-2 mb-2">Menu</p>
-          {(["portfolio", "layanan", "informasi", "berita", "promo", "tim", "tipe"] as Tab[]).map(t => (
+          {(["portfolio", "layanan", "informasi", "kategori", "berita", "promo", "tim"] as Tab[]).map(t => (
             <button
               key={t}
               onClick={() => switchTab(t)}
               className={cn(
                 "w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[12.5px] font-medium transition-all",
-                tab === t ? "bg-[#ff914d]/10 text-[#ff914d]" : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
+                tab === t ? "bg-powder/10 text-powder" : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
               )}
             >
               {tabIcon(t, 13)}
               {tabLabel(t)}
-              <span className={cn("ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-md", tab === t ? "bg-[#ff914d]/20 text-[#ff914d]" : "bg-white/[0.06] text-white/30")}>
-                {t === "portfolio" ? portfolioData.length : t === "layanan" ? layananData.length : t === "informasi" ? informasiData.length : t === "berita" ? beritaData.length : t === "promo" ? promoData.length : t === "tim" ? timData.length : depts.length}
+              <span className={cn("ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-md", tab === t ? "bg-powder/20 text-powder" : "bg-white/[0.06] text-white/30")}>
+                {t === "portfolio" ? portfolioData.length : t === "layanan" ? layananData.length : t === "informasi" ? informasiData.length : t === "kategori" ? kategoriData.length : t === "berita" ? beritaData.length : t === "promo" ? promoData.length : timData.length}
               </span>
             </button>
           ))}
 
-          {(tab === "layanan" || tab === "informasi") && (
+          {tab === "layanan" && (
             <div className="pt-2 border-t border-white/[0.05] mt-2">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 px-2 mb-1.5 mt-2">Per Tipe</p>
+              <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 px-2 mb-1.5 mt-2">Per Departemen</p>
               {depts.map(d => (
                 <div key={d.value} className="flex items-center justify-between px-2.5 py-0.5">
                   <span className="text-[11px] text-white/30 truncate">{d.label}</span>
                   <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/25 ml-2 flex-shrink-0">
-                    {(tab === "layanan" ? layananData.filter(l => l.dept === d.value).length : 0)}
+                    {layananData.filter(l => l.dept === d.value).length}
                   </span>
                 </div>
               ))}
@@ -356,7 +399,7 @@ export default function AdminDashboard() {
         </nav>
 
         <div className="px-3 pb-4">
-          <div className="bg-[#181818] border border-white/[0.06] rounded-lg px-3 py-2 flex items-center gap-2">
+          <div className="bg-[#2d3733] border border-white/[0.06] rounded-lg px-3 py-2 flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
             <div>
               <p className="text-[11px] font-medium text-white/60">Supabase</p>
@@ -370,7 +413,7 @@ export default function AdminDashboard() {
       <div className="lg:ml-[210px] flex flex-col min-h-screen pb-[56px] lg:pb-0">
 
         {/* Header */}
-        <header className="h-12 bg-[#111] border-b border-white/[0.07] flex items-center px-3 gap-2 sticky top-0 z-30">
+        <header className="h-12 bg-[#242c29] border-b border-white/[0.07] flex items-center px-3 gap-2 sticky top-0 z-30">
           <button
             onClick={() => setSidebarOpen(true)}
             className="lg:hidden text-white/40 hover:text-white/70 p-1.5 rounded-lg hover:bg-white/[0.05] transition-all flex-shrink-0"
@@ -380,17 +423,17 @@ export default function AdminDashboard() {
 
           <h1 className="font-bold text-[14px] flex-1 truncate">{tabLabel(tab)}</h1>
 
-          {(tab === "portfolio" || tab === "layanan" || tab === "informasi" || tab === "berita") && (
+          {(tab === "portfolio" || tab === "layanan" || tab === "informasi" || tab === "kategori" || tab === "berita") && (
             <button
               onClick={() => setShowSearch(v => !v)}
-              className={cn("p-1.5 rounded-lg transition-all", showSearch ? "text-[#ff914d] bg-[#ff914d]/10" : "text-white/40 hover:text-white/70 hover:bg-white/[0.05]")}
+              className={cn("p-1.5 rounded-lg transition-all", showSearch ? "text-powder bg-powder/10" : "text-white/40 hover:text-white/70 hover:bg-white/[0.05]")}
             >
               <Search size={15} />
             </button>
           )}
 
           <button
-            onClick={() => { if (tab === "portfolio") fetchPortfolio(); else if (tab === "layanan") fetchLayanan(); else if (tab === "informasi") fetchInformasi(); else if (tab === "berita") fetchBerita(); else if (tab === "promo") fetchPromo(); else fetchTim() }}
+            onClick={() => { if (tab === "portfolio") fetchPortfolio(); else if (tab === "layanan") fetchLayanan(); else if (tab === "informasi") fetchInformasi(); else if (tab === "kategori") fetchKategori(); else if (tab === "berita") fetchBerita(); else if (tab === "promo") fetchPromo(); else fetchTim() }}
             className="p-1.5 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-all"
           >
             <RefreshCw size={14} className={cn(isLoading ? "animate-spin" : "")} />
@@ -398,7 +441,7 @@ export default function AdminDashboard() {
 
           <button
             onClick={handleAdd}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all flex-shrink-0"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold bg-powder text-carbon hover:bg-steel transition-all flex-shrink-0"
           >
             <Plus size={13} />
             <span className="hidden sm:inline">Tambah</span>
@@ -406,8 +449,8 @@ export default function AdminDashboard() {
         </header>
 
         {/* Search bar (expandable) */}
-        {showSearch && (tab === "portfolio" || tab === "layanan" || tab === "informasi" || tab === "berita") && (
-          <div className="bg-[#111] border-b border-white/[0.07] px-3 py-2 flex items-center gap-2">
+        {showSearch && (tab === "portfolio" || tab === "layanan" || tab === "informasi" || tab === "kategori" || tab === "berita") && (
+          <div className="bg-[#242c29] border-b border-white/[0.07] px-3 py-2 flex items-center gap-2">
             <Search size={12} className="text-white/25 flex-shrink-0" />
             <input
               autoFocus
@@ -420,9 +463,9 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Dept filter pills */}
-        {(tab === "portfolio" || tab === "layanan" || tab === "informasi") && (
-          <div className="bg-[#111] border-b border-white/[0.07] px-3 py-2 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+        {/* Dept filter pills — hanya untuk konten yang memang ber-departemen */}
+        {(tab === "portfolio" || tab === "layanan") && (
+          <div className="bg-[#242c29] border-b border-white/[0.07] px-3 py-2 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
             {(["semua", ...depts.map(d => d.value)] as DeptFilter[]).map(d => (
               <button
                 key={d}
@@ -430,7 +473,7 @@ export default function AdminDashboard() {
                 className={cn(
                   "px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap flex-shrink-0 transition-all",
                   deptFilter === d
-                    ? "bg-[#ff914d]/10 text-[#ff914d] ring-1 ring-[#ff914d]/20"
+                    ? "bg-powder/10 text-powder ring-1 ring-powder/20"
                     : "text-white/30 bg-white/[0.03] hover:text-white/50 hover:bg-white/[0.05]"
                 )}
               >
@@ -443,27 +486,25 @@ export default function AdminDashboard() {
         {/* Main content */}
         <main className="p-3 sm:p-5 flex-1">
           {/* Stats */}
-          {tab !== "tipe" && (
-            <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-3 overflow-x-auto sm:overflow-visible scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0">
-              <StatCard label="Total Portofolio" value={portfolioData.length} color="#ff914d" />
-              <StatCard label="Total Layanan" value={layananData.length} color="#34d399" />
-              <StatCard label="Total Informasi" value={informasiData.length} color="#60a5fa" />
-              {depts.map(d => (
-                <StatCard key={d.value} label={`Layanan ${d.label}`} value={layananData.filter(l => l.dept === d.value).length} color={d.color} />
-              ))}
-            </div>
-          )}
+          <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-3 overflow-x-auto sm:overflow-visible scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0">
+            <StatCard label="Total Portofolio" value={portfolioData.length} color="#a9b4c2" />
+            <StatCard label="Total Layanan" value={layananData.length} color="#a9b4c2" />
+            <StatCard label="Total Informasi" value={informasiData.length} color="#7d98a1" />
+            {depts.map(d => (
+              <StatCard key={d.value} label={`Layanan ${d.label}`} value={layananData.filter(l => l.dept === d.value).length} color={d.color} />
+            ))}
+          </div>
 
 
 
           {/* Table card */}
-          <div className="bg-[#111] border border-white/[0.07] rounded-xl overflow-hidden">
+          <div className="bg-[#242c29] border border-white/[0.07] rounded-xl overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.07]">
               <p className="font-bold text-[13px] flex-1 truncate">
-                {tab === "portfolio" ? "Daftar Portofolio" : tab === "layanan" ? "Daftar Layanan" : tab === "informasi" ? "Daftar Informasi" : tab === "berita" ? "Daftar Berita" : tab === "promo" ? "Banner Carousel Beranda" : tab === "tim" ? "Daftar Anggota Tim" : "Kelola Tipe Layanan"}
+                {tab === "portfolio" ? "Daftar Portofolio" : tab === "layanan" ? "Daftar Layanan" : tab === "informasi" ? "Daftar Informasi" : tab === "kategori" ? "Kategori Informasi" : tab === "berita" ? "Daftar Berita" : tab === "promo" ? "Banner Carousel Beranda" : "Daftar Anggota Tim"}
               </p>
               <span className="text-[10.5px] text-white/25 flex-shrink-0">
-                {tab === "portfolio" ? filteredPortfolio.length : tab === "layanan" ? filteredLayanan.length : tab === "informasi" ? filteredInformasi.length : tab === "berita" ? filteredBerita.length : tab === "promo" ? promoData.length : tab === "tim" ? timData.length : depts.length} item
+                {tab === "portfolio" ? filteredPortfolio.length : tab === "layanan" ? filteredLayanan.length : tab === "informasi" ? filteredInformasi.length : tab === "kategori" ? filteredKategori.length : tab === "berita" ? filteredBerita.length : tab === "promo" ? promoData.length : timData.length} item
               </span>
             </div>
 
@@ -481,9 +522,15 @@ export default function AdminDashboard() {
               />
             ) : tab === "informasi" ? (
               <InformasiTable
-                data={filteredInformasi} loading={loadingI}
+                data={filteredInformasi} loading={loadingI} kategori={kategoriData}
                 onEdit={p => { setInEdit(p); setInModal(true) }}
                 onDelete={p => { const t = { table: "informasi" as Tab, id: p.id, name: p.title }; deleteRef.current = t; setDeleteTarget(t) }}
+              />
+            ) : tab === "kategori" ? (
+              <KategoriTable
+                data={filteredKategori} loading={loadingK}
+                onEdit={k => { setKatEdit(k); setKatModal(true) }}
+                onDelete={k => { const t = { table: "kategori" as Tab, id: k.slug, name: k.label }; deleteRef.current = t; setDeleteTarget(t) }}
               />
             ) : tab === "berita" ? (
               <BeritaTable
@@ -497,17 +544,11 @@ export default function AdminDashboard() {
                 onEdit={b => { setPmEdit(b); setPmModal(true) }}
                 onDelete={b => { const t = { table: "promo" as Tab, id: b.id, name: b.title || b.alt }; deleteRef.current = t; setDeleteTarget(t) }}
               />
-            ) : tab === "tim" ? (
+            ) : (
               <TimTable
                 data={timData} loading={loadingT}
                 onEdit={m => { setTimEdit(m); setTimModal(true) }}
                 onDelete={m => { const t = { table: "tim" as Tab, id: m.id, name: m.name }; deleteRef.current = t; setDeleteTarget(t) }}
-              />
-            ) : (
-              <TipeTable
-                depts={depts}
-                onEdit={d => { setTipeEdit(d); setTipeModal(true) }}
-                onDelete={async d => { await fetch(`/api/admin/tipe?value=${d.value}`, { method: "DELETE" }); await fetchDepts() }}
               />
             )}
           </div>
@@ -515,14 +556,14 @@ export default function AdminDashboard() {
       </div>
 
       {/* ── MOBILE BOTTOM NAV ──────────────────────────────────── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#111] border-t border-white/[0.07] flex z-30 safe-area-pb">
-        {(["portfolio", "layanan", "informasi", "berita", "promo", "tim", "tipe"] as Tab[]).map(t => (
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#242c29] border-t border-white/[0.07] flex z-30 safe-area-pb">
+        {(["portfolio", "layanan", "informasi", "kategori", "berita", "promo", "tim"] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => switchTab(t)}
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-all",
-              tab === t ? "text-[#ff914d]" : "text-white/30"
+              tab === t ? "text-powder" : "text-white/30"
             )}
           >
             {tabIcon(t, 16)}
@@ -541,7 +582,7 @@ export default function AdminDashboard() {
       <LayananModal open={lvModal} initial={lvEdit} depts={depts} allLayanan={layananData} onClose={() => setLvModal(false)}
         onSaved={() => { setLvModal(false); fetchLayanan(); showToast(lvEdit ? "Layanan diperbarui" : "Layanan ditambahkan") }}
         onError={showToast} />
-      <InformasiModal open={inModal} initial={inEdit} onClose={() => setInModal(false)}
+      <InformasiModal open={inModal} initial={inEdit} kategori={kategoriData} onClose={() => setInModal(false)}
         onSaved={() => { setInModal(false); fetchInformasi(); showToast(inEdit ? "Informasi diperbarui" : "Informasi ditambahkan") }}
         onError={showToast} />
       <BeritaModal open={brModal} initial={brEdit} onClose={() => setBrModal(false)}
@@ -550,21 +591,9 @@ export default function AdminDashboard() {
       <PromoModal open={pmModal} initial={pmEdit} nextOrder={promoData.length + 1} onClose={() => setPmModal(false)}
         onSaved={() => { setPmModal(false); fetchPromo(); showToast(pmEdit ? "Banner diperbarui" : "Banner ditambahkan") }}
         onError={showToast} />
-      <TipeModal open={tipeModal} initial={tipeEdit} onClose={() => setTipeModal(false)}
-        onSaved={async (dept) => {
-          try {
-            const isEdit = !!tipeEdit
-            const res = await fetch(
-              isEdit ? `/api/admin/tipe?value=${tipeEdit!.value}` : "/api/admin/tipe",
-              { method: isEdit ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dept) }
-            )
-            if (!res.ok) { const e = await res.json(); showToast(e.error ?? "Gagal menyimpan", "error"); return }
-            await fetchDepts()
-            setTipeModal(false)
-            showToast(isEdit ? "Tipe diperbarui" : "Tipe ditambahkan")
-          } catch { showToast("Gagal menyimpan tipe", "error") }
-        }}
-        onError={showToast} existingValues={depts.map(d => d.value)} />
+      <KategoriModal open={katModal} initial={katEdit} onClose={() => setKatModal(false)}
+        onSaved={() => { setKatModal(false); fetchKategori(); showToast(katEdit ? "Kategori diperbarui" : "Kategori ditambahkan") }}
+        onError={showToast} />
 
       <Modal open={!!deleteTarget} onClose={() => { deleteRef.current = null; setDeleteTarget(null) }} maxW="max-w-sm">
         <ModalHeader icon={<Trash2 size={15} className="text-red-400" />} iconBg="bg-red-500/10" title="Konfirmasi Hapus" onClose={() => { deleteRef.current = null; setDeleteTarget(null) }} />
@@ -586,7 +615,7 @@ export default function AdminDashboard() {
       <div className="fixed bottom-16 lg:bottom-5 right-3 flex flex-col gap-2 z-[999] max-w-[calc(100vw-24px)]">
         {toasts.map(t => (
           <div key={t.id} className={cn(
-            "flex items-center gap-2 px-3 py-2.5 rounded-xl border text-[12px] font-medium shadow-xl bg-[#181818]",
+            "flex items-center gap-2 px-3 py-2.5 rounded-xl border text-[12px] font-medium shadow-xl bg-[#2d3733]",
             t.type === "success" ? "border-emerald-500/25" : "border-red-500/25"
           )}>
             {t.type === "success"
@@ -603,7 +632,7 @@ export default function AdminDashboard() {
 // ── Stat Card ──────────────────────────────────────────────────────────────
 function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="bg-[#111] border border-white/[0.07] rounded-xl p-2.5 sm:p-3 relative overflow-hidden hover:border-white/10 transition-colors min-w-[122px] flex-shrink-0 sm:min-w-0 sm:flex-shrink">
+    <div className="bg-[#242c29] border border-white/[0.07] rounded-xl p-2.5 sm:p-3 relative overflow-hidden hover:border-white/10 transition-colors min-w-[122px] flex-shrink-0 sm:min-w-0 sm:flex-shrink">
       <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: color }} />
       <p className="text-[9px] font-bold uppercase tracking-wider text-white/25 mb-1 sm:mb-1.5 leading-tight truncate">{label}</p>
       <p className="text-[21px] sm:text-[26px] font-extrabold leading-none tracking-tight" style={{ color }}>{value}</p>
@@ -647,7 +676,7 @@ function PortfolioTable({ data, loading, onEdit, onDelete, depts }: {
                   {p.description && <p className="text-[11px] text-white/30 mt-0.5 max-w-[240px] truncate">{p.description}</p>}
                 </td>
                 <td className="px-4 py-3"><DeptBadge dept={p.dept} depts={depts} /></td>
-                <td className="px-4 py-3"><code className="text-[10px] bg-[#181818] text-white/40 px-1.5 py-0.5 rounded-md">{p.slug}</code></td>
+                <td className="px-4 py-3"><code className="text-[10px] bg-[#2d3733] text-white/40 px-1.5 py-0.5 rounded-md">{p.slug}</code></td>
                 <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -702,7 +731,7 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
                   <div className="flex items-center gap-1.5">
                     <p className="text-[13px] font-medium text-white">{l.title}</p>
                     {l.featured_order !== null && l.featured_order !== undefined && (
-                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-[#ff914d]/15 text-[#ff914d] text-[9px] font-bold">★ #{l.featured_order}</span>
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-powder/15 text-powder text-[9px] font-bold">★ #{l.featured_order}</span>
                     )}
                   </div>
                   {l.description && <p className="text-[11px] text-white/30 mt-0.5 max-w-[200px] truncate">{l.description}</p>}
@@ -713,10 +742,10 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
                     {l.category && <span className="inline-flex items-center gap-1 text-[10px] text-white/35"><Tag size={8} />{l.category}</span>}
                   </div>
                 </td>
-                <td className="px-4 py-3"><code className="text-[10px] bg-[#181818] text-white/40 px-1.5 py-0.5 rounded-md">/services/{l.slug}</code></td>
+                <td className="px-4 py-3"><code className="text-[10px] bg-[#2d3733] text-white/40 px-1.5 py-0.5 rounded-md">/services/{l.slug}</code></td>
                 <td className="px-4 py-3">
                   {(l as any).image_url ? (
-                    <div className="w-14 h-10 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] flex-shrink-0">
+                    <div className="w-14 h-10 rounded-lg overflow-hidden border border-white/[0.07] bg-[#2d3733] flex-shrink-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={gdriveToImg((l as any).image_url)}
@@ -727,7 +756,7 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
                       />
                     </div>
                   ) : (
-                    <code className="text-[10px] bg-[#ff914d]/10 text-[#ff914d] px-1.5 py-0.5 rounded-md">{l.icon || "—"}</code>
+                    <code className="text-[10px] bg-powder/10 text-powder px-1.5 py-0.5 rounded-md">{l.icon || "—"}</code>
                   )}
                 </td>
                 <td className="px-4 py-3">
@@ -759,16 +788,16 @@ function LayananTable({ data, loading, onEdit, onDelete, depts }: {
             <div className="flex items-center gap-1.5 truncate">
               <p className="text-[13px] font-medium text-white truncate">{l.title}</p>
               {l.featured_order !== null && l.featured_order !== undefined && (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-[#ff914d]/15 text-[#ff914d] text-[9px] font-bold flex-shrink-0">★ #{l.featured_order}</span>
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-powder/15 text-powder text-[9px] font-bold flex-shrink-0">★ #{l.featured_order}</span>
               )}
             </div>
             {l.description && <p className="text-[11px] text-white/30 mt-0.5 line-clamp-1">{l.description}</p>}
             <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
               <DeptBadge dept={l.dept} depts={depts} />
               <StatusBadge status={l.status} />
-              {l.icon && !((l as any).image_url) && <code className="text-[10px] bg-[#ff914d]/10 text-[#ff914d] px-1.5 py-0.5 rounded-md">{l.icon}</code>}
+              {l.icon && !((l as any).image_url) && <code className="text-[10px] bg-powder/10 text-powder px-1.5 py-0.5 rounded-md">{l.icon}</code>}
               {(l as any).image_url && (
-                <div className="w-10 h-7 rounded-md overflow-hidden border border-white/[0.07] bg-[#181818] flex-shrink-0">
+                <div className="w-10 h-7 rounded-md overflow-hidden border border-white/[0.07] bg-[#2d3733] flex-shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={gdriveToImg((l as any).image_url)} alt={l.title} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
                 </div>
@@ -852,7 +881,7 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
 
   return (
     <Modal open={open} onClose={handleClose}>
-      <ModalHeader icon={<LayoutGrid size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Portofolio" : "Tambah Portofolio"} onClose={handleClose} />
+      <ModalHeader icon={<LayoutGrid size={15} className="text-powder" />} iconBg="bg-powder/10" title={initial ? "Edit Portofolio" : "Tambah Portofolio"} onClose={handleClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
         <Field label="Judul Proyek" required><Input value={form.title} onChange={handleTitle} placeholder="Sistem Pemetaan Tata Ruang" /></Field>
         <div className="grid grid-cols-2 gap-3">
@@ -865,41 +894,30 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
         </div>
         <Field label="Deskripsi"><Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi singkat proyek…" /></Field>
 
-        <SvgUploadField value={form.image_url ?? ""} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="portfolio" />
+        <SvgUploadField value={form.image_url ?? ""} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="portfolio" label="Gambar Utama" />
 
-        {/* ── SEO & Meta Tag ─────────────────────────── */}
-        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">SEO & Meta Tag</span>
-            <span className="text-[10px] text-white/25">— untuk targeting pencarian Google</span>
-          </div>
-          <p className="text-[10.5px] text-white/30 leading-relaxed">
-            Gambar untuk pratinjau saat dibagikan ke sosial media diambil otomatis dari
-            Gambar utama di atas, jadi tidak perlu diunggah terpisah.
-          </p>
-          <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Judul + SAYBA ARC. Ideal 50–60 karakter.">
-            <Input value={form.meta_title ?? ""} onChange={v => set("meta_title", v)} placeholder="Sistem Pemetaan Tata Ruang — SAYBA ARC" />
-          </Field>
-          <Field label="Meta Description" hint="Kosongkan untuk otomatis pakai Deskripsi. Ideal 150–160 karakter.">
-            <Textarea value={form.meta_description ?? ""} onChange={v => set("meta_description", v)} placeholder="Pengembangan sistem web GIS untuk visualisasi tata ruang kota…" />
-          </Field>
-          <Field label="Meta Keywords (1 per baris)">
-            <Textarea value={form.meta_keywords} onChange={v => set("meta_keywords", v)} placeholder={"pemetaan tata ruang\nweb gis pontianak\nportofolio arcgis"} />
-          </Field>
-          <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
-            <Input value={form.canonical_url ?? ""} onChange={v => set("canonical_url", v)} placeholder="https://sayba.id/portfolio/slug-lain" />
-          </Field>
-        </div>
+        <SeoFields
+          metaTitle={form.meta_title ?? ""} onMetaTitle={v => set("meta_title", v)}
+          metaDescription={form.meta_description ?? ""} onMetaDescription={v => set("meta_description", v)}
+          metaKeywords={form.meta_keywords} onMetaKeywords={v => set("meta_keywords", v)}
+          canonicalUrl={form.canonical_url ?? ""} onCanonicalUrl={v => set("canonical_url", v)}
+          ogImage={form.og_image ?? ""} onOgImage={v => set("og_image", v)}
+          onTrackChange={trackImageChange}
+          ogFolder="portfolio"
+          titleFallback="Judul Proyek"
+          descFallback="Deskripsi"
+          slugPlaceholder="https://sayba.id/portfolio/slug-lain"
+        />
 
-        <Field label="URL Hasil Proyek"><Input value={form.result_url ?? ""} onChange={v => set("result_url", v)} placeholder="https://link-hasil.com" /></Field>
+        <Field label="URL Hasil Proyek" hint="Tautan ke hasil atau demo proyek (opsional)."><Input value={form.result_url ?? ""} onChange={v => set("result_url", v)} placeholder="https://link-hasil.com" /></Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Fitur (1 per baris)"><Textarea value={form.features} onChange={v => set("features", v)} placeholder={"Login\nDashboard\nExport PDF"} /></Field>
-          <Field label="Tech Stack (1 per baris)"><Textarea value={form.tech_stack} onChange={v => set("tech_stack", v)} placeholder={"Next.js\nPrisma\nPostgreSQL"} /></Field>
+          <Field label="Fitur (1 per baris)" hint="Poin-poin fitur utama proyek."><Textarea value={form.features} onChange={v => set("features", v)} placeholder={"Login\nDashboard\nExport PDF"} /></Field>
+          <Field label="Tech Stack (1 per baris)" hint="Teknologi yang dipakai."><Textarea value={form.tech_stack} onChange={v => set("tech_stack", v)} placeholder={"Next.js\nPrisma\nPostgreSQL"} /></Field>
         </div>
       </div>
       <ModalFooter>
         <button onClick={handleClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
-        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all disabled:opacity-50">
+        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-powder text-carbon hover:bg-steel transition-all disabled:opacity-50">
           {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
           {saving ? "Menyimpan…" : "Simpan"}
         </button>
@@ -908,7 +926,7 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
   )
 }
 
-// ── Layanan Modal ──────────────────────────────────────────────────────────
+// ── Layanan Modal (editor paket harga) ──────────────────────────────────────
 const DEFAULT_TIERS: PriceTier[] = [
   { name: "Starter", price: 3000000, bio: "Cocok untuk kebutuhan dasar dan organisasi kecil.", features: [""] },
   { name: "Standard", price: 7500000, bio: "Solusi lengkap untuk kebutuhan profesional.", features: [""] },
@@ -916,7 +934,7 @@ const DEFAULT_TIERS: PriceTier[] = [
 ]
 
 function PriceTierEditor({ tier, index, onChange }: { tier: PriceTier; index: number; onChange: (t: PriceTier) => void }) {
-  const COLORS = ["bg-white/5 border-white/[0.08]", "bg-[#ff914d]/5 border-[#ff914d]/20", "bg-white/5 border-white/[0.08]"]
+  const COLORS = ["bg-white/5 border-white/[0.08]", "bg-powder/5 border-powder/20", "bg-white/5 border-white/[0.08]"]
   const LABELS = ["Paket 1 — Terendah", "Paket 2 — Tengah", "Paket 3 — Tertinggi"]
   const features = tier.features ?? [""]
   const setFeat = (fi: number, val: string) => { const f = [...features]; f[fi] = val; onChange({ ...tier, features: f }) }
@@ -927,7 +945,7 @@ function PriceTierEditor({ tier, index, onChange }: { tier: PriceTier; index: nu
         <Field label="Nama Paket"><Input value={tier.name ?? ""} onChange={v => onChange({ ...tier, name: v })} placeholder="Starter" /></Field>
         <Field label="Harga (IDR)">
           <input type="number" value={tier.price ?? 0} onChange={e => onChange({ ...tier, price: Number(e.target.value) })} placeholder="3000000"
-            className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors" />
+            className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors" />
         </Field>
       </div>
       <Field label="Bio / Tagline"><Input value={tier.bio ?? ""} onChange={v => onChange({ ...tier, bio: v })} placeholder="Cocok untuk…" /></Field>
@@ -936,13 +954,13 @@ function PriceTierEditor({ tier, index, onChange }: { tier: PriceTier; index: nu
           {features.map((f, fi) => (
             <div key={fi} className="flex gap-2">
               <input value={f ?? ""} onChange={e => setFeat(fi, e.target.value)} placeholder={`Fitur ${fi + 1}…`}
-                className="flex-1 bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-1.5 text-[12px] text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors" />
+                className="flex-1 bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-1.5 text-[12px] text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors" />
               {features.length > 1 && (
                 <button onClick={() => onChange({ ...tier, features: features.filter((_, i) => i !== fi) })} className="text-white/20 hover:text-red-400 transition-colors"><X size={12} /></button>
               )}
             </div>
           ))}
-          <button onClick={() => onChange({ ...tier, features: [...features, ""] })} className="text-[11px] text-white/30 hover:text-[#ff914d] flex items-center gap-1 transition-colors">
+          <button onClick={() => onChange({ ...tier, features: [...features, ""] })} className="text-[11px] text-white/30 hover:text-powder flex items-center gap-1 transition-colors">
             <Plus size={11} /> Tambah fitur
           </button>
         </div>
@@ -951,12 +969,215 @@ function PriceTierEditor({ tier, index, onChange }: { tier: PriceTier; index: nu
   )
 }
 
+// ── Editor galeri multi-foto ────────────────────────────────────────────────
+function GalleryEditor({ items, onChange, onTrackChange }: {
+  items: string[]; onChange: (v: string[]) => void
+  onTrackChange: (oldUrl: string, newUrl: string) => void
+}) {
+  const inputId = useId()
+  const [uploading, setUploading] = useState(false)
+  const [err, setErr] = useState("")
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || !files.length) return
+    setErr(""); setUploading(true)
+    const added: string[] = []
+    for (const file of Array.from(files)) {
+      const name = file.name.toLowerCase()
+      const ok = ["image/svg+xml", "image/png", "image/webp"].includes(file.type)
+        || name.endsWith(".svg") || name.endsWith(".png") || name.endsWith(".webp")
+      if (!ok) { setErr("Hanya file SVG, PNG, atau WebP yang diizinkan"); continue }
+      if (file.size > 4.5 * 1024 * 1024) { setErr("Ukuran tiap file maksimal 4,5MB"); continue }
+      const fd = new FormData(); fd.append("file", file); fd.append("folder", "layanan")
+      const res = await fetch("/api/admin/upload", { method: "POST", body: fd })
+      if (!res.ok) { setErr((await res.json()).error ?? "Upload gagal"); continue }
+      const data = await res.json()
+      onTrackChange("", data.url)
+      added.push(data.url)
+    }
+    setUploading(false)
+    if (added.length) onChange([...items, ...added])
+  }
+
+  const remove = (i: number) => { onTrackChange(items[i], ""); onChange(items.filter((_, idx) => idx !== i)) }
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir
+    if (j < 0 || j >= items.length) return
+    const next = [...items];[next[i], next[j]] = [next[j], next[i]]; onChange(next)
+  }
+
+  return (
+    <Field label="Galeri Foto" hint="Beberapa gambar sekaligus. Tampil sebagai grid di halaman layanan; urutan mengikuti daftar ini (foto #1 paling atas).">
+      <input id={inputId} type="file" multiple accept=".svg,.png,.webp,image/svg+xml,image/png,image/webp" className="hidden"
+        onChange={e => { handleFiles(e.target.files); e.target.value = "" }} />
+      <label htmlFor={inputId} aria-disabled={uploading}
+        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold bg-[#2d3733] border border-white/[0.07] text-white/60 hover:text-white hover:border-white/20 transition-all cursor-pointer aria-disabled:opacity-50 aria-disabled:pointer-events-none">
+        {uploading ? <Loader2 size={13} className="animate-spin" /> : <ImagePlus size={13} />}
+        {uploading ? "Mengunggah…" : "Tambah Foto"}
+      </label>
+      {err && <p className="text-[10px] text-red-400 mt-1">{err}</p>}
+      {items.length > 0 && (
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-2">
+          {items.map((url, i) => (
+            <div key={`${url}-${i}`} className="relative group aspect-square rounded-lg overflow-hidden border border-white/[0.07] bg-[#2d3733]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt={`Galeri ${i + 1}`} className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.opacity = "0.25" }} />
+              <span className="absolute top-1 left-1 text-[9px] font-bold text-white/80 bg-black/50 px-1 rounded">{i + 1}</span>
+              <button type="button" onClick={() => remove(i)} className="absolute top-1 right-1 w-5 h-5 rounded-md bg-black/60 text-white/70 hover:text-red-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><X size={11} /></button>
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between px-1.5 py-1 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="text-white/70 hover:text-white disabled:opacity-25"><ChevronUp size={12} /></button>
+                <button type="button" onClick={() => move(i, 1)} disabled={i === items.length - 1} className="text-white/70 hover:text-white disabled:opacity-25"><ChevronDown size={12} /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Field>
+  )
+}
+
+// ── Editor blok isi (sub-judul / paragraf / daftar / gambar) ────────────────
+const BLOCK_TYPES: { type: ContentBlock["type"]; label: string; icon: React.ReactNode }[] = [
+  { type: "heading", label: "Sub-judul", icon: <Heading size={11} /> },
+  { type: "paragraph", label: "Paragraf", icon: <AlignLeft size={11} /> },
+  { type: "list", label: "Daftar", icon: <ListOrdered size={11} /> },
+  { type: "image", label: "Gambar", icon: <ImagePlus size={11} /> },
+]
+
+function ContentBlocksEditor({ blocks, onChange, onTrackChange }: {
+  blocks: ContentBlock[]; onChange: (v: ContentBlock[]) => void
+  onTrackChange: (oldUrl: string, newUrl: string) => void
+}) {
+  const update = (i: number, patch: Partial<ContentBlock>) => { const next = [...blocks]; next[i] = { ...next[i], ...patch }; onChange(next) }
+  const add = (type: ContentBlock["type"]) => onChange([...blocks, type === "image" ? { type, image_url: "", caption: "" } : { type, text: "" }])
+  const remove = (i: number) => { const b = blocks[i]; if (b.type === "image" && b.image_url) onTrackChange(b.image_url, ""); onChange(blocks.filter((_, idx) => idx !== i)) }
+  const move = (i: number, dir: -1 | 1) => { const j = i + dir; if (j < 0 || j >= blocks.length) return; const next = [...blocks];[next[i], next[j]] = [next[j], next[i]]; onChange(next) }
+  const meta = (t: ContentBlock["type"]) => BLOCK_TYPES.find(x => x.type === t)
+
+  return (
+    <Field label="Blok Isi Halaman" hint="Susun isi halaman layanan dari potongan-potongan: sub-judul, paragraf, daftar berbutir, atau gambar. Urutannya bebas dan bisa digeser.">
+      <div className="space-y-2">
+        {blocks.map((b, i) => (
+          <div key={i} className="rounded-lg border border-white/[0.07] bg-[#2d3733] p-2.5 space-y-2">
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-powder bg-powder/10 px-1.5 py-0.5 rounded">
+                {meta(b.type)?.icon}{meta(b.type)?.label ?? b.type}
+              </span>
+              <div className="ml-auto flex items-center gap-1.5">
+                <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="text-white/30 hover:text-white disabled:opacity-20"><ChevronUp size={12} /></button>
+                <button type="button" onClick={() => move(i, 1)} disabled={i === blocks.length - 1} className="text-white/30 hover:text-white disabled:opacity-20"><ChevronDown size={12} /></button>
+                <button type="button" onClick={() => remove(i)} className="text-white/30 hover:text-red-400"><X size={12} /></button>
+              </div>
+            </div>
+            {b.type === "heading" && <Input value={b.text ?? ""} onChange={v => update(i, { text: v })} placeholder="Sub-judul bagian…" />}
+            {b.type === "paragraph" && <Textarea value={b.text ?? ""} onChange={v => update(i, { text: v })} placeholder="Tulis satu paragraf…" />}
+            {b.type === "list" && (
+              <>
+                <Textarea value={b.text ?? ""} onChange={v => update(i, { text: v })} placeholder={"Butir pertama\nButir kedua\nButir ketiga"} />
+                <p className="text-[10px] text-white/25">Tulis satu butir per baris.</p>
+              </>
+            )}
+            {b.type === "image" && (
+              <>
+                <SvgUploadField value={b.image_url ?? ""} onChange={v => update(i, { image_url: v })} onTrackChange={onTrackChange} folder="layanan" label="Gambar Blok" />
+                <Input value={b.caption ?? ""} onChange={v => update(i, { caption: v })} placeholder="Keterangan gambar (opsional)" />
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-1.5 mt-2">
+        {BLOCK_TYPES.map(t => (
+          <button key={t.type} type="button" onClick={() => add(t.type)}
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium bg-[#2d3733] border border-white/[0.07] text-white/50 hover:text-powder hover:border-powder/30 transition-all">
+            <Plus size={11} />{t.label}
+          </button>
+        ))}
+      </div>
+    </Field>
+  )
+}
+
+// ── Editor FAQ per layanan ──────────────────────────────────────────────────
+function FaqEditor({ items, onChange }: { items: LayananFAQ[]; onChange: (v: LayananFAQ[]) => void }) {
+  const update = (i: number, patch: Partial<LayananFAQ>) => { const next = [...items]; next[i] = { ...next[i], ...patch }; onChange(next) }
+  const move = (i: number, dir: -1 | 1) => { const j = i + dir; if (j < 0 || j >= items.length) return; const next = [...items];[next[i], next[j]] = [next[j], next[i]]; onChange(next) }
+  return (
+    <Field label="FAQ (Pertanyaan Umum)" hint="Tanya-jawab yang tampil sebagai akordeon di halaman layanan. Kosongkan bila tidak diperlukan.">
+      <div className="space-y-2">
+        {items.map((f, i) => (
+          <div key={i} className="rounded-lg border border-white/[0.07] bg-[#2d3733] p-2.5 space-y-2">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold text-white/30">#{i + 1}</span>
+              <div className="ml-auto flex items-center gap-1.5">
+                <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="text-white/30 hover:text-white disabled:opacity-20"><ChevronUp size={12} /></button>
+                <button type="button" onClick={() => move(i, 1)} disabled={i === items.length - 1} className="text-white/30 hover:text-white disabled:opacity-20"><ChevronDown size={12} /></button>
+                <button type="button" onClick={() => onChange(items.filter((_, idx) => idx !== i))} className="text-white/30 hover:text-red-400"><X size={12} /></button>
+              </div>
+            </div>
+            <Input value={f.question} onChange={v => update(i, { question: v })} placeholder="Pertanyaan…" />
+            <Textarea value={f.answer} onChange={v => update(i, { answer: v })} placeholder="Jawaban…" />
+          </div>
+        ))}
+      </div>
+      <button type="button" onClick={() => onChange([...items, { question: "", answer: "" }])}
+        className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium bg-[#2d3733] border border-white/[0.07] text-white/50 hover:text-powder hover:border-powder/30 transition-all">
+        <Plus size={11} />Tambah FAQ
+      </button>
+    </Field>
+  )
+}
+
+// ── Editor tahap proses kerja (diagram alir) ────────────────────────────────
+function ProcessStepsEditor({ steps, onChange }: { steps: ProcessStep[]; onChange: (v: ProcessStep[]) => void }) {
+  const update = (i: number, patch: Partial<ProcessStep>) => { const next = [...steps]; next[i] = { ...next[i], ...patch }; onChange(next) }
+  const move = (i: number, dir: -1 | 1) => { const j = i + dir; if (j < 0 || j >= steps.length) return; const next = [...steps];[next[i], next[j]] = [next[j], next[i]]; onChange(next) }
+  return (
+    <Field label="Tahap Proses Kerja" hint="Tahapan yang digambar sebagai diagram alir di halaman layanan. Kosongkan untuk memakai 6 tahap bawaan (Konsultasi → SPK → Invoice DP → Review → Pelunasan → Serah Terima).">
+      <div className="space-y-2">
+        {steps.map((s, i) => (
+          <div key={i} className="rounded-lg border border-white/[0.07] bg-[#2d3733] p-2.5 space-y-2">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold text-white/30">Tahap {i + 1}</span>
+              <div className="ml-auto flex items-center gap-1.5">
+                <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="text-white/30 hover:text-white disabled:opacity-20"><ChevronUp size={12} /></button>
+                <button type="button" onClick={() => move(i, 1)} disabled={i === steps.length - 1} className="text-white/30 hover:text-white disabled:opacity-20"><ChevronDown size={12} /></button>
+                <button type="button" onClick={() => onChange(steps.filter((_, idx) => idx !== i))} className="text-white/30 hover:text-red-400"><X size={12} /></button>
+              </div>
+            </div>
+            <Input value={s.title} onChange={v => update(i, { title: v })} placeholder="Nama tahap, mis. Konsultasi" />
+            <Textarea value={s.description ?? ""} onChange={v => update(i, { description: v })} placeholder="Penjelasan singkat tahap ini…" />
+          </div>
+        ))}
+      </div>
+      <button type="button" onClick={() => onChange([...steps, { title: "", description: "" }])}
+        className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium bg-[#2d3733] border border-white/[0.07] text-white/50 hover:text-powder hover:border-powder/30 transition-all">
+        <Plus size={11} />Tambah Tahap
+      </button>
+    </Field>
+  )
+}
+
+// ── Layanan Modal ──────────────────────────────────────────────────────────
+type LayananForm = {
+  title: string; slug: string; dept: string; category: string; description: string
+  icon: string; image_url: string; status: Status
+  gallery: string[]; content_blocks: ContentBlock[]; faqs: LayananFAQ[]; process_steps: ProcessStep[]
+  prices: PriceTier[]; featured_order: number | null
+  meta_title: string; meta_description: string; meta_keywords: string; og_image: string; canonical_url: string
+}
+
 function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLayanan }: {
   open: boolean; initial: Layanan | null; depts: LayananDept[]; allLayanan: Layanan[]
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
-  const blank = { title: "", slug: "", dept: depts[0]?.value ?? "arcgis", category: "", description: "", icon: "map", image_url: "", status: "active" as Status, prices: DEFAULT_TIERS, featured_order: null as number | null, meta_title: "", meta_description: "", meta_keywords: "", og_image: "", canonical_url: "" }
-  const [form, setForm] = useState(blank)
+  const blank: LayananForm = {
+    title: "", slug: "", dept: depts[0]?.value ?? "it_konsulting", category: "", description: "",
+    icon: "map", image_url: "", status: "active", gallery: [], content_blocks: [], faqs: [], process_steps: [],
+    prices: DEFAULT_TIERS, featured_order: null,
+    meta_title: "", meta_description: "", meta_keywords: "", og_image: "", canonical_url: "",
+  }
+  const [form, setForm] = useState<LayananForm>(blank)
   const [saving, setSaving] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
   // Files uploaded (or replaced) during this modal session. Only actually
@@ -968,25 +1189,28 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
     if (newUrl) stagedUploads.current.add(newUrl)
   }
 
-  const getDeptL = (v: string) => depts.find(d => d.value === v)
-  const selectedDept = getDeptL(form.dept) ?? depts[0]
-
   useEffect(() => {
     if (!open) return
     stagedUploads.current.clear()
     replacedUrls.current.clear()
     if (initial) {
-      const i = initial as any
-      setForm({ title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "", description: initial.description ?? "", icon: initial.icon ?? "map", image_url: i.image_url ?? "", status: initial.status, prices: (initial.prices as PriceTier[]) ?? DEFAULT_TIERS, featured_order: initial.featured_order ?? null,
-        meta_title: i.meta_title ?? "", meta_description: i.meta_description ?? "", meta_keywords: Array.isArray(i.meta_keywords) ? i.meta_keywords.join("\n") : "", og_image: i.og_image ?? "", canonical_url: i.canonical_url ?? "" })
+      setForm({
+        title: initial.title, slug: initial.slug, dept: initial.dept, category: initial.category ?? "",
+        description: initial.description ?? "", icon: initial.icon ?? "map", image_url: initial.image_url ?? "",
+        status: initial.status, gallery: initial.gallery ?? [], content_blocks: initial.content_blocks ?? [],
+        faqs: initial.faqs ?? [], process_steps: initial.process_steps ?? [],
+        prices: (initial.prices as PriceTier[]) ?? DEFAULT_TIERS, featured_order: initial.featured_order ?? null,
+        meta_title: initial.meta_title ?? "", meta_description: initial.meta_description ?? "",
+        meta_keywords: (initial.meta_keywords ?? []).join("\n"), og_image: initial.og_image ?? "",
+        canonical_url: initial.canonical_url ?? "",
+      })
       setSlugManual(true)
     } else { setForm(blank); setSlugManual(false) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initial])
 
-  const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }))
+  const set = <K extends keyof LayananForm>(k: K, v: LayananForm[K]) => setForm(f => ({ ...f, [k]: v }))
   const handleTitle = (v: string) => { set("title", v); if (!slugManual) set("slug", slugify(v)) }
-  const handleDeptChange = (v: string) => { set("dept", v); set("category", "") }
   const updateTier = (i: number, t: PriceTier) => { const tiers = [...form.prices]; tiers[i] = t; set("prices", tiers) }
 
   // Modal closed/cancelled without saving — none of this session's uploads
@@ -1001,18 +1225,27 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
   const handleSubmit = async () => {
     if (!form.title || !form.slug) { onError("Nama dan slug wajib diisi", "error"); return }
     setSaving(true)
-    const payload = { title: form.title, slug: form.slug, dept: form.dept, category: form.category || null, description: form.description || null, icon: form.icon || "map", image_url: (form as any).image_url || null, prices: form.prices, status: form.status, featured_order: form.featured_order,
+    const payload = {
+      title: form.title, slug: form.slug, dept: form.dept, category: form.category || null,
+      description: form.description || null, icon: form.icon || "map", image_url: form.image_url || null,
+      gallery: form.gallery, content_blocks: form.content_blocks, faqs: form.faqs, process_steps: form.process_steps,
+      prices: form.prices, status: form.status, featured_order: form.featured_order,
       meta_title: form.meta_title || null, meta_description: form.meta_description || null,
       meta_keywords: form.meta_keywords ? form.meta_keywords.split("\n").map(s => s.trim()).filter(Boolean) : null,
-      og_image: form.og_image || null, canonical_url: form.canonical_url || null }
+      og_image: form.og_image || null, canonical_url: form.canonical_url || null,
+    }
     const res = initial
       ? await fetch(`/api/admin/layanan?id=${initial.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
       : await fetch("/api/admin/layanan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
     setSaving(false)
     if (!res.ok) { onError((await res.json()).error ?? "Save failed", "error"); return }
     // Saved successfully — anything replaced/abandoned along the way is now
-    // safe to delete, as long as it isn't the URL that actually got saved.
-    const finalUrls = new Set([payload.image_url, payload.og_image].filter(Boolean) as string[])
+    // safe to delete, as long as it isn't one of the URLs that actually got saved.
+    const finalUrls = new Set([
+      payload.image_url, payload.og_image,
+      ...form.gallery,
+      ...form.content_blocks.filter(b => b.type === "image" && b.image_url).map(b => b.image_url),
+    ].filter(Boolean) as string[])
     const toDelete = [...replacedUrls.current, ...stagedUploads.current].filter(u => !finalUrls.has(u))
     toDelete.forEach(deleteMediaFile)
     stagedUploads.current.clear()
@@ -1024,105 +1257,77 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
 
   return (
     <Modal open={open} onClose={handleClose} maxW="max-w-2xl">
-      <ModalHeader icon={<Layers size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Layanan" : "Tambah Layanan"} onClose={handleClose} />
+      <ModalHeader icon={<Layers size={15} className="text-powder" />} iconBg="bg-powder/10" title={initial ? "Edit Layanan" : "Tambah Layanan"} onClose={handleClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[70vh]">
-        <Field label="Nama Layanan" required><Input value={form.title} onChange={handleTitle} placeholder="Pengembangan ArcGIS" /></Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Slug / Href" required hint={`URL: /services/${form.slug || "slug"}`}>
-            <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="arcgis-development" />
-          </Field>
-          <Field label="Tipe Layanan" required>
-            <Select value={form.dept} onChange={handleDeptChange} options={depts.map(d => ({ value: d.value, label: d.label }))} />
-          </Field>
-        </div>
-        <Field label="Sub-Kategori" hint="Pilih cepat atau ketik sendiri">
-          <Input value={form.category} onChange={v => set("category", v)} placeholder={selectedDept?.subCategories[0] ?? "Contoh: Web GIS…"} />
-          {selectedDept?.subCategories.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {selectedDept.subCategories.map(sc => (
-                <button key={sc} type="button" onClick={() => set("category", sc)}
-                  className={cn("px-2 py-0.5 rounded-lg text-[10.5px] font-medium border transition-all",
-                    form.category === sc ? "border-[#ff914d]/40 text-[#ff914d] bg-[#ff914d]/10" : "border-white/[0.07] text-white/30 bg-[#181818] hover:text-white/60")}>
-                  {sc}
-                </button>
-              ))}
-              {form.category && <button onClick={() => set("category", "")} className="text-white/20 hover:text-white/50"><X size={11} /></button>}
-            </div>
-          )}
+        <Field label="Nama Layanan" required hint="Judul layanan yang tampil di daftar dan halaman layanan.">
+          <Input value={form.title} onChange={handleTitle} placeholder="Pengembangan Web GIS" />
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Icon (Lucide)" hint="Nama dari lucide.dev"><Input value={form.icon ?? ""} onChange={v => set("icon", v)} placeholder="map, globe, code…" /></Field>
-          <Field label="Status"><Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
-        </div>
-
-        <SvgUploadField value={(form as any).image_url ?? ""} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="layanan" />
-
-        {/* ── SEO & Meta Tag ─────────────────────────── */}
-        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">SEO & Meta Tag</span>
-            <span className="text-[10px] text-white/25">— untuk targeting pencarian Google</span>
-          </div>
-          <p className="text-[10.5px] text-white/30 leading-relaxed">
-            Gambar untuk pratinjau saat dibagikan ke sosial media diambil otomatis dari
-            Gambar utama di atas, jadi tidak perlu diunggah terpisah.
-          </p>
-          <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Nama + SAYBA ARC. Ideal 50–60 karakter.">
-            <Input value={form.meta_title} onChange={v => set("meta_title", v)} placeholder="Pengembangan ArcGIS Profesional — SAYBA ARC" />
+          <Field label="Slug / Href" required hint={`Alamat akhir: /services/${form.slug || "slug"}. Huruf kecil, pakai tanda hubung.`}>
+            <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="web-gis-development" />
           </Field>
-          <Field label="Meta Description" hint="Kosongkan untuk otomatis pakai Deskripsi. Ideal 150–160 karakter.">
-            <Textarea value={form.meta_description} onChange={v => set("meta_description", v)} placeholder="Jasa pengembangan ArcGIS profesional untuk instansi dan bisnis di Indonesia…" />
-          </Field>
-          <Field label="Meta Keywords (1 per baris)">
-            <Textarea value={form.meta_keywords} onChange={v => set("meta_keywords", v)} placeholder={"jasa arcgis\npengembangan gis pontianak\nweb gis indonesia"} />
-          </Field>
-          <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
-            <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://sayba.id/services/slug-lain" />
+          <Field label="Departemen" required hint="Pilih salah satu dari dua departemen tetap.">
+            <Select value={form.dept} onChange={v => set("dept", v)} options={depts.map(d => ({ value: d.value, label: d.label }))} />
           </Field>
         </div>
+        <Field label="Sub-Kategori" hint="Teks bebas untuk pengelompokan internal, mis. “Web GIS” atau “Gambar Teknik”. Boleh dikosongkan.">
+          <Input value={form.category} onChange={v => set("category", v)} placeholder="Contoh: Web GIS…" />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Icon (Lucide)" hint="Nama ikon dari lucide.dev, mis. map, globe, code."><Input value={form.icon ?? ""} onChange={v => set("icon", v)} placeholder="map, globe, code…" /></Field>
+          <Field label="Status" hint="Draft disembunyikan dari publik."><Select value={form.status} onChange={v => set("status", v as Status)} options={[{ value: "active", label: "Active — tampil" }, { value: "draft", label: "Draft — tersembunyi" }, { value: "archived", label: "Archived — arsip" }]} /></Field>
+        </div>
+
+        <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="layanan" label="Gambar Utama" />
+        <p className="text-[10px] text-white/25 leading-relaxed -mt-1.5">
+          Gambar utama halaman layanan. Bila kolom gambar pratinjau sosial (og:image) di bagian SEO dikosongkan,
+          gambar inilah yang dipakai saat tautan dibagikan.
+        </p>
+
+        <SeoFields
+          metaTitle={form.meta_title} onMetaTitle={v => set("meta_title", v)}
+          metaDescription={form.meta_description} onMetaDescription={v => set("meta_description", v)}
+          metaKeywords={form.meta_keywords} onMetaKeywords={v => set("meta_keywords", v)}
+          canonicalUrl={form.canonical_url} onCanonicalUrl={v => set("canonical_url", v)}
+          ogImage={form.og_image} onOgImage={v => set("og_image", v)}
+          onTrackChange={trackImageChange}
+          ogFolder="layanan"
+          titleFallback="Nama Layanan"
+          descFallback="Deskripsi"
+          slugPlaceholder="https://sayba.id/services/slug-lain"
+        />
 
         {/* ── Layanan Unggulan ─────────────────────────── */}
-        <div className="rounded-xl border border-[#ff914d]/15 bg-[#ff914d]/5 p-4 space-y-2.5">
+        <div className="rounded-xl border border-powder/15 bg-powder/5 p-4 space-y-2.5">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#ff914d]">★ Layanan Unggulan</span>
-            <span className="text-[10px] text-white/30">— tampil di beranda (max 3 posisi)</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-powder">Layanan Unggulan</span>
+            <span className="text-[10px] text-white/30">— tampil di beranda (maks 3 posisi)</span>
           </div>
           <div className="flex gap-2 flex-wrap">
             {([null, 1, 2, 3] as (number | null)[]).map(v => {
-              // Find if this slot is taken by another service
-              const takenBy = v !== null
-                ? allLayanan.find(l => l.featured_order === v && l.id !== initial?.id)
-                : null
+              const takenBy = v !== null ? allLayanan.find(l => l.featured_order === v && l.id !== initial?.id) : null
               const isSelected = form.featured_order === v
               const isTaken = !!takenBy
-
               return (
                 <button
                   key={String(v)}
                   type="button"
-                  onClick={() => {
-                    // If slot is taken by another, warn but allow (will overwrite on save)
-                    set("featured_order", v)
-                  }}
+                  onClick={() => set("featured_order", v)}
                   className={cn(
                     "relative px-3 py-1.5 rounded-lg text-[11.5px] font-semibold border transition-all text-left",
                     isSelected
-                      ? "bg-[#ff914d] text-white border-[#ff914d]"
+                      ? "bg-powder text-carbon border-powder"
                       : isTaken
                         ? "bg-yellow-500/8 text-yellow-400 border-yellow-500/25 hover:bg-yellow-500/15"
-                        : "bg-[#181818] text-white/40 border-white/[0.07] hover:text-white/70"
+                        : "bg-[#2d3733] text-white/40 border-white/[0.07] hover:text-white/70"
                   )}
                 >
                   <span>{v === null ? "Tidak Unggulan" : `Posisi #${v}`}</span>
                   {isTaken && !isSelected && (
-                    <span className="block text-[9px] font-normal opacity-70 truncate max-w-[100px]">
-                      ⚠ {takenBy!.title}
-                    </span>
+                    <span className="block text-[9px] font-normal opacity-70 truncate max-w-[100px]">⚠ {takenBy!.title}</span>
                   )}
                   {isTaken && isSelected && (
-                    <span className="block text-[9px] font-normal opacity-80 truncate max-w-[100px]">
-                      akan geser: {takenBy!.title}
-                    </span>
+                    <span className="block text-[9px] font-normal opacity-80 truncate max-w-[100px]">akan geser: {takenBy!.title}</span>
                   )}
                 </button>
               )
@@ -1140,7 +1345,7 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
                     </p>
                   </div>
                 ) : (
-                  <p className="text-[10px] text-[#ff914d]/70">
+                  <p className="text-[10px] text-powder/70">
                     Layanan ini akan tampil di posisi #{form.featured_order} pada bagian Layanan Unggulan di beranda.
                   </p>
                 )
@@ -1148,18 +1353,21 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
             </>
           )}
         </div>
-        <Field label="Pilih Cepat Icon">
+        <Field label="Pilih Cepat Icon" hint="Klik untuk mengisi kolom Icon di atas.">
           <div className="flex flex-wrap gap-1.5 mt-1">
             {iconOptions.map(ic => (
-              <button key={ic} onClick={() => set("icon", ic)}
+              <button key={ic} type="button" onClick={() => set("icon", ic)}
                 className={cn("px-2 py-0.5 rounded-lg text-[10.5px] font-mono border transition-all",
-                  form.icon === ic ? "bg-[#ff914d]/10 text-[#ff914d] border-[#ff914d]/30" : "bg-[#181818] text-white/30 border-white/[0.06] hover:text-white/60")}>
+                  form.icon === ic ? "bg-powder/10 text-powder border-powder/30" : "bg-[#2d3733] text-white/30 border-white/[0.06] hover:text-white/60")}>
                 {ic}
               </button>
             ))}
           </div>
         </Field>
-        <Field label="Deskripsi"><Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi layanan…" /></Field>
+        <Field label="Deskripsi" hint="Ringkasan singkat layanan. Dipakai di kartu daftar dan sebagai Meta Description bila kolom SEO dikosongkan.">
+          <Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi layanan…" />
+        </Field>
+
         <div className="pt-1">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex-1 h-px bg-white/[0.06]" />
@@ -1170,10 +1378,15 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
             {form.prices.map((tier, i) => <PriceTierEditor key={i} tier={tier} index={i} onChange={t => updateTier(i, t)} />)}
           </div>
         </div>
+
+        <GalleryEditor items={form.gallery} onChange={v => set("gallery", v)} onTrackChange={trackImageChange} />
+        <ContentBlocksEditor blocks={form.content_blocks} onChange={v => set("content_blocks", v)} onTrackChange={trackImageChange} />
+        <FaqEditor items={form.faqs} onChange={v => set("faqs", v)} />
+        <ProcessStepsEditor steps={form.process_steps} onChange={v => set("process_steps", v)} />
       </div>
       <ModalFooter>
         <button onClick={handleClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
-        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all disabled:opacity-50">
+        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-powder text-carbon hover:bg-steel transition-all disabled:opacity-50">
           {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
           {saving ? "Menyimpan…" : "Simpan"}
         </button>
@@ -1183,8 +1396,13 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
 }
 
 // ── Informasi Table ───────────────────────────────────────────────────────────
-function InformasiTable({ data, loading, onEdit, onDelete }: {
-  data: Informasi[]; loading: boolean
+/** Label kategori dari daftar yang dikelola admin; fallback ke slug apa adanya. */
+function kategoriLabel(kategori: InformasiKategori[], slug: string): string {
+  return kategori.find(k => k.slug === slug)?.label ?? slug
+}
+
+function InformasiTable({ data, loading, kategori, onEdit, onDelete }: {
+  data: Informasi[]; loading: boolean; kategori: InformasiKategori[]
   onEdit: (b: Informasi) => void; onDelete: (b: Informasi) => void
 }) {
   if (loading) return <TableLoading />
@@ -1205,18 +1423,18 @@ function InformasiTable({ data, loading, onEdit, onDelete }: {
               <tr key={b.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1.5">
-                    {b.featured && <span className="text-[8.5px] font-black uppercase tracking-widest text-[#ff914d] bg-[#ff914d]/10 border border-[#ff914d]/25 px-1.5 py-0.5 rounded-md flex-shrink-0">Sorotan</span>}
+                    {b.featured && <span className="text-[8.5px] font-black uppercase tracking-widest text-powder bg-powder/10 border border-powder/25 px-1.5 py-0.5 rounded-md flex-shrink-0">Sorotan</span>}
                     <p className="text-[13px] font-medium text-white truncate max-w-[260px]">{b.title}</p>
                   </div>
                   {b.excerpt && <p className="text-[11px] text-white/30 mt-0.5 max-w-[260px] truncate">{b.excerpt}</p>}
                 </td>
                 <td className="px-4 py-3">
-                  <span className="inline-flex items-center gap-1 text-[10px] text-white/35"><Tag size={8} />{getInformasiCategoryLabel(b.category)}</span>
+                  <span className="inline-flex items-center gap-1 text-[10px] text-white/35"><Tag size={8} />{kategoriLabel(kategori, b.category)}</span>
                 </td>
-                <td className="px-4 py-3"><code className="text-[10px] bg-[#181818] text-white/40 px-1.5 py-0.5 rounded-md">/informasi/{b.slug}</code></td>
+                <td className="px-4 py-3"><code className="text-[10px] bg-[#2d3733] text-white/40 px-1.5 py-0.5 rounded-md">/informasi/{b.slug}</code></td>
                 <td className="px-4 py-3">
                   {b.image_url ? (
-                    <div className="w-14 h-10 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] flex-shrink-0">
+                    <div className="w-14 h-10 rounded-lg overflow-hidden border border-white/[0.07] bg-[#2d3733] flex-shrink-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={gdriveToImg(b.image_url)} alt={b.title} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
                     </div>
@@ -1245,8 +1463,8 @@ function InformasiTable({ data, loading, onEdit, onDelete }: {
             <p className="text-[13px] font-medium text-white truncate">{b.title}</p>
             {b.excerpt && <p className="text-[11px] text-white/30 mt-0.5 line-clamp-1">{b.excerpt}</p>}
             <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-              {b.featured && <span className="text-[8.5px] font-black uppercase tracking-widest text-[#ff914d] bg-[#ff914d]/10 border border-[#ff914d]/25 px-1.5 py-0.5 rounded-md">Sorotan</span>}
-              <span className="text-[10px] text-white/35">{getInformasiCategoryLabel(b.category)}</span>
+              {b.featured && <span className="text-[8.5px] font-black uppercase tracking-widest text-powder bg-powder/10 border border-powder/25 px-1.5 py-0.5 rounded-md">Sorotan</span>}
+              <span className="text-[10px] text-white/35">{kategoriLabel(kategori, b.category)}</span>
               <StatusBadge status={b.status} />
               <span className="text-[10px] text-white/40">{beritaDateLabel(b.published_at)}</span>
             </div>
@@ -1258,13 +1476,13 @@ function InformasiTable({ data, loading, onEdit, onDelete }: {
 }
 
 // ── Informasi Modal ───────────────────────────────────────────────────────────
-function InformasiModal({ open, initial, onClose, onSaved, onError }: {
-  open: boolean; initial: Informasi | null
+function InformasiModal({ open, initial, kategori, onClose, onSaved, onError }: {
+  open: boolean; initial: Informasi | null; kategori: InformasiKategori[]
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
   const today = new Date().toISOString().slice(0, 10)
   const blank = {
-    title: "", slug: "", excerpt: "", category: informasiCategories[0]?.slug ?? "panduan", image_url: "",
+    title: "", slug: "", excerpt: "", category: kategori[0]?.slug ?? "", image_url: "",
     author: "Tim SAYBA ARC", body: "", published_at: today, read_minutes: 3, views: 0,
     featured: false, tags: "", status: "active" as Status,
     meta_title: "", meta_description: "", meta_keywords: "", og_image: "", canonical_url: "",
@@ -1311,6 +1529,7 @@ function InformasiModal({ open, initial, onClose, onSaved, onError }: {
 
   const handleSubmit = async () => {
     if (!form.title || !form.slug) { onError("Judul dan slug wajib diisi", "error"); return }
+    if (!form.category) { onError("Pilih kategori informasi (kelola dulu di tab Kategori Informasi)", "error"); return }
     setSaving(true)
     const payload = {
       title: form.title, slug: form.slug, excerpt: form.excerpt || null, category: form.category,
@@ -1339,22 +1558,22 @@ function InformasiModal({ open, initial, onClose, onSaved, onError }: {
 
   return (
     <Modal open={open} onClose={handleClose} maxW="max-w-2xl">
-      <ModalHeader icon={<Newspaper size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Informasi" : "Tulis Informasi"} onClose={handleClose} />
+      <ModalHeader icon={<Newspaper size={15} className="text-powder" />} iconBg="bg-powder/10" title={initial ? "Edit Informasi" : "Tulis Informasi"} onClose={handleClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
-        <Field label="Judul Artikel" required>
+        <Field label="Judul Artikel" required hint="Tampil sebagai judul halaman dan kartu di daftar Informasi.">
           <Input value={form.title} onChange={handleTitle} placeholder="Pemetaan Partisipatif Desa di Kalimantan Barat" />
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Slug / URL" required hint={`URL: /informasi/${form.slug || "slug"}`}>
+          <Field label="Slug / URL" required hint={`Alamat akhir: /informasi/${form.slug || "slug"}. Huruf kecil, pakai tanda hubung.`}>
             <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="pemetaan-partisipatif-desa" />
           </Field>
-          <Field label="Kategori" required>
-            <Select value={form.category} onChange={v => set("category", v)} options={informasiCategories.map(c => ({ value: c.slug, label: c.label }))} />
+          <Field label="Kategori" required hint={kategori.length ? "Daftar ini diatur di tab Kategori Informasi." : "Belum ada kategori — buat dulu di tab Kategori Informasi."}>
+            <Select value={form.category} onChange={v => set("category", v)} options={kategori.map(c => ({ value: c.slug, label: c.label }))} />
           </Field>
         </div>
 
-        <Field label="Ringkasan" hint="Tampil di kartu daftar informasi dan dipakai sebagai meta description bila kosong">
+        <Field label="Ringkasan" hint="Tampil di kartu daftar informasi dan otomatis dipakai sebagai Meta Description bila kolom itu dikosongkan.">
           <Textarea value={form.excerpt} onChange={v => set("excerpt", v)} placeholder="Bagaimana data lapangan yang dikumpulkan bersama warga desa diubah menjadi basis data spasial…" />
         </Field>
 
@@ -1362,40 +1581,40 @@ function InformasiModal({ open, initial, onClose, onSaved, onError }: {
 
         <Field
           label="Isi Artikel"
-          hint='Markdown ringan — awali baris dengan "## " untuk sub-judul, dan pisahkan paragraf dengan satu baris kosong.'
+          hint='Tulis seperti biasa. Awali sebuah baris dengan "## " untuk menjadikannya sub-judul, dan pisahkan antarparagraf dengan satu baris kosong.'
         >
           <textarea
             value={form.body}
             onChange={e => set("body", e.target.value)}
             rows={14}
             placeholder={"Paragraf pembuka artikel Anda di sini.\n\n## Sub-judul pertama\n\nIsi paragraf berikutnya.\n\n## Sub-judul kedua\n\nIsi paragraf lagi."}
-            className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] leading-relaxed text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors resize-y font-mono"
+            className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] leading-relaxed text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors resize-y font-mono"
           />
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Penulis"><Input value={form.author} onChange={v => set("author", v)} placeholder="Tim GIS SAYBA ARC" /></Field>
-          <Field label="Tanggal Terbit">
+          <Field label="Penulis" hint="Nama yang tampil sebagai penulis artikel."><Input value={form.author} onChange={v => set("author", v)} placeholder="Tim GIS SAYBA ARC" /></Field>
+          <Field label="Tanggal Terbit" hint="Tanggal resmi artikel dipublikasikan.">
             <input type="date" value={form.published_at} onChange={e => set("published_at", e.target.value)}
-              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
           </Field>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Waktu Baca (mnt)">
+          <Field label="Waktu Baca (mnt)" hint="Perkiraan lama membaca.">
             <input type="number" min={1} value={form.read_minutes} onChange={e => set("read_minutes", e.target.value)}
-              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
           </Field>
-          <Field label="Jumlah Dibaca">
+          <Field label="Jumlah Dibaca" hint="Hitungan tampilan awal.">
             <input type="number" min={0} value={form.views} onChange={e => set("views", e.target.value)}
-              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
           </Field>
-          <Field label="Status">
-            <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} />
+          <Field label="Status" hint="Draft disembunyikan dari publik.">
+            <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active — tampil" }, { value: "draft", label: "Draft — tersembunyi" }, { value: "archived", label: "Archived — arsip" }]} />
           </Field>
         </div>
 
-        <Field label="Tag (1 per baris)">
+        <Field label="Tag (1 per baris)" hint="Kata kunci internal untuk pengelompokan dan pencarian.">
           <Textarea value={form.tags} onChange={v => set("tags", v)} placeholder={"ArcGIS\nSurvei Lapangan\nTata Ruang"} />
         </Field>
 
@@ -1403,45 +1622,34 @@ function InformasiModal({ open, initial, onClose, onSaved, onError }: {
           type="button"
           onClick={() => set("featured", !form.featured)}
           className={cn("w-full flex items-start gap-2.5 rounded-xl border p-3 text-left transition-all",
-            form.featured ? "border-[#ff914d]/40 bg-[#ff914d]/[0.07]" : "border-white/[0.08] bg-white/[0.02] hover:border-white/20")}
+            form.featured ? "border-powder/40 bg-powder/[0.07]" : "border-white/[0.08] bg-white/[0.02] hover:border-white/20")}
         >
           <span className={cn("mt-0.5 w-4 h-4 rounded-md border flex items-center justify-center flex-shrink-0 transition-all",
-            form.featured ? "bg-[#ff914d] border-[#ff914d]" : "border-white/20")}>
-            {form.featured && <CheckCircle size={11} className="text-white" />}
+            form.featured ? "bg-powder border-powder" : "border-white/20")}>
+            {form.featured && <CheckCircle size={11} className="text-carbon" />}
           </span>
           <span>
-            <span className={cn("block text-[12.5px] font-semibold", form.featured ? "text-[#ff914d]" : "text-white/70")}>Jadikan artikel Sorotan</span>
+            <span className={cn("block text-[12.5px] font-semibold", form.featured ? "text-powder" : "text-white/70")}>Jadikan artikel Sorotan</span>
             <span className="block text-[10.5px] text-white/30 mt-0.5">Tampil sebagai kartu besar di atas halaman /informasi. Hanya satu artikel yang bisa jadi Sorotan — menandai ini otomatis melepas tanda dari artikel lain.</span>
           </span>
         </button>
 
-        {/* ── SEO & Meta Tag ─────────────────────────── */}
-        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">SEO & Meta Tag</span>
-            <span className="text-[10px] text-white/25">— untuk targeting pencarian Google</span>
-          </div>
-          <p className="text-[10.5px] text-white/30 leading-relaxed">
-            Gambar untuk pratinjau saat dibagikan ke sosial media diambil otomatis dari
-            Gambar utama di atas, jadi tidak perlu diunggah terpisah.
-          </p>
-          <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Judul + SAYBA ARC. Ideal 50–60 karakter.">
-            <Input value={form.meta_title} onChange={v => set("meta_title", v)} placeholder="Pemetaan Partisipatif Desa — SAYBA ARC" />
-          </Field>
-          <Field label="Meta Description" hint="Kosongkan untuk otomatis pakai Ringkasan. Ideal 150–160 karakter.">
-            <Textarea value={form.meta_description} onChange={v => set("meta_description", v)} placeholder="Bagaimana data lapangan bersama warga desa diubah menjadi basis data spasial…" />
-          </Field>
-          <Field label="Meta Keywords (1 per baris)">
-            <Textarea value={form.meta_keywords} onChange={v => set("meta_keywords", v)} placeholder={"pemetaan partisipatif\npeta desa kalimantan\njasa GIS pontianak"} />
-          </Field>
-          <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
-            <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://sayba.id/informasi/slug-lain" />
-          </Field>
-        </div>
+        <SeoFields
+          metaTitle={form.meta_title} onMetaTitle={v => set("meta_title", v)}
+          metaDescription={form.meta_description} onMetaDescription={v => set("meta_description", v)}
+          metaKeywords={form.meta_keywords} onMetaKeywords={v => set("meta_keywords", v)}
+          canonicalUrl={form.canonical_url} onCanonicalUrl={v => set("canonical_url", v)}
+          ogImage={form.og_image} onOgImage={v => set("og_image", v)}
+          onTrackChange={trackImageChange}
+          ogFolder="informasi"
+          titleFallback="Judul"
+          descFallback="Ringkasan"
+          slugPlaceholder="https://sayba.id/informasi/slug-lain"
+        />
       </div>
       <ModalFooter>
         <button onClick={handleClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
-        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all disabled:opacity-50">
+        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-powder text-carbon hover:bg-steel transition-all disabled:opacity-50">
           {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
           {saving ? "Menyimpan…" : "Simpan"}
         </button>
@@ -1457,7 +1665,7 @@ function Modal({ open, onClose, maxW = "max-w-lg", children }: { open: boolean; 
   if (!open) return null
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div className={cn("bg-[#111] border border-white/[0.07] w-full sm:rounded-2xl rounded-t-2xl overflow-hidden shadow-2xl", maxW)}>{children}</div>
+      <div className={cn("bg-[#242c29] border border-white/[0.07] w-full sm:rounded-2xl rounded-t-2xl overflow-hidden shadow-2xl", maxW)}>{children}</div>
     </div>
   )
 }
@@ -1479,7 +1687,7 @@ function ModalFooter({ children }: { children: React.ReactNode }) {
 function Field({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-[11px] font-semibold text-white/50 mb-1.5">{label}{required && <span className="text-[#ff914d] ml-0.5">*</span>}</label>
+      <label className="block text-[11px] font-semibold text-white/50 mb-1.5">{label}{required && <span className="text-powder ml-0.5">*</span>}</label>
       {children}
       {hint && <p className="text-[10px] text-white/25 mt-1">{hint}</p>}
     </div>
@@ -1487,17 +1695,17 @@ function Field({ label, required, hint, children }: { label: string; required?: 
 }
 
 function Input({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
-  return <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors" />
+  return <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors" />
 }
 
 function Textarea({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
-  return <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={3} className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors resize-y" />
+  return <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={3} className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors resize-y" />
 }
 
 function Select({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) {
   return (
     <div className="relative">
-      <select value={value} onChange={e => onChange(e.target.value)} className="w-full appearance-none bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors pr-8">
+      <select value={value} onChange={e => onChange(e.target.value)} className="w-full appearance-none bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors pr-8">
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
       <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
@@ -1567,7 +1775,7 @@ function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG/PNG/WebP
         onChange={e => { handleFile(e.target.files?.[0]); e.target.value = "" }} />
       <div className="flex items-center gap-2">
         <label htmlFor={inputId} aria-disabled={uploading}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold bg-[#181818] border border-white/[0.07] text-white/60 hover:text-white hover:border-white/20 transition-all cursor-pointer aria-disabled:opacity-50 aria-disabled:pointer-events-none">
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold bg-[#2d3733] border border-white/[0.07] text-white/60 hover:text-white hover:border-white/20 transition-all cursor-pointer aria-disabled:opacity-50 aria-disabled:pointer-events-none">
           {uploading ? <Loader2 size={13} className="animate-spin" /> : <ImageIcon size={13} />}
           {uploading ? "Mengunggah…" : "Upload Gambar"}
         </label>
@@ -1577,7 +1785,7 @@ function SvgUploadField({ value, onChange, folder, label = "Gambar (SVG/PNG/WebP
       </div>
       {err && <p className="text-[10px] text-red-400 mt-1">{err}</p>}
       {value && (
-        <div className="mt-2 h-24 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] relative">
+        <div className="mt-2 h-24 rounded-lg overflow-hidden border border-white/[0.07] bg-[#2d3733] relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={value} alt="preview" className="w-full object-contain" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
         </div>
@@ -1594,41 +1802,152 @@ function TableEmpty({ label }: { label: string }) {
   return <div className="py-10 text-center text-white/25 text-[13px]"><LayoutGrid size={22} className="mx-auto mb-3 opacity-20" />Belum ada data {label}</div>
 }
 
-// ── Tipe Table ─────────────────────────────────────────────────────────────
-function TipeTable({ depts, onEdit, onDelete }: { depts: LayananDept[]; onEdit: (d: LayananDept) => void; onDelete: (d: LayananDept) => void }) {
-  if (!depts.length) return <TableEmpty label="tipe layanan" />
+// ── SEO & Meta Tag (dipakai ulang oleh semua modal) ─────────────────────────
+// Setiap kolom diberi penjelasan singkat + penghitung karakter supaya admin tahu
+// batas aman sebelum Google memotong teksnya. Penghitung berubah warna saat
+// melewati batas ideal, bukan memblokir, karena melewati batas itu tidak fatal.
+function CharCount({ value, ideal }: { value: string; ideal: number }) {
+  const n = value.length
+  const over = n > ideal
+  const near = !over && n > ideal * 0.9
+  return (
+    <span className={cn("text-[10px] font-medium tabular-nums", over ? "text-red-400" : near ? "text-amber-400" : "text-white/30")}>
+      {n}/{ideal}
+    </span>
+  )
+}
+
+function SeoFields({
+  metaTitle, onMetaTitle, metaDescription, onMetaDescription,
+  metaKeywords, onMetaKeywords, canonicalUrl, onCanonicalUrl,
+  ogImage, onOgImage, onTrackChange, ogFolder,
+  titleFallback, descFallback, slugPlaceholder,
+}: {
+  metaTitle: string; onMetaTitle: (v: string) => void
+  metaDescription: string; onMetaDescription: (v: string) => void
+  metaKeywords: string; onMetaKeywords: (v: string) => void
+  canonicalUrl: string; onCanonicalUrl: (v: string) => void
+  ogImage: string; onOgImage: (v: string) => void
+  onTrackChange: (oldUrl: string, newUrl: string) => void
+  ogFolder: "informasi" | "layanan" | "portfolio" | "berita"
+  titleFallback: string
+  descFallback: string
+  slugPlaceholder: string
+}) {
+  return (
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3.5">
+      <div className="flex items-center gap-2">
+        <Info size={12} className="text-powder flex-shrink-0" />
+        <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">SEO & Meta Tag</span>
+      </div>
+      <p className="text-[10.5px] text-white/30 leading-relaxed">
+        Kolom di bawah mengatur bagaimana halaman ini tampil di hasil pencarian Google
+        dan saat tautannya dibagikan ke media sosial. Semuanya opsional — bila dikosongkan,
+        situs memakai nilai otomatis yang wajar.
+      </p>
+
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] font-semibold text-white/50">Meta Title</span>
+          <CharCount value={metaTitle} ideal={60} />
+        </div>
+        <Input value={metaTitle} onChange={onMetaTitle} placeholder="Judul untuk hasil pencarian — SAYBA ARC" />
+        <p className="text-[10px] text-white/25 leading-relaxed">
+          Judul biru yang tampil di Google. Kosongkan untuk memakai {titleFallback} + “SAYBA ARC”.
+          Idealnya 50–60 karakter; lebih panjang akan dipotong dengan “…”.
+        </p>
+      </div>
+
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] font-semibold text-white/50">Meta Description</span>
+          <CharCount value={metaDescription} ideal={160} />
+        </div>
+        <Textarea value={metaDescription} onChange={onMetaDescription} placeholder="Kalimat ajakan singkat yang menjelaskan isi halaman…" />
+        <p className="text-[10px] text-white/25 leading-relaxed">
+          Cuplikan abu-abu di bawah judul Google. Kosongkan untuk memakai {descFallback}.
+          Idealnya 150–160 karakter; terlalu panjang akan terpotong.
+        </p>
+      </div>
+
+      <div className="space-y-1">
+        <span className="text-[11px] font-semibold text-white/50">Meta Keywords (1 per baris)</span>
+        <Textarea value={metaKeywords} onChange={onMetaKeywords} placeholder={"kata kunci utama\nkata kunci kedua\nlokasi layanan"} />
+        <p className="text-[10px] text-white/25 leading-relaxed">
+          Daftar kata kunci yang relevan, satu per baris. Google tidak lagi memakai ini untuk
+          peringkat, tetapi berguna untuk pencarian internal dan konsistensi topik.
+        </p>
+      </div>
+
+      <div className="space-y-1">
+        <span className="text-[11px] font-semibold text-white/50">Canonical URL</span>
+        <Input value={canonicalUrl} onChange={onCanonicalUrl} placeholder={slugPlaceholder} />
+        <p className="text-[10px] text-white/25 leading-relaxed">
+          Alamat asli halaman ini. <span className="text-white/40">Kosongkan pada kondisi normal.</span> Isi
+          hanya bila isi halaman ini sama persis dengan halaman lain, supaya Google tidak dianggap
+          menemukan konten ganda.
+        </p>
+      </div>
+
+      <SvgUploadField
+        value={ogImage}
+        onChange={onOgImage}
+        onTrackChange={onTrackChange}
+        folder={ogFolder}
+        label="Gambar Pratinjau Sosial (og:image)"
+      />
+      <p className="text-[10px] text-white/25 leading-relaxed -mt-1.5">
+        Gambar yang muncul saat tautan dibagikan ke WhatsApp, Facebook, atau X.
+        <span className="text-white/40"> Kosongkan untuk memakai gambar utama halaman ini.</span> Rasio
+        disarankan 1200 × 630 px.
+      </p>
+    </div>
+  )
+}
+
+// ── Kategori Informasi Table ────────────────────────────────────────────────
+function KategoriTable({ data, loading, onEdit, onDelete }: {
+  data: InformasiKategori[]; loading: boolean
+  onEdit: (k: InformasiKategori) => void; onDelete: (k: InformasiKategori) => void
+}) {
+  if (loading) return <TableLoading />
+  if (!data.length) return <TableEmpty label="kategori informasi" />
   return (
     <>
       <div className="hidden lg:block overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/[0.05]">
-              {["Nama & Deskripsi", "Value (Slug)", "Warna / Badge", "Sub-Kategori", "Aksi"].map(h => (
+              {["Nama & Deskripsi", "Slug", "Warna", "Urutan", "Status", "Aksi"].map(h => (
                 <th key={h} className="text-left text-[9.5px] font-bold uppercase tracking-widest text-white/20 px-4 py-2.5">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {depts.map(d => (
-              <tr key={d.value} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+            {data.map(k => (
+              <tr key={k.slug} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
                 <td className="px-4 py-3">
-                  <p className="text-[13px] font-medium text-white">{d.label}</p>
-                  {d.description && <p className="text-[11px] text-white/30 mt-0.5">{d.description}</p>}
+                  <p className="text-[13px] font-medium text-white">{k.label}</p>
+                  {k.description && <p className="text-[11px] text-white/30 mt-0.5 max-w-[260px] truncate">{k.description}</p>}
                 </td>
-                <td className="px-4 py-3"><code className="text-[10px] bg-[#181818] text-white/40 px-1.5 py-0.5 rounded-md">{d.value}</code></td>
-                <td className="px-4 py-3"><span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ring-1", d.badgeClass)}>{d.label}</span></td>
+                <td className="px-4 py-3"><code className="text-[10px] bg-[#2d3733] text-white/40 px-1.5 py-0.5 rounded-md">{k.slug}</code></td>
                 <td className="px-4 py-3">
-                  <div className="flex flex-wrap gap-1">
-                    {d.subCategories.slice(0, 3).map(sc => (
-                      <span key={sc} className="text-[9.5px] text-white/35 bg-white/[0.04] px-1.5 py-0.5 rounded-md">{sc}</span>
-                    ))}
-                    {d.subCategories.length > 3 && <span className="text-[9.5px] text-white/20">+{d.subCategories.length - 3}</span>}
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded-full border border-white/15 flex-shrink-0" style={{ backgroundColor: k.color }} />
+                    <code className="text-[10px] text-white/35">{k.color}</code>
                   </div>
+                </td>
+                <td className="px-4 py-3"><span className="text-[12px] text-white/40 font-mono">{k.sort_order}</span></td>
+                <td className="px-4 py-3">
+                  <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1",
+                    k.status === "active" ? "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20" : "bg-yellow-500/10 text-yellow-400 ring-yellow-500/20")}>
+                    {k.status === "active" ? "Aktif" : "Nonaktif"}
+                  </span>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => onEdit(d)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={12} /></button>
-                    <button onClick={() => onDelete(d)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={12} /></button>
+                    <button onClick={() => onEdit(k)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={12} /></button>
+                    <button onClick={() => onDelete(k)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={12} /></button>
                   </div>
                 </td>
               </tr>
@@ -1637,17 +1956,20 @@ function TipeTable({ depts, onEdit, onDelete }: { depts: LayananDept[]; onEdit: 
         </table>
       </div>
       <div className="lg:hidden">
-        {depts.map(d => (
-          <CardRow key={d.value} actions={<><button onClick={() => onEdit(d)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={13} /></button><button onClick={() => onDelete(d)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={13} /></button></>}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ring-1", d.badgeClass)}>{d.label}</span>
-              <code className="text-[10px] text-white/25">{d.value}</code>
+        {data.map(k => (
+          <CardRow key={k.slug} actions={<><button onClick={() => onEdit(k)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={13} /></button><button onClick={() => onDelete(k)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={13} /></button></>}>
+            <div className="flex items-center gap-2">
+              <span className="w-3.5 h-3.5 rounded-full border border-white/15 flex-shrink-0" style={{ backgroundColor: k.color }} />
+              <p className="text-[13px] font-medium text-white truncate">{k.label}</p>
             </div>
-            {d.description && <p className="text-[11px] text-white/30">{d.description}</p>}
-            <div className="flex flex-wrap gap-1 mt-1.5">
-              {d.subCategories.slice(0, 4).map(sc => (
-                <span key={sc} className="text-[9.5px] text-white/35 bg-white/[0.04] px-1.5 py-0.5 rounded-md">{sc}</span>
-              ))}
+            {k.description && <p className="text-[11px] text-white/30 mt-0.5 line-clamp-1">{k.description}</p>}
+            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+              <code className="text-[10px] text-white/25">{k.slug}</code>
+              <span className="text-[10px] text-white/40">Urutan {k.sort_order}</span>
+              <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1",
+                k.status === "active" ? "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20" : "bg-yellow-500/10 text-yellow-400 ring-yellow-500/20")}>
+                {k.status === "active" ? "Aktif" : "Nonaktif"}
+              </span>
             </div>
           </CardRow>
         ))}
@@ -1656,99 +1978,118 @@ function TipeTable({ depts, onEdit, onDelete }: { depts: LayananDept[]; onEdit: 
   )
 }
 
-// ── Tipe Modal ─────────────────────────────────────────────────────────────
-const PRESET_COLORS = [
-  { color: "#ff914d", badge: "bg-[#ff914d]/10 text-[#ff914d] ring-[#ff914d]/20" },
-  { color: "#60a5fa", badge: "bg-blue-400/10 text-blue-400 ring-blue-400/20" },
-  { color: "#34d399", badge: "bg-emerald-400/10 text-emerald-400 ring-emerald-400/20" },
-  { color: "#a78bfa", badge: "bg-purple-400/10 text-purple-400 ring-purple-400/20" },
-  { color: "#f472b6", badge: "bg-pink-400/10 text-pink-400 ring-pink-400/20" },
-  { color: "#fb923c", badge: "bg-orange-400/10 text-orange-400 ring-orange-400/20" },
-  { color: "#facc15", badge: "bg-yellow-400/10 text-yellow-400 ring-yellow-400/20" },
-  { color: "#f87171", badge: "bg-red-400/10 text-red-400 ring-red-400/20" },
-  { color: "#2dd4bf", badge: "bg-teal-400/10 text-teal-400 ring-teal-400/20" },
+// ── Kategori Informasi Modal ────────────────────────────────────────────────
+const KATEGORI_COLORS = [
+  { color: "#1c2321", label: "Carbon" },
+  { color: "#5e6572", label: "Slate" },
+  { color: "#5e7a85", label: "Steel Deep" },
+  { color: "#7d98a1", label: "Steel" },
+  { color: "#a9b4c2", label: "Powder" },
+  { color: "#4a5a63", label: "Operasional" },
 ]
 
-function TipeModal({ open, initial, onClose, onSaved, onError, existingValues }: {
-  open: boolean; initial: LayananDept | null; existingValues: string[]
-  onClose: () => void; onSaved: (d: LayananDept) => void; onError: (msg: string, t: "error") => void
+function KategoriModal({ open, initial, onClose, onSaved, onError }: {
+  open: boolean; initial: InformasiKategori | null
+  onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
-  const blank: LayananDept = { value: "", label: "", description: "", color: PRESET_COLORS[0].color, badgeClass: PRESET_COLORS[0].badge, subCategories: [] }
-  const [form, setForm] = useState<LayananDept>(blank)
-  const [newSub, setNewSub] = useState("")
-  const [valueManual, setValueManual] = useState(false)
+  const blank: InformasiKategori = { slug: "", label: "", description: "", color: KATEGORI_COLORS[1].color, sort_order: 0, status: "active" }
+  const [form, setForm] = useState<InformasiKategori>(blank)
+  const [saving, setSaving] = useState(false)
+  const [slugManual, setSlugManual] = useState(false)
 
   useEffect(() => {
     if (!open) return
-    if (initial) { setForm({ ...initial }); setValueManual(true) }
-    else { setForm(blank); setValueManual(false) }
+    if (initial) { setForm({ ...initial, description: initial.description ?? "" }); setSlugManual(true) }
+    else { setForm(blank); setSlugManual(false) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initial])
 
-  const set = (k: keyof LayananDept, v: any) => setForm(f => ({ ...f, [k]: v }))
+  const set = <K extends keyof InformasiKategori>(k: K, v: InformasiKategori[K]) => setForm(f => ({ ...f, [k]: v }))
   const handleLabel = (v: string) => {
     set("label", v)
-    if (!valueManual) set("value", v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 20))
+    if (!slugManual) set("slug", v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40))
   }
-  const selectColor = (p: typeof PRESET_COLORS[0]) => { set("color", p.color); set("badgeClass", p.badge) }
-  const addSub = () => { if (!newSub.trim()) return; set("subCategories", [...form.subCategories, newSub.trim()]); setNewSub("") }
-  const removeSub = (i: number) => set("subCategories", form.subCategories.filter((_, idx) => idx !== i))
-  const handleSubmit = () => {
-    if (!form.label.trim()) { onError("Nama tipe wajib diisi", "error"); return }
-    if (!form.value.trim()) { onError("Value / slug wajib diisi", "error"); return }
-    if (!initial && existingValues.includes(form.value)) { onError("Value sudah dipakai tipe lain", "error"); return }
-    onSaved(form)
+
+  const handleSubmit = async () => {
+    if (!form.label.trim()) { onError("Nama kategori wajib diisi", "error"); return }
+    if (!form.slug.trim()) { onError("Slug wajib diisi", "error"); return }
+    setSaving(true)
+    const payload = {
+      label: form.label.trim(),
+      description: form.description || null,
+      color: form.color || "#5e6572",
+      sort_order: Number(form.sort_order) || 0,
+      status: form.status,
+    }
+    // Slug hanya dikirim saat membuat baru; mengubah slug akan memutus kaitan
+    // dengan artikel lama yang memakai slug tersebut.
+    const res = initial
+      ? await fetch(`/api/admin/informasi-kategori?slug=${encodeURIComponent(initial.slug)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      : await fetch("/api/admin/informasi-kategori", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...payload, slug: form.slug.trim() }) })
+    setSaving(false)
+    if (!res.ok) { onError((await res.json()).error ?? "Gagal menyimpan", "error"); return }
+    onSaved()
   }
 
   return (
     <Modal open={open} onClose={onClose} maxW="max-w-lg">
-      <ModalHeader icon={<Settings size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Tipe Layanan" : "Tambah Tipe Layanan"} onClose={onClose} />
+      <ModalHeader icon={<Tag size={15} className="text-powder" />} iconBg="bg-powder/10" title={initial ? "Edit Kategori Informasi" : "Tambah Kategori Informasi"} onClose={onClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Nama Tipe" required><Input value={form.label} onChange={handleLabel} placeholder="Survey & Drone" /></Field>
-          <Field label="Value (slug unik)" required hint="Huruf kecil, tanpa spasi">
-            <Input value={form.value} onChange={v => { setValueManual(true); set("value", v.toLowerCase().replace(/[^a-z0-9-]/g, "")) }} placeholder="survey-drone" />
-          </Field>
-        </div>
-        <Field label="Deskripsi"><Input value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Departemen Survei Lapangan…" /></Field>
-        <Field label="Warna Tema">
+        <Field label="Nama Kategori" required hint="Label yang tampil ke pengunjung, mis. “Pengumuman”.">
+          <Input value={form.label} onChange={handleLabel} placeholder="Pengumuman" />
+        </Field>
+        <Field label="Slug" required hint="Kode unik tanpa spasi (huruf kecil & tanda hubung). Dipakai artikel untuk menandai kategorinya. Slug tidak bisa diubah setelah dibuat.">
+          <Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v.toLowerCase().replace(/[^a-z0-9-]/g, "")) }} placeholder="pengumuman" />
+        </Field>
+        <Field label="Deskripsi" hint="Penjelasan singkat isi kategori ini (opsional).">
+          <Input value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Kabar resmi dan pemberitahuan layanan" />
+        </Field>
+        <Field label="Warna Penanda" hint="Warna aksen dari palet situs, dipakai pada label kategori.">
           <div className="flex flex-wrap gap-2 mt-1">
-            {PRESET_COLORS.map(p => (
-              <button key={p.color} type="button" onClick={() => selectColor(p)}
-                className={cn("w-6 h-6 rounded-full border-2 transition-all", form.color === p.color ? "border-white scale-110" : "border-transparent hover:scale-105")}
-                style={{ backgroundColor: p.color }} />
+            {KATEGORI_COLORS.map(c => (
+              <button key={c.color} type="button" onClick={() => set("color", c.color)} title={c.label}
+                className={cn("w-7 h-7 rounded-full border-2 transition-all", form.color === c.color ? "border-white scale-110" : "border-transparent hover:scale-105")}
+                style={{ backgroundColor: c.color }} />
             ))}
           </div>
-          <div className="mt-2">
-            <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ring-1", form.badgeClass)}>{form.label || "Preview Badge"}</span>
+          <div className="mt-2 flex items-center gap-2">
+            <span className="w-4 h-4 rounded-full border border-white/15 flex-shrink-0" style={{ backgroundColor: form.color }} />
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ color: form.color, backgroundColor: `${form.color}1a`, boxShadow: `inset 0 0 0 1px ${form.color}33` }}>
+              {form.label || "Preview Kategori"}
+            </span>
+          </div>
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-[10px] text-white/30">Hex</span>
+            <input
+              value={form.color}
+              onChange={e => set("color", e.target.value)}
+              onBlur={e => { const v = e.target.value.trim(); if (!/^#[0-9a-fA-F]{6}$/.test(v)) set("color", "#5e6572") }}
+              placeholder="#5e6572"
+              className="w-28 bg-[#2d3733] border border-white/[0.07] rounded-lg px-2 py-1 text-[12px] font-mono text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors"
+            />
           </div>
         </Field>
-        <Field label="Sub-Kategori" hint="Tekan Enter atau klik + untuk tambah">
-          <div className="flex gap-2">
-            <input value={newSub} onChange={e => setNewSub(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addSub() } }}
-              placeholder="Contoh: Web GIS, Drone Survey…"
-              className="flex-1 bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors" />
-            <button type="button" onClick={addSub} className="px-3 py-2 bg-[#ff914d]/10 text-[#ff914d] rounded-lg hover:bg-[#ff914d]/20 transition-colors"><Plus size={14} /></button>
-          </div>
-          {form.subCategories.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {form.subCategories.map((sc, i) => (
-                <span key={i} className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-medium bg-white/[0.05] text-white/60 border border-white/[0.08]">
-                  {sc}
-                  <button type="button" onClick={() => removeSub(i)} className="text-white/30 hover:text-red-400 transition-colors"><X size={10} /></button>
-                </span>
-              ))}
-            </div>
-          )}
-        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Urutan Tampil" hint="Angka kecil tampil lebih dulu.">
+            <input type="number" value={form.sort_order} onChange={e => set("sort_order", Number(e.target.value))}
+              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
+          </Field>
+          <Field label="Status" hint="Nonaktif menyembunyikan kategori dari pilihan.">
+            <Select value={form.status} onChange={v => set("status", v as "active" | "draft")} options={[{ value: "active", label: "Aktif" }, { value: "draft", label: "Nonaktif" }]} />
+          </Field>
+        </div>
       </div>
       <ModalFooter>
         <button onClick={onClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
-        <button onClick={handleSubmit} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all disabled:opacity-50"><Save size={13} /> Simpan</button>
+        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-powder text-carbon hover:bg-steel transition-all disabled:opacity-50">
+          {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+          {saving ? "Menyimpan…" : "Simpan"}
+        </button>
       </ModalFooter>
     </Modal>
   )
 }
+
 
 // ── Tim Table ──────────────────────────────────────────────────────────────
 function TimTable({ data, loading, onEdit, onDelete }: {
@@ -1775,16 +2116,16 @@ function TimTable({ data, loading, onEdit, onDelete }: {
                 <tr key={m.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl overflow-hidden bg-[#1a1a1a] border border-white/[0.07] flex-shrink-0 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-xl overflow-hidden bg-[#2d3733] border border-white/[0.07] flex-shrink-0 flex items-center justify-center">
                         {photoSrc
                           // eslint-disable-next-line @next/next/no-img-element
                           ? <img src={photoSrc} alt={m.name} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
-                          : <span className="text-sm font-bold text-[#ff914d]">{m.name.charAt(0)}</span>}
+                          : <span className="text-sm font-bold text-powder">{m.name.charAt(0)}</span>}
                       </div>
                       <p className="text-[13px] font-medium text-white">{m.name}</p>
                     </div>
                   </td>
-                  <td className="px-4 py-3"><p className="text-[12px] text-[#ff914d] font-medium">{m.role}</p></td>
+                  <td className="px-4 py-3"><p className="text-[12px] text-powder font-medium">{m.role}</p></td>
                   <td className="px-4 py-3 max-w-[200px]"><p className="text-[11px] text-white/35 line-clamp-2">{m.bio ?? "—"}</p></td>
                   <td className="px-4 py-3"><span className="text-[12px] text-white/40 font-mono">{m.order_num}</span></td>
                   <td className="px-4 py-3">
@@ -1810,15 +2151,15 @@ function TimTable({ data, loading, onEdit, onDelete }: {
           return (
             <CardRow key={m.id} actions={<><button onClick={() => onEdit(m)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={13} /></button><button onClick={() => onDelete(m)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={13} /></button></>}>
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl overflow-hidden bg-[#1a1a1a] border border-white/[0.07] flex-shrink-0 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl overflow-hidden bg-[#2d3733] border border-white/[0.07] flex-shrink-0 flex items-center justify-center">
                   {photoSrc
                     // eslint-disable-next-line @next/next/no-img-element
                     ? <img src={photoSrc} alt={m.name} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
-                    : <span className="font-bold text-[#ff914d]">{m.name.charAt(0)}</span>}
+                    : <span className="font-bold text-powder">{m.name.charAt(0)}</span>}
                 </div>
                 <div className="min-w-0">
                   <p className="text-[13px] font-medium text-white truncate">{m.name}</p>
-                  <p className="text-[11px] text-[#ff914d]">{m.role}</p>
+                  <p className="text-[11px] text-powder">{m.role}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 mt-1.5">
@@ -1892,7 +2233,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
 
   return (
     <Modal open={open} onClose={handleClose}>
-      <ModalHeader icon={<Users size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Anggota Tim" : "Tambah Anggota Tim"} onClose={handleClose} />
+      <ModalHeader icon={<Users size={15} className="text-powder" />} iconBg="bg-powder/10" title={initial ? "Edit Anggota Tim" : "Tambah Anggota Tim"} onClose={handleClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Nama Lengkap" required><Input value={form.name} onChange={v => set("name", v)} placeholder="Budi Santoso" /></Field>
@@ -1913,7 +2254,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
         <div className="grid grid-cols-2 gap-3">
           <Field label="Hierarki / Urutan Tampil" hint="Angka 1 = posisi teratas (pemimpin), angka lebih besar di bawahnya">
             <input type="number" value={form.order_num} onChange={e => set("order_num", Number(e.target.value))}
-              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
           </Field>
           <Field label="Status">
             <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active — tampil" }, { value: "draft", label: "Draft — tersembunyi" }]} />
@@ -1922,7 +2263,7 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
       </div>
       <ModalFooter>
         <button onClick={handleClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
-        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all disabled:opacity-50">
+        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-powder text-carbon hover:bg-steel transition-all disabled:opacity-50">
           {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
           {saving ? "Menyimpan…" : "Simpan"}
         </button>
@@ -1960,7 +2301,7 @@ function BeritaTable({ data, loading, onEdit, onDelete }: {
               <tr key={b.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1.5">
-                    {b.featured && <span className="text-[8.5px] font-black uppercase tracking-widest text-[#ff914d] bg-[#ff914d]/10 border border-[#ff914d]/25 px-1.5 py-0.5 rounded-md flex-shrink-0">Sorotan</span>}
+                    {b.featured && <span className="text-[8.5px] font-black uppercase tracking-widest text-powder bg-powder/10 border border-powder/25 px-1.5 py-0.5 rounded-md flex-shrink-0">Sorotan</span>}
                     <p className="text-[13px] font-medium text-white truncate max-w-[260px]">{b.title}</p>
                   </div>
                   {b.excerpt && <p className="text-[11px] text-white/30 mt-0.5 max-w-[260px] truncate">{b.excerpt}</p>}
@@ -1968,10 +2309,10 @@ function BeritaTable({ data, loading, onEdit, onDelete }: {
                 <td className="px-4 py-3">
                   <span className="inline-flex items-center gap-1 text-[10px] text-white/35"><Tag size={8} />{getCategoryLabel(b.category)}</span>
                 </td>
-                <td className="px-4 py-3"><code className="text-[10px] bg-[#181818] text-white/40 px-1.5 py-0.5 rounded-md">/berita/{b.slug}</code></td>
+                <td className="px-4 py-3"><code className="text-[10px] bg-[#2d3733] text-white/40 px-1.5 py-0.5 rounded-md">/berita/{b.slug}</code></td>
                 <td className="px-4 py-3">
                   {b.image_url ? (
-                    <div className="w-14 h-10 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] flex-shrink-0">
+                    <div className="w-14 h-10 rounded-lg overflow-hidden border border-white/[0.07] bg-[#2d3733] flex-shrink-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={gdriveToImg(b.image_url)} alt={b.title} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
                     </div>
@@ -2000,7 +2341,7 @@ function BeritaTable({ data, loading, onEdit, onDelete }: {
             <p className="text-[13px] font-medium text-white truncate">{b.title}</p>
             {b.excerpt && <p className="text-[11px] text-white/30 mt-0.5 line-clamp-1">{b.excerpt}</p>}
             <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-              {b.featured && <span className="text-[8.5px] font-black uppercase tracking-widest text-[#ff914d] bg-[#ff914d]/10 border border-[#ff914d]/25 px-1.5 py-0.5 rounded-md">Sorotan</span>}
+              {b.featured && <span className="text-[8.5px] font-black uppercase tracking-widest text-powder bg-powder/10 border border-powder/25 px-1.5 py-0.5 rounded-md">Sorotan</span>}
               <span className="text-[10px] text-white/35">{getCategoryLabel(b.category)}</span>
               <StatusBadge status={b.status} />
               <span className="text-[10px] text-white/40">{beritaDateLabel(b.published_at)}</span>
@@ -2094,7 +2435,7 @@ function BeritaModal({ open, initial, onClose, onSaved, onError }: {
 
   return (
     <Modal open={open} onClose={handleClose} maxW="max-w-2xl">
-      <ModalHeader icon={<Newspaper size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Berita" : "Tulis Berita"} onClose={handleClose} />
+      <ModalHeader icon={<Newspaper size={15} className="text-powder" />} iconBg="bg-powder/10" title={initial ? "Edit Berita" : "Tulis Berita"} onClose={handleClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
         <Field label="Judul Artikel" required>
           <Input value={form.title} onChange={handleTitle} placeholder="Pemetaan Partisipatif Desa di Kalimantan Barat" />
@@ -2124,7 +2465,7 @@ function BeritaModal({ open, initial, onClose, onSaved, onError }: {
             onChange={e => set("body", e.target.value)}
             rows={14}
             placeholder={"Paragraf pembuka artikel Anda di sini.\n\n## Sub-judul pertama\n\nIsi paragraf berikutnya.\n\n## Sub-judul kedua\n\nIsi paragraf lagi."}
-            className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] leading-relaxed text-white placeholder:text-white/20 outline-none focus:border-[#ff914d]/40 transition-colors resize-y font-mono"
+            className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] leading-relaxed text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors resize-y font-mono"
           />
         </Field>
 
@@ -2132,18 +2473,18 @@ function BeritaModal({ open, initial, onClose, onSaved, onError }: {
           <Field label="Penulis"><Input value={form.author} onChange={v => set("author", v)} placeholder="Tim GIS SAYBA ARC" /></Field>
           <Field label="Tanggal Terbit">
             <input type="date" value={form.published_at} onChange={e => set("published_at", e.target.value)}
-              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
           </Field>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
           <Field label="Waktu Baca (mnt)">
             <input type="number" min={1} value={form.read_minutes} onChange={e => set("read_minutes", e.target.value)}
-              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
           </Field>
           <Field label="Jumlah Dibaca">
             <input type="number" min={0} value={form.views} onChange={e => set("views", e.target.value)}
-              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
           </Field>
           <Field label="Status">
             <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} />
@@ -2158,45 +2499,34 @@ function BeritaModal({ open, initial, onClose, onSaved, onError }: {
           type="button"
           onClick={() => set("featured", !form.featured)}
           className={cn("w-full flex items-start gap-2.5 rounded-xl border p-3 text-left transition-all",
-            form.featured ? "border-[#ff914d]/40 bg-[#ff914d]/[0.07]" : "border-white/[0.08] bg-white/[0.02] hover:border-white/20")}
+            form.featured ? "border-powder/40 bg-powder/[0.07]" : "border-white/[0.08] bg-white/[0.02] hover:border-white/20")}
         >
           <span className={cn("mt-0.5 w-4 h-4 rounded-md border flex items-center justify-center flex-shrink-0 transition-all",
-            form.featured ? "bg-[#ff914d] border-[#ff914d]" : "border-white/20")}>
-            {form.featured && <CheckCircle size={11} className="text-white" />}
+            form.featured ? "bg-powder border-powder" : "border-white/20")}>
+            {form.featured && <CheckCircle size={11} className="text-carbon" />}
           </span>
           <span>
-            <span className={cn("block text-[12.5px] font-semibold", form.featured ? "text-[#ff914d]" : "text-white/70")}>Jadikan artikel Sorotan</span>
+            <span className={cn("block text-[12.5px] font-semibold", form.featured ? "text-powder" : "text-white/70")}>Jadikan artikel Sorotan</span>
             <span className="block text-[10.5px] text-white/30 mt-0.5">Tampil sebagai kartu besar di atas halaman /berita. Hanya satu artikel yang bisa jadi Sorotan — menandai ini otomatis melepas tanda dari artikel lain.</span>
           </span>
         </button>
 
-        {/* ── SEO & Meta Tag ─────────────────────────── */}
-        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">SEO & Meta Tag</span>
-            <span className="text-[10px] text-white/25">— untuk targeting pencarian Google</span>
-          </div>
-          <p className="text-[10.5px] text-white/30 leading-relaxed">
-            Gambar untuk pratinjau saat dibagikan ke sosial media diambil otomatis dari
-            Gambar utama di atas, jadi tidak perlu diunggah terpisah.
-          </p>
-          <Field label="Meta Title" hint="Kosongkan untuk otomatis pakai Judul + SAYBA ARC. Ideal 50–60 karakter.">
-            <Input value={form.meta_title} onChange={v => set("meta_title", v)} placeholder="Pemetaan Partisipatif Desa — SAYBA ARC" />
-          </Field>
-          <Field label="Meta Description" hint="Kosongkan untuk otomatis pakai Ringkasan. Ideal 150–160 karakter.">
-            <Textarea value={form.meta_description} onChange={v => set("meta_description", v)} placeholder="Bagaimana data lapangan bersama warga desa diubah menjadi basis data spasial…" />
-          </Field>
-          <Field label="Meta Keywords (1 per baris)">
-            <Textarea value={form.meta_keywords} onChange={v => set("meta_keywords", v)} placeholder={"pemetaan partisipatif\npeta desa kalimantan\njasa GIS pontianak"} />
-          </Field>
-          <Field label="Canonical URL" hint="Opsional — hanya diisi jika konten ini duplikat dari URL lain">
-            <Input value={form.canonical_url} onChange={v => set("canonical_url", v)} placeholder="https://sayba.id/berita/slug-lain" />
-          </Field>
-        </div>
+        <SeoFields
+          metaTitle={form.meta_title} onMetaTitle={v => set("meta_title", v)}
+          metaDescription={form.meta_description} onMetaDescription={v => set("meta_description", v)}
+          metaKeywords={form.meta_keywords} onMetaKeywords={v => set("meta_keywords", v)}
+          canonicalUrl={form.canonical_url} onCanonicalUrl={v => set("canonical_url", v)}
+          ogImage={form.og_image} onOgImage={v => set("og_image", v)}
+          onTrackChange={trackImageChange}
+          ogFolder="berita"
+          titleFallback="Judul"
+          descFallback="Ringkasan"
+          slugPlaceholder="https://sayba.id/berita/slug-lain"
+        />
       </div>
       <ModalFooter>
         <button onClick={handleClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
-        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all disabled:opacity-50">
+        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-powder text-carbon hover:bg-steel transition-all disabled:opacity-50">
           {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
           {saving ? "Menyimpan…" : "Simpan"}
         </button>
@@ -2226,15 +2556,15 @@ function PromoTable({ data, loading, onEdit, onDelete }: {
           <tbody>
             {data.map(b => (
               <tr key={b.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
-                <td className="px-4 py-3"><span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-[#181818] border border-white/[0.07] text-[11px] font-bold text-white/50">{b.sort_order}</span></td>
+                <td className="px-4 py-3"><span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-[#2d3733] border border-white/[0.07] text-[11px] font-bold text-white/50">{b.sort_order}</span></td>
                 <td className="px-4 py-3">
-                  <div className="w-20 h-8 rounded-lg overflow-hidden border border-white/[0.07] bg-[#181818] flex-shrink-0">
+                  <div className="w-20 h-8 rounded-lg overflow-hidden border border-white/[0.07] bg-[#2d3733] flex-shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={gdriveToImg(b.image_url)} alt={b.alt} className="w-full object-cover" style={{ height: "100%" }} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  {b.eyebrow && <p className="text-[9.5px] font-bold uppercase tracking-widest text-[#ff914d]">{b.eyebrow}</p>}
+                  {b.eyebrow && <p className="text-[9.5px] font-bold uppercase tracking-widest text-powder">{b.eyebrow}</p>}
                   <p className="text-[13px] font-medium text-white truncate max-w-[220px]">{b.title || <span className="text-white/25 italic">Tanpa teks (gambar penuh)</span>}</p>
                   {b.subtitle && <p className="text-[11px] text-white/30 mt-0.5 max-w-[220px] truncate">{b.subtitle}</p>}
                 </td>
@@ -2338,7 +2668,7 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
 
   return (
     <Modal open={open} onClose={handleClose} maxW="max-w-lg">
-      <ModalHeader icon={<GalleryHorizontalEnd size={15} className="text-[#ff914d]" />} iconBg="bg-[#ff914d]/10" title={initial ? "Edit Banner" : "Tambah Banner"} onClose={handleClose} />
+      <ModalHeader icon={<GalleryHorizontalEnd size={15} className="text-powder" />} iconBg="bg-powder/10" title={initial ? "Edit Banner" : "Tambah Banner"} onClose={handleClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
         <SvgUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="promo" label="Gambar Banner (SVG/PNG/WebP)" />
         <p className="text-[10.5px] text-white/30 -mt-1.5 leading-relaxed">
@@ -2375,7 +2705,7 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
         <div className="grid grid-cols-2 gap-3">
           <Field label="Urutan Tampil" hint="Angka kecil tampil lebih dulu">
             <input type="number" min={1} value={form.sort_order} onChange={e => set("sort_order", e.target.value)}
-              className="w-full bg-[#181818] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-[#ff914d]/40 transition-colors" />
+              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
           </Field>
           <Field label="Status">
             <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }]} />
@@ -2384,7 +2714,7 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
       </div>
       <ModalFooter>
         <button onClick={handleClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
-        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-[#ff914d] text-white hover:bg-[#ff7a28] transition-all disabled:opacity-50">
+        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-powder text-carbon hover:bg-steel transition-all disabled:opacity-50">
           {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
           {saving ? "Menyimpan…" : "Simpan"}
         </button>

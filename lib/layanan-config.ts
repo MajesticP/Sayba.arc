@@ -1,105 +1,73 @@
 /**
- * ── LAYANAN DEPT CONFIG ──────────────────────────────────────────────────────
- * 
- * To add a new dept/layanan type:
- *   1. Add a new entry to LAYANAN_DEPTS below
- *   2. That's it — dashboard, filters, badges, forms all update automatically
+ * ── KONFIGURASI DEPARTEMEN LAYANAN ───────────────────────────────────────────
  *
- * To add sub-categories for a dept:
- *   Edit the `subCategories` array for that dept.
- *   These appear as quick-pick chips in the Add/Edit Layanan modal.
+ * SAYBA ARC punya DUA departemen tetap:
+ *   1. IT Consultant        — pengembangan digital & sistem informasi
+ *   2. Engineering Consultant — pemetaan spasial, rancang bangun, gambar teknik
+ *
+ * Departemen bersifat TETAP (tidak diubah dari admin). Yang dikelola admin
+ * adalah daftar LAYANAN di dalam tiap departemen.
+ *
+ * Nilai `value` disimpan di kolom `dept` tabel `layanan`, jadi jangan diubah
+ * tanpa migrasi database.
  */
 
 export interface LayananDept {
-  /** Stored in the DB — must match what's in Supabase */
+  /** Disimpan di DB — harus cocok dengan kolom `dept` */
   value: string
-  /** Human-readable label shown in UI */
+  /** Label yang tampil di UI */
   label: string
-  /** Short description shown in tooltips / section headers */
-  description?: string
-  /** Tailwind color classes for the badge */
-  badgeClass: string
-  /** Hex color for icons / accents */
+  /** Penjelasan singkat departemen */
+  description: string
+  /** Warna aksen dari palet (lihat DESIGN.md) */
   color: string
-  /** Sub-category suggestions shown in modal (admin can still type a custom one) */
-  subCategories: string[]
+  /** Ringkasan lingkup kerja */
+  scope: string[]
 }
 
 export const LAYANAN_DEPTS: LayananDept[] = [
   {
-    value: "arcgis",
-    label: "ArcGIS",
-    description: "Departemen GIS & Pemetaan",
-    badgeClass:
-      "bg-[#ff914d]/10 text-[#ff914d] ring-[#ff914d]/20",
-    color: "#ff914d",
-    subCategories: [
-      "Web GIS",
-      "Desktop GIS",
-      "3D Mapping",
-      "Spatial Analysis",
-      "Training & Workshop",
-      "Data Processing",
+    value: "it_konsulting",
+    label: "IT Consultant",
+    description:
+      "Pengembangan perangkat lunak, sistem informasi, dan infrastruktur digital yang dipakai sehari-hari oleh tim Anda.",
+    color: "#7d98a1",
+    scope: [
+      "Website & aplikasi web",
+      "Aplikasi mobile & desktop",
+      "Backend, API, dan basis data",
+      "Machine learning & analisis data",
+      "Cloud, deployment, dan pemeliharaan",
     ],
   },
   {
-    value: "it",
-    label: "IT",
-    description: "Departemen Teknologi Informasi & Digital",
-    badgeClass: "bg-blue-400/10 text-blue-400 ring-blue-400/20",
-    color: "#60a5fa",
-    subCategories: [
-      "Web Development",
-      "Mobile App",
-      "Backend & API",
-      "UI/UX Design",
-      "Cloud & DevOps",
-      "Cybersecurity",
+    value: "engineering_konsulting",
+    label: "Engineering Consultant",
+    description:
+      "Pemetaan spasial, rancang bangun, dan dokumen teknik yang siap dipakai untuk perizinan maupun pelaksanaan lapangan.",
+    color: "#5e6572",
+    scope: [
+      "Pemetaan & analisis spasial (GIS)",
+      "Gambar teknik 2D & 3D (AutoCAD)",
+      "Desain rancang bangun",
+      "Survey dan pengolahan data lapangan",
+      "Dokumen teknis & laporan",
     ],
   },
-  {
-    value: "kelautan",
-    label: "Kelautan",
-    description: "Departemen Desain & Perkapalan",
-    badgeClass: "bg-[#0a6e8a]/10 text-[#0a6e8a] ring-[#0a6e8a]/20",
-    color: "#0a6e8a",
-    subCategories: [
-      "Desain Kapal",
-      "Analisis Hidrodinamika",
-      "Survey Batimetri",
-      "Manajemen Pelabuhan",
-      "Konsultasi Kelautan",
-    ],
-  },
-
-  {
-    value: "softwarejailbreak",
-    label: "Software Jailbreak",
-    description: "Departemen Software & Jailbreak",
-    badgeClass: "bg-purple-400/10 text-purple-400 ring-purple-400/20",
-    color: "#a78bfa",
-    subCategories: ["Oprek HP", "Custom ROM", "Unlock Bootloader", "Firmware Flash"],
-  },
-
-  // ── ADD MORE TYPES HERE ─────────────────────────────────────────────────
-  // Example:
-  // {
-  //   value: "survey",
-  //   label: "Survey & Drone",
-  //   description: "Departemen Survei Lapangan & Fotogrametri",
-  //   badgeClass: "bg-purple-400/10 text-purple-400 ring-purple-400/20",
-  //   color: "#a78bfa",
-  //   subCategories: ["Aerial Photography", "LiDAR Scan", "Topografi", "Peta Drone"],
-  // },
 ]
 
-/** Lookup helpers */
+/** Cari departemen berdasarkan value */
 export const getDept = (value: string): LayananDept | undefined =>
   LAYANAN_DEPTS.find((d) => d.value === value)
 
+/** Label departemen; fallback: ubah "foo_bar" jadi "Foo Bar" */
 export const getDeptLabel = (value: string): string =>
   getDept(value)?.label ??
-  value.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+  value
+    .split(/[_-]/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ")
 
+/** Warna aksen departemen */
 export const getDeptColor = (value: string): string =>
-  getDept(value)?.color ?? "#888"
+  getDept(value)?.color ?? "#5e6572"
