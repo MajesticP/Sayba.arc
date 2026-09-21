@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import Image from "next/image"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { siteConfig, navItems, footerLinks, socialLinks } from "@/lib/data"
@@ -8,8 +7,10 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import PageTransition from "@/components/page-transition"
 import FeatureTabs from "@/components/portfolio-feature-tabs"
+import ThreeCard from "@/components/three-card"
 import { ArrowLeft, ExternalLink, Globe, Map, ChevronRight } from "lucide-react"
 import { generatePortfolioDetailMetadata, generatePortfolioSchema, generateBreadcrumbSchema } from "@/lib/structured-data"
+import ThreeParticlesBg from "@/components/three-particles-bg"
 
 function resolveThumbnail(url: string | null): string | null {
   return !url || url === "-" ? null : url
@@ -73,12 +74,12 @@ export default async function PortfolioSlugPage({ params }: Props) {
 
   const thumbnail = resolveThumbnail(item.image_url)
   const isArcgis = item.dept === "arcgis"
-  const accent = isArcgis ? "#ff914d" : "#1a1a1a"
+  const accent = isArcgis ? "#ea580c" : "#ea580c"
   const features: string[] = item.features ?? []
   const techStack: string[] = item.tech_stack ?? []
 
   return (
-    <main className="min-h-screen flex flex-col bg-white">
+    <main className="min-h-screen flex flex-col bg-black">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(portfolioSchema) }}
@@ -91,29 +92,33 @@ export default async function PortfolioSlugPage({ params }: Props) {
 
       <div className="flex-1 pt-[72px] md:pt-20">
         {/* Breadcrumb */}
-        <div className="border-b border-black/6 bg-white">
+        <div className="border-b border-white/8 bg-black/50 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
-            <nav className="flex items-center gap-1.5 text-sm text-black/40">
-              <Link href="/" className="hover:text-black transition-colors">Beranda</Link>
+            <nav className="flex items-center gap-1.5 text-sm text-white/40">
+              <Link href="/" className="hover:text-white transition-colors">Beranda</Link>
               <ChevronRight size={13} />
-              <Link href="/portfolio" className="hover:text-black transition-colors">Portofolio</Link>
+              <Link href="/portfolio" className="hover:text-white transition-colors">Portofolio</Link>
               <ChevronRight size={13} />
-              <span className="text-black/70 font-medium truncate max-w-[200px]">{item.title}</span>
+              <span className="text-white/60 font-medium truncate max-w-[200px]">{item.title}</span>
             </nav>
           </div>
         </div>
 
-        {/* Hero Section - two column */}
-        <section className="py-10 md:py-20">
+        {/* Hero Section - two column with 3D card */}
+        <section className="py-10 md:py-20 relative overflow-hidden">
+          {/* 3D background particles */}
+          <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+            <ThreeParticlesBg />
+          </div>
           <PageTransition>
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
                 {/* Left: Content */}
                 <div>
                   <div
                     className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-6"
-                    style={{ backgroundColor: `${accent}15` }}
+                    style={{ backgroundColor: `${accent}20` }}
                   >
                     {isArcgis
                       ? <Map size={20} style={{ color: accent }} />
@@ -121,7 +126,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
                     }
                   </div>
 
-                  <h1 className="text-2xl md:text-4xl font-bold text-black mb-1.5 md:mb-2 leading-tight">
+                  <h1 className="text-2xl md:text-4xl font-bold text-white mb-1.5 md:mb-2 leading-tight">
                     {item.title}
                   </h1>
 
@@ -131,7 +136,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
                     </p>
                   )}
 
-                  <p className="text-black/55 text-sm md:text-base leading-relaxed mb-5 md:mb-8">
+                  <p className="text-white/50 text-sm md:text-base leading-relaxed mb-5 md:mb-8">
                     {item.description ?? "Detail proyek tidak tersedia."}
                   </p>
 
@@ -150,7 +155,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
                     )}
                     <Link
                       href="/contact"
-                      className="inline-flex items-center gap-2 px-5 md:px-7 py-2.5 md:py-3.5 rounded-xl font-semibold border-2 border-black/10 text-black/70 text-sm hover:border-black hover:text-black transition-all duration-200"
+                      className="inline-flex items-center gap-2 px-5 md:px-7 py-2.5 md:py-3.5 rounded-xl font-semibold border-2 border-white/15 text-white/70 text-sm hover:border-white/40 hover:text-white transition-all duration-200"
                     >
                       Diskusikan Proyek Serupa
                     </Link>
@@ -159,7 +164,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
                   <div className="mt-4 md:mt-6">
                     <Link
                       href="/portfolio"
-                      className="inline-flex items-center gap-2 text-xs text-black/30 hover:text-black transition-colors group"
+                      className="inline-flex items-center gap-2 text-xs text-white/25 hover:text-white transition-colors group"
                     >
                       <ArrowLeft size={12} className="transition-transform group-hover:-translate-x-1" />
                       Kembali ke Portofolio
@@ -167,37 +172,23 @@ export default async function PortfolioSlugPage({ params }: Props) {
                   </div>
                 </div>
 
-                {/* Right: Thumbnail */}
+                {/* Right: 3D Card instead of static image */}
                 <div className="order-first lg:order-last">
-                  <div
-                    className="relative w-full rounded-2xl overflow-hidden"
-                    style={{
-                      aspectRatio: "16/9",
-                      border: `2px solid ${accent}`,
-                      boxShadow: `0 24px 64px ${accent}22`
-                    }}
-                  >
-                    {thumbnail ? (
-                      <Image
-                        src={thumbnail}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                        priority
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-full flex flex-col items-center justify-center gap-3"
-                        style={{ backgroundColor: `${accent}08` }}
-                      >
-                        {isArcgis
-                          ? <Map size={40} style={{ color: accent, opacity: 0.25 }} />
-                          : <Globe size={40} style={{ color: accent, opacity: 0.25 }} />
-                        }
-                        <span className="text-sm text-black/25">Belum ada gambar</span>
+                  <div className="relative w-full rounded-2xl overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                    <ThreeCard color={accent} height={320} className="w-full h-full" />
+                    {/* Overlay with project info */}
+                    <div className="absolute inset-0 flex flex-col items-end justify-end p-4 md:p-6 pointer-events-none">
+                      <div className="text-right">
+                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: accent }}>
+                          {isArcgis ? "ARCGIS" : "IT KONSULTING"}
+                        </span>
+                        {item.category && (
+                          <span className="ml-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${accent}20`, color: accent }}>
+                            {item.category}
+                          </span>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
 
@@ -208,9 +199,12 @@ export default async function PortfolioSlugPage({ params }: Props) {
 
         {/* Feature + Tech Tabs */}
         {(features.length > 0 || techStack.length > 0) && (
-          <section className="pb-12 md:pb-20">
+          <section className="pb-12 md:pb-20 relative">
+            <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] bg-[#ea580c] opacity-[0.05] blur-3xl rounded-full" />
+            </div>
             <PageTransition delay={150}>
-              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <FeatureTabs features={features} techStack={techStack} accent={accent} />
               </div>
             </PageTransition>

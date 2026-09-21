@@ -1,32 +1,23 @@
-import type React from "react"
-import PageTransition from "@/components/page-transition"
+"use client";
+
+import type React from "react";
+import PageTransition from "@/components/page-transition";
+import ThreeParticlesBg from "@/components/three-particles-bg";
 
 interface PageHeroProps {
-  /** Banner desktop di /public/banners/ — ganti file, nama dipertahankan. Rasio 1920x600 px. */
-  image: string
-  /**
-   * Banner khusus layar kecil, rasio 2:1 (900x450 px). Banner desktop yang
-   * sangat lebar (3.2:1) harus dipotong hampir separuh lebarnya agar muat di
-   * layar ponsel, sehingga gambarnya tampak ter-zoom. Versi 2:1 nyaris tidak
-   * terpotong. Kalau dikosongkan, banner desktop tetap dipakai.
-   */
-  imageMobile?: string
-  imageAlt?: string
-  eyebrow?: string
-  title: string
-  subtitle?: string
-  /** Konten tambahan di bawah subtitle (tombol, statistik, breadcrumb, dll.) */
-  children?: React.ReactNode
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  children?: React.ReactNode;
+  className?: string;
 }
 
 export default function PageHero({
-  image,
-  imageMobile,
-  imageAlt = "",
   eyebrow,
   title,
   subtitle,
   children,
+  className = "",
 }: PageHeroProps) {
   return (
     <section className="relative bg-carbon overflow-hidden min-h-[170px] md:min-h-[380px] flex items-center">
@@ -62,7 +53,6 @@ export default function PageHero({
                 {eyebrow}
               </span>
             )}
-            {/* Bayangan teks menjaga keterbacaan di atas scrim tipis versi ponsel */}
             <h1
               className="text-[20px] md:text-5xl font-bold text-white mb-1.5 md:mb-2 leading-tight"
               style={{ textShadow: "0 2px 10px rgba(28,35,33,0.85)" }}
@@ -85,5 +75,5 @@ export default function PageHero({
       {/* Garis aksen bawah */}
       <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-steel/60 to-transparent" />
     </section>
-  )
+  );
 }

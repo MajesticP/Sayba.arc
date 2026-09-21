@@ -92,7 +92,7 @@ export default function ServiceDetailClient({ slug }: { slug: string }) {
       buttons.push({
         text: btnText,
         link: serviceData[`Button ${btnIndex} Link`] || "/contact",
-        color: serviceData[`Button ${btnIndex} Color`] || serviceData["Button Color"] || "#ff914d",
+        color: serviceData[`Button ${btnIndex} Color`] || serviceData["Button Color"] || "#ea580c",
         textColor: serviceData[`Button ${btnIndex} Text Color`] || "#ffffff",
       })
       btnIndex++
@@ -201,7 +201,7 @@ export default function ServiceDetailClient({ slug }: { slug: string }) {
   const bgColor = serviceData["Background Color"] || "#ffffff"
   const titleColor = serviceData["Title Color"] || "#313030"
   const textColor = serviceData["Text Color"] || "#666666"
-  const buttonColor = serviceData["Button Color"] || getValue("Header Button Color") || "#ff914d"
+  const buttonColor = serviceData["Button Color"] || getValue("Header Button Color") || "#ea580c"
   const cardColor = serviceData["Card Color"] || "#f8f8f8"
 
   const customTabs = parseCustomTabs()

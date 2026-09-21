@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
+import ThreeGlobe from "./three-globe"
 
 interface AboutData {
   title: string; description: string
@@ -39,7 +40,7 @@ export default function About({ data }: { data: AboutData }) {
   return (
     <section className="py-8 md:py-24 bg-platinum" id="about">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-20 items-center">
 
           {/* Stats panel */}
           <div ref={left.ref} className={`relative transition-all duration-700 ease-out ${left.inView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"}`}>
@@ -64,7 +65,7 @@ export default function About({ data }: { data: AboutData }) {
           </div>
 
           {/* Text */}
-          <div ref={right.ref} className={`space-y-3.5 md:space-y-6 transition-all duration-700 ease-out ${right.inView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"}`} style={{ transitionDelay: "150ms" }}>
+          <div ref={right.ref} className={`space-y-6 md:space-y-8 transition-all duration-700 ease-out ${right.inView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"}`} style={{ transitionDelay: "150ms" }}>
             <div>
               <span className="inline-block text-[10px] font-bold text-slate-brand uppercase tracking-widest mb-1.5">Tentang Kami</span>
               <div className={`h-px bg-steel/40 mb-2.5 transition-all duration-1000 ${right.inView ? "w-16" : "w-0"}`} style={{ transitionDelay: "300ms" }} />

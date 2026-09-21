@@ -7,6 +7,7 @@ import PageHero from "@/components/page-hero"
 import PageTransition from "@/components/page-transition"
 import { supabase } from "@/lib/supabase"
 import type { Portfolio } from "@/lib/database.types"
+import ThreeCard from "@/components/three-card"
 import { ArrowRight } from "lucide-react"
 
 export const metadata: Metadata = {
@@ -61,45 +62,35 @@ export default async function PortfolioPage() {
   return (
     <main className="min-h-screen flex flex-col">
       <Header navItems={navItems} />
-
-      {/* Hero */}
       <PageHero
-        image="/banners/portfolio-1920x600.webp"
-        imageMobile="/banners/portfolio-mobile-900x450.webp"
         eyebrow="Karya Kami"
         title="Portofolio"
         subtitle="Hasil kerja nyata dari berbagai proyek yang telah kami selesaikan untuk klien."
       />
-
-      {/* Grid */}
-      <section className="py-6 md:py-20 bg-white flex-1">
+      <section className="py-6 md:py-20 bg-[#0a0a0a] flex-1">
         <PageTransition delay={100}>
           <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
             {items.length === 0 ? (
-              <p className="text-center text-black/40 py-16">Belum ada portofolio yang tersedia.</p>
+              <p className="text-center text-white/30 py-16">Belum ada portofolio yang tersedia.</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
                 {items.map((item) => {
-                  const thumbnail = convertDriveUrl(item.image_url)
                   const dept = deptMap.get(item.dept) ?? fallback
                   return (
-                    <PortfolioCard
+                    <PortfolioCard3D
                       key={item.id}
                       item={item}
-                      thumbnail={thumbnail}
                       dept={dept}
-                      hexToRgba={hexToRgba}
                     />
                   )
                 })}
               </div>
             )}
-
             <div className="mt-8 md:mt-16 text-center">
-              <p className="text-black/40 text-[12px] mb-3">Tertarik dengan proyek serupa?</p>
+              <p className="text-white/30 text-[12px] mb-3">Tertarik dengan proyek serupa?</p>
               <Link
                 href="/contact"
-                className="inline-block px-7 py-2.5 rounded-xl font-semibold bg-black text-white hover:bg-[#ff914d] transition-all duration-200 hover:scale-105 text-[13px]"
+                className="inline-block px-7 py-2.5 rounded-xl font-semibold bg-[#ea580c] text-white hover:bg-[#c2410c] transition-all duration-200 hover:scale-105 text-[13px]"
               >
                 Diskusikan Proyek Anda
               </Link>
@@ -107,94 +98,46 @@ export default async function PortfolioPage() {
           </div>
         </PageTransition>
       </section>
-
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />
     </main>
   )
 }
 
-function PortfolioCard({ item, thumbnail, dept, hexToRgba }: {
-  item: Portfolio
-  thumbnail: string | null
-  dept: DeptConfig
-  hexToRgba: (hex: string, alpha: number) => string
-}) {
+function PortfolioCard3D({ item, dept }: { item: Portfolio; dept: DeptConfig }) {
   const color = dept.color
 
   return (
     <Link
       href={`/portfolio/${item.slug}`}
-      className="portfolio-card group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden rounded-xl border border-black/8 w-full flex flex-col"
-      style={{
-        "--dept-color": color,
-        "--dept-color-30": hexToRgba(color, 0.3),
-        "--dept-color-08": hexToRgba(color, 0.08),
-      } as React.CSSProperties}
+      className="group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden rounded-xl border border-white/10 w-full flex flex-col bg-white/[0.03] hover:bg-white/[0.06]"
     >
-      {/* Thumbnail — hard-capped height */}
-      <div
-        className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "180px" }}
-      >
-        {thumbnail ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={thumbnail}
-            alt={item.title}
-            className="w-full object-cover transition-transform duration-500 group-hover:scale-105 block"
-            style={{ height: "100%" }}
-          />
-        ) : (
-          <div
-            className="w-full h-full flex items-center justify-center"
-            style={{ backgroundColor: hexToRgba(color, 0.08) }}
-          >
-            <span className="text-3xl opacity-20">🗂️</span>
-          </div>
-        )}
-
-        {/* Dept badge */}
-        <div className="absolute top-2 left-2">
+      <ThreeCard color={color} height={200} className="w-full rounded-none" />
+      <div className="flex flex-col p-4">
+        <div className="flex items-center gap-2 mb-2">
           <span
-            className="text-[9px] font-bold px-2 py-0.5 rounded-full text-white backdrop-blur-sm"
-            style={{ backgroundColor: hexToRgba(color, 0.88) }}
+            className="text-[9px] font-bold px-2 py-0.5 rounded-full text-white"
+            style={{ backgroundColor: color }}
           >
             {dept.label.toUpperCase()}
           </span>
+          {item.category && (
+            <span
+              className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+              style={{ backgroundColor: `${color}18`, color }}
+            >
+              {item.category}
+            </span>
+          )}
         </div>
-
-        {/* Bottom color bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: color }} />
-      </div>
-
-      {/* Content — hard-capped at remaining 130px, clipped */}
-      <div
-        className="flex flex-col p-4 flex-1"
-      >
-        {item.category && (
-          <span
-            className="inline-flex text-[9px] font-bold px-1.5 py-0.5 rounded-full w-fit mb-1 flex-shrink-0"
-            style={{ backgroundColor: hexToRgba(color, 0.1), color }}
-          >
-            {item.category}
-          </span>
-        )}
-
-        <h3 className="text-[14px] font-bold text-black mb-1.5 leading-snug line-clamp-2 flex-shrink-0">
+        <h3 className="text-[14px] font-bold text-white mb-1.5 leading-snug line-clamp-2">
           {item.title}
         </h3>
-
         {item.description && (
-          <p
-            className="text-black/50 text-[12px] leading-relaxed line-clamp-3"
-          >
+          <p className="text-white/40 text-[12px] leading-relaxed line-clamp-3">
             {item.description}
           </p>
         )}
-
-        <div
-          className="mt-auto flex items-center gap-1 text-[10px] font-semibold flex-shrink-0 pt-1"
-          style={{ color }}
-        >
+        <div className="mt-auto flex items-center gap-1 text-[10px] font-semibold pt-2" style={{ color }}>
           Lihat Detail
           <ArrowRight size={10} className="transition-transform duration-200 group-hover:translate-x-1" />
         </div>

@@ -24,8 +24,8 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-6 md:gap-10 mb-5 md:mb-12">
 
           {/* Brand */}
-          <div className="col-span-2 order-1">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="col-span-2 md:col-span-1">
+            <div className="flex items-center gap-2.5 mb-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo-256.png" alt={siteConfig.name} width={32} height={32} loading="lazy" decoding="async" className="w-8 h-8 rounded-md object-contain opacity-90" />
               <span className="font-bold text-platinum text-[15px]">{siteConfig.name}</span>
@@ -36,6 +36,12 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
               <span className="text-[10px] px-2 py-0.5 rounded-full border border-steel/30 text-powder/70">Digital & Engineering</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full border border-platinum/10 text-platinum/30">Solusi Teknis</span>
             </div>
+            <p className="text-[11px] leading-relaxed mb-2 max-w-xs text-white/40">Art You Believe — Digital & Engineering dari Pontianak</p>
+            <p className="text-[10px] text-white/25">{siteConfig.address}</p>
+            <div className="flex flex-wrap gap-1.5 mt-4">
+                          <span className="text-[9px] px-2 py-0.5 rounded-full border border-[#ea580c]/30 text-[#ea580c]/70">Digital & Engineering</span>
+                          <span className="text-[9px] px-2 py-0.5 rounded-full border border-white/10 text-white/25">Solusi Teknis</span>
+                        </div>
           </div>
 
           {/* Nav — di ponsel setiap blok melebar penuh dan dipisah garis tipis
@@ -93,11 +99,11 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
               <img
                 src={legalitas.ossLogo}
                 alt="Logo OSS"
-                width={18}
-                height={18}
+                width={16}
+                height={16}
                 loading="lazy"
                 decoding="async"
-                className="w-[18px] h-[18px] rounded object-contain flex-shrink-0"
+                className="w-[16px] h-[16px] rounded object-contain flex-shrink-0"
               />
               <span className="text-[10.5px] text-platinum/45 leading-tight">{legalitas.ossLabel}</span>
             </div>
@@ -111,8 +117,8 @@ export default function Footer({ footerLinks, socialLinks }: FooterProps) {
                 <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 {siteConfig.email}
               </a>
-              <p className="flex items-center gap-1.5 text-[12px]">
-                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+              <p className="flex items-center gap-1.5 text-[11px] text-white/40">
+                <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                 {siteConfig.phone}
               </p>
             </div>

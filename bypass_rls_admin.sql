@@ -1,0 +1,4 @@
+-- Create a policy to let the admin role bypass RLS fully
+-- But wait, you're using supabaseAdmin (Service Role Key) which naturally bypasses RLS
+-- So RLS isn't blocking the admin API, but the PUBLIC queries might be slow because
+-- RLS overhead applies to them. Let's see if we can optimize the public RLS policies.

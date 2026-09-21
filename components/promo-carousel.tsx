@@ -11,7 +11,7 @@ interface PromoCarouselProps {
   interval?: number
 }
 
-/** Link Google Drive → proxy gambar lokal, sama seperti layanan/informasi */
+/** Link Google Drive → proxy gambar lokal, sama seperti layanan/produk */
 function gdriveToImg(url: string): string {
   if (!url) return url
   if (url.startsWith("/api/gdrive-img")) return url
