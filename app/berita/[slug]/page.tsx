@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { isGambarContoh } from "@/lib/image-path"
 import { BoardSection } from "@/components/cutting-board-bg"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -31,6 +32,7 @@ export const revalidate = 60
 
 /** Link Google Drive → proxy gambar lokal */
 function gdriveToImg(url: string | null): string {
+  if (url && isGambarContoh(url)) return ""
   return gdriveToProxy(url) || ""
 }
 

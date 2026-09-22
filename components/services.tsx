@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { isGambarContoh } from "@/lib/image-path"
 import { ArrowRight, Check } from "lucide-react"
 import { BoardSection } from "@/components/cutting-board-bg"
 import type { Layanan } from "@/lib/database.types"
@@ -17,7 +18,7 @@ import type { LayananDept } from "@/lib/layanan-config"
 
 /** Link Google Drive → proxy gambar lokal */
 function gdriveToImg(url: string | null): string | null {
-  if (!url) return null
+  if (!url || isGambarContoh(url)) return null
   if (url.startsWith("/api/gdrive-img")) return url
   const fileMatch = url.match(/\/d\/([\w-]+)/)
   if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`

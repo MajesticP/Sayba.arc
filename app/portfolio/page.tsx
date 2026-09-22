@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { isGambarContoh } from "@/lib/image-path"
 import Link from "next/link"
 import { siteConfig, navItems, footerLinks, socialLinks, ogImage } from "@/lib/data"
 import Header from "@/components/header"
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
 interface DeptConfig { value: string; label: string; color: string }
 
 function convertDriveUrl(url: string | null): string | null {
-  if (!url || url === "-") return null
+  if (!url || url === "-" || isGambarContoh(url)) return null
   if (url.startsWith("/api/gdrive-img")) return url
   const match1 = url.match(/\/file\/d\/([\w-]+)/)
   if (match1) return `/api/gdrive-img?id=${match1[1]}`

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { isGambarContoh } from "@/lib/image-path"
 import Link from "next/link"
 import {
   ArrowRight,
@@ -14,6 +15,8 @@ import type { ContentBlock, Layanan } from "@/lib/database.types"
 
 /** Link Google Drive → proxy gambar lokal */
 function gdriveToImg(url: string | null): string | null {
+  // Path gambar contoh dari versi lama diperlakukan sebagai "belum ada gambar".
+  if (url && isGambarContoh(url)) return null
   if (!url) return null
   if (url.startsWith("/api/gdrive-img")) return url
   const fileMatch = url.match(/\/d\/([\w-]+)/)

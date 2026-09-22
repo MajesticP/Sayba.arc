@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { isGambarContoh } from "@/lib/image-path"
 import Link from "next/link"
 import { BoardSection } from "@/components/cutting-board-bg"
 import type { PromoBanner } from "@/lib/database.types"
@@ -14,7 +15,7 @@ interface PromoCarouselProps {
 
 /** Link Google Drive → proxy gambar lokal, sama seperti layanan/informasi */
 function gdriveToImg(url: string): string {
-  if (!url) return url
+  if (!url || isGambarContoh(url)) return ""
   if (url.startsWith("/api/gdrive-img")) return url
   const fileMatch = url.match(/\/d\/([\w-]+)/)
   if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
@@ -38,7 +39,10 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
   const [reduceMotion, setReduceMotion] = useState(false)
   const touchStartX = useRef<number | null>(null)
 
-  const count = slides.length
+  // Banner tanpa gambar sah tidak ditampilkan: banner kosong lebih buruk
+  // daripada tidak ada banner, dan berkas contoh sudah dihapus dari /public.
+  const sah = slides.filter((sl) => gdriveToImg(sl.image_url) !== "")
+  const count = sah.length
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -96,7 +100,7 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
           className="flex transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)]"
           style={{ transform: `translateX(-${index * 100}%)` }}
         >
-          {slides.map((slide) => {
+          {sah.map((slide) => {
             const hasCopy = Boolean(slide.title || slide.eyebrow || slide.subtitle)
             const cta = slide.cta_text && slide.cta_href ? { text: slide.cta_text, href: slide.cta_href } : null
             const body = (
@@ -207,7 +211,7 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
             dot visualnya tetap kecil di tengah. */}
         {count > 1 && (
           <div className="absolute bottom-2 md:bottom-3 left-1/2 -translate-x-1/2 flex items-center px-1 rounded-full bg-navy/60 backdrop-blur-sm border border-ice/15">
-            {slides.map((slide, i) => (
+            {sah.map((slide, i) => (
               <button
                 key={slide.id}
                 type="button"

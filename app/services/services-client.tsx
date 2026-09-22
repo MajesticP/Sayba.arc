@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { isGambarContoh } from "@/lib/image-path"
 import Link from "next/link"
 import { ArrowRight, ImageIcon, Search } from "lucide-react"
 import PageTransition from "@/components/page-transition"
@@ -12,6 +13,8 @@ import type { KategoriItem } from "@/lib/kategori"
 
 /** Link Google Drive → proxy gambar lokal, sama seperti berita/informasi */
 function gdriveToImg(url: string | null): string | null {
+  // Path gambar contoh dari versi lama diperlakukan sebagai "belum ada gambar".
+  if (url && isGambarContoh(url)) return null
   if (!url) return null
   if (url.startsWith("/api/gdrive-img")) return url
   const fileMatch = url.match(/\/d\/([\w-]+)/)

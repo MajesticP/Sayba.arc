@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { isGambarContoh } from "@/lib/image-path"
 import { BoardSection } from "@/components/cutting-board-bg"
 import { notFound } from "next/navigation"
 import Image from "next/image"
@@ -14,7 +15,10 @@ import { generatePortfolioSchema, generateBreadcrumbSchema } from "@/lib/structu
 import { buildSeoMetadata } from "@/lib/seo"
 
 function resolveThumbnail(url: string | null): string | null {
-  return !url || url === "-" ? null : url
+  // Path gambar contoh dari versi lama diperlakukan sebagai "belum ada gambar",
+  // karena berkasnya sudah dihapus dari /public.
+  if (!url || url === "-" || isGambarContoh(url)) return null
+  return url
 }
 
 type Props = { params: Promise<{ slug: string }> }
