@@ -26,10 +26,16 @@
   --ice-dim: #ebeff5;   /* section pembeda (sedikit lebih gelap) */
   --ice-line: #d8e0ea;  /* garis pemisah di latar terang */
 
-  /* ── Permukaan panel melayang ── */
+  /* ── Permukaan panel melayang ──
+     Meja dan lembar kerja sengaja dibedakan nada: meja lebih gelap, panel
+     putih bersih. Tanpa selisih ini, panel putih di atas meja terang terbaca
+     menyatu dan batas "lembar di atas meja" hilang. */
   --panel: #ffffff;           /* lembar kerja yang mengambang di atas meja */
-  --panel-line: #e2e8f0;      /* garis tepi panel */
-  --panel-shadow: rgba(17, 42, 70, 0.10); /* bayangan panel, diturunkan dari navy */
+  --panel-line: #d5dee9;      /* garis tepi panel, sedikit lebih tegas */
+  --panel-shadow: rgba(17, 42, 70, 0.16); /* bayangan panel, diturunkan dari navy */
+  --mat: #dde4ec;             /* permukaan meja potong: lebih gelap dari panel */
+  --mat-line: rgba(17, 42, 70, 0.16);   /* garis kisi halus di meja */
+  --mat-line-bold: rgba(17, 42, 70, 0.26); /* garis kisi tegas tiap 5 satuan */
 
   /* ── Warna pendukung (diturunkan dari palet inti, hue dipertahankan) ── */
   --slate: #5a5c62;       /* teks sekunder di latar terang, 6.17:1 di ice */
@@ -236,13 +242,22 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-color: var(--ice);
+  background-color: var(--mat);
+  /* Enam lapis kisi, meniru meja potong self-healing: 1 satuan halus (14px)
+     dan 5 satuan tegas (70px) sebagai kisi utama, ditambah kisi pendukung
+     28px dan 140px. Garisnya lebih tegas dari versi sebelumnya supaya motif
+     meja benar-benar terbaca, bukan samar seperti tekstur kertas. */
   background-image:
-    linear-gradient(to right, rgba(17, 42, 70, 0.050) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(17, 42, 70, 0.050) 1px, transparent 1px),
-    linear-gradient(to right, rgba(17, 42, 70, 0.085) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(17, 42, 70, 0.085) 1px, transparent 1px);
-  background-size: 28px 28px, 28px 28px, 140px 140px, 140px 140px;
+    linear-gradient(to right, var(--mat-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--mat-line) 1px, transparent 1px),
+    linear-gradient(to right, var(--mat-line-bold) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--mat-line-bold) 1px, transparent 1px),
+    linear-gradient(to right, var(--mat-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--mat-line) 1px, transparent 1px);
+  background-size:
+    14px 14px, 14px 14px,
+    70px 70px, 70px 70px,
+    140px 140px, 140px 140px;
 }
 
 /* Garis ukur tepi meja: garis putus-putus tipis di kiri dan kanan layar.
@@ -254,8 +269,8 @@
   inset: 0;
   pointer-events: none;
   background-image:
-    repeating-linear-gradient(to bottom, rgba(17, 42, 70, 0.15) 0 1px, transparent 1px 9px),
-    repeating-linear-gradient(to bottom, rgba(17, 42, 70, 0.15) 0 1px, transparent 1px 9px);
+    repeating-linear-gradient(to bottom, rgba(17, 42, 70, 0.28) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(to bottom, rgba(17, 42, 70, 0.28) 0 1px, transparent 1px 10px);
   background-size: 1px 100%, 1px 100%;
   background-position: 15px 0, calc(100% - 15px) 0;
   background-repeat: no-repeat;
@@ -508,6 +523,20 @@
 /* ════════════════════════════════════════════════════════════════════════
    Utilitas
    ════════════════════════════════════════════════════════════════════════ */
+/* Kolom pencarian: matikan tombol X bawaan browser.
+   Browser menambahkan tombol bersihkan sendiri untuk input bertipe search,
+   dan karena kita sudah punya tombol X sendiri, hasilnya jadi dua X. Karena
+   itu input memakai type="text" inputMode="search" plus aturan ini sebagai
+   jaring pengaman untuk Safari dan Edge yang tetap menggambarnya. */
+.search-no-native-clear::-webkit-search-cancel-button,
+.search-no-native-clear::-webkit-search-decoration,
+.search-no-native-clear::-webkit-search-results-button,
+.search-no-native-clear::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 

@@ -134,7 +134,7 @@ function tabLabel(t: Tab) {
   if (t === "portfolio") return "Portofolio"
   if (t === "layanan") return "Layanan"
   if (t === "informasi") return "Informasi"
-  if (t === "kategori") return "Kategori Informasi"
+  if (t === "kategori") return "Kategori"
   if (t === "berita") return "Berita"
   if (t === "promo") return "Banner"
   if (t === "tim") return "Tim"
@@ -161,6 +161,11 @@ export default function AdminDashboard() {
 
   const [katModal, setKatModal] = useState(false)
   const [katEdit, setKatEdit] = useState<KategoriRow | null>(null)
+  // Modal departemen: dipakai saat sub-tab Departemen aktif.
+  const [deptModal, setDeptModal] = useState(false)
+  const [deptEdit, setDeptEdit] = useState<LayananDept | null>(null)
+  // Sub-tab di dalam tab Kategori: satu tempat untuk empat cakupan.
+  const [katScope, setKatScope] = useState<KategoriScope | "departemen">("layanan")
   const [search, setSearch] = useState("")
   const [showSearch, setShowSearch] = useState(false)
 
@@ -205,8 +210,10 @@ export default function AdminDashboard() {
   const [brEdit, setBrEdit] = useState<Berita | null>(null)
   const [pmModal, setPmModal] = useState(false)
   const [pmEdit, setPmEdit] = useState<PromoBanner | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<{ table: Tab; id: string; name: string } | null>(null)
-  const deleteRef = useRef<{ table: Tab; id: string; name: string } | null>(null)
+  // `table` bisa "tipe" untuk departemen: datanya di tabel layanan_depts,
+  // bukan salah satu dari tabel konten biasa.
+  const [deleteTarget, setDeleteTarget] = useState<{ table: Tab | "tipe"; id: string; name: string; scope?: KategoriScope } | null>(null)
+  const deleteRef = useRef<{ table: Tab | "tipe"; id: string; name: string; scope?: KategoriScope } | null>(null)
 
   const showToast = useCallback((msg: string, type: "success" | "error" = "success") => {
     const id = ++toastCounter.current
@@ -302,6 +309,8 @@ export default function AdminDashboard() {
   })
 
   const filteredKategori = kategoriData.filter(k => {
+    // Hanya kategori dari cakupan yang sedang dibuka.
+    if (k.scope !== katScope) return false
     if (!search) return true
     const q = search.toLowerCase()
     return k.label.toLowerCase().includes(q)
@@ -316,6 +325,15 @@ export default function AdminDashboard() {
     if (!target || deleting) return
     setDeleting(true)
     try {
+      // Departemen dihapus lewat endpoint sendiri karena tabelnya berbeda.
+      if ((target.table as string) === "tipe") {
+        const res = await fetch(`/api/admin/tipe?value=${encodeURIComponent(target.id)}`, { method: "DELETE" })
+        if (!res.ok) throw new Error((await res.json()).error ?? "Gagal menghapus departemen")
+        setDeleteTarget(null); deleteRef.current = null
+        fetchDepts(); fetchLayanan()
+        showToast("Departemen dihapus")
+        return
+      }
       // Kategori informasi memakai kolom `slug` sebagai kunci, bukan `id`.
       const res = target.table === "kategori"
         ? await fetch(`/api/admin/kategori?scope=${encodeURIComponent((target as { scope?: string }).scope ?? "informasi")}&slug=${encodeURIComponent(target.id)}`, { method: "DELETE" })
@@ -348,6 +366,11 @@ export default function AdminDashboard() {
   }
 
   const handleAdd = () => {
+    // Sub-tab Departemen punya modalnya sendiri: datanya di tabel
+    // layanan_depts, bukan tabel kategori.
+    if (tab === "kategori" && katScope === "departemen") {
+      setDeptEdit(null); setDeptModal(true); return
+    }
     if (tab === "portfolio") { setPfEdit(null); setPfModal(true) }
     else if (tab === "layanan") { setLvEdit(null); setLvModal(true) }
     else if (tab === "informasi") { setInEdit(null); setInModal(true) }
@@ -481,7 +504,11 @@ export default function AdminDashboard() {
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold bg-powder text-carbon hover:bg-steel transition-all flex-shrink-0"
           >
             <Plus size={13} />
-            <span className="hidden sm:inline">Tambah</span>
+            <span className="hidden sm:inline">
+              {tab === "kategori"
+                ? `Tambah ${KATEGORI_SCOPES.find(x => x.value === katScope)?.label ?? "Kategori"}`
+                : "Tambah"}
+            </span>
           </button>
         </header>
 
@@ -520,6 +547,37 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* Sub-tab Kategori: satu baris pilihan cakupan. Menggantikan
+            keharusan berpindah tab untuk mengurus kategori tiap modul. */}
+        {tab === "kategori" && (
+          <div className="bg-[#242c29] border-b border-white/[0.07] px-3 py-2 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+            {KATEGORI_SCOPES.map(sc => {
+              const jumlah = sc.value === "departemen"
+                ? depts.length
+                : kategoriData.filter(k => k.scope === sc.value).length
+              const aktif = katScope === sc.value
+              return (
+                <button
+                  key={sc.value}
+                  onClick={() => setKatScope(sc.value)}
+                  title={sc.hint}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap flex-shrink-0 transition-all inline-flex items-center gap-1.5",
+                    aktif
+                      ? "bg-powder/10 text-powder ring-1 ring-powder/20"
+                      : "text-white/30 bg-white/[0.03] hover:text-white/50 hover:bg-white/[0.05]"
+                  )}
+                >
+                  {sc.label}
+                  <span className={cn("text-[9.5px] font-bold px-1 py-0.5 rounded", aktif ? "bg-powder/20" : "bg-white/[0.06]")}>
+                    {jumlah}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         {/* Main content */}
         <main className="p-3 sm:p-5 flex-1">
           {/* Stats */}
@@ -538,7 +596,16 @@ export default function AdminDashboard() {
           <div className="bg-[#242c29] border border-white/[0.07] rounded-xl overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.07]">
               <p className="font-bold text-[13px] flex-1 truncate">
-                {tab === "portfolio" ? "Daftar Portofolio" : tab === "layanan" ? "Daftar Layanan" : tab === "informasi" ? "Daftar Informasi" : tab === "kategori" ? "Kategori Informasi" : tab === "berita" ? "Daftar Berita" : tab === "promo" ? "Banner Carousel Beranda" : "Daftar Anggota Tim"}
+                {tab === "portfolio" ? "Daftar Portofolio"
+                  : tab === "layanan" ? "Daftar Layanan"
+                  : tab === "informasi" ? "Daftar Informasi"
+                  : tab === "kategori"
+                    ? (katScope === "departemen"
+                        ? "Daftar Departemen"
+                        : `Kategori ${KATEGORI_SCOPES.find(x => x.value === katScope)?.label ?? ""}`)
+                  : tab === "berita" ? "Daftar Berita"
+                  : tab === "promo" ? "Banner Carousel Beranda"
+                  : "Daftar Anggota Tim"}
               </p>
               <span className="text-[10.5px] text-white/25 flex-shrink-0">
                 {tab === "portfolio" ? filteredPortfolio.length : tab === "layanan" ? filteredLayanan.length : tab === "informasi" ? filteredInformasi.length : tab === "kategori" ? filteredKategori.length : tab === "berita" ? filteredBerita.length : tab === "promo" ? promoData.length : timData.length} item
@@ -564,11 +631,25 @@ export default function AdminDashboard() {
                 onDelete={p => { const t = { table: "informasi" as Tab, id: p.id, name: p.title }; deleteRef.current = t; setDeleteTarget(t) }}
               />
             ) : tab === "kategori" ? (
-              <KategoriTable
-                data={filteredKategori} loading={loadingK}
-                onEdit={k => { setKatEdit(k); setKatModal(true) }}
-                onDelete={k => { const t = { table: "kategori" as Tab, id: k.slug, name: k.label, scope: k.scope }; deleteRef.current = t; setDeleteTarget(t) }}
-              />
+              katScope === "departemen" ? (
+                <DepartemenTable
+                  data={depts} loading={false}
+                  jumlahLayanan={v => layananData.filter(l => l.dept === v).length}
+                  onEdit={d => { setDeptEdit(d); setDeptModal(true) }}
+                  onDelete={d => {
+                    const t = { table: "tipe" as const, id: d.value, name: d.label }
+                    deleteRef.current = t
+                    setDeleteTarget(t)
+                  }}
+                />
+              ) : (
+                <KategoriTable
+                  data={filteredKategori} loading={loadingK}
+                  scopeLabel={KATEGORI_SCOPES.find(x => x.value === katScope)?.label ?? "Kategori"}
+                  onEdit={k => { setKatEdit(k); setKatModal(true) }}
+                  onDelete={k => { const t = { table: "kategori" as Tab, id: k.slug, name: k.label, scope: k.scope }; deleteRef.current = t; setDeleteTarget(t) }}
+                />
+              )
             ) : tab === "berita" ? (
               <BeritaTable
                 data={filteredBerita} loading={loadingB}
@@ -629,7 +710,13 @@ export default function AdminDashboard() {
       <PromoModal open={pmModal} initial={pmEdit} nextOrder={promoData.length + 1} onClose={() => setPmModal(false)}
         onSaved={() => { setPmModal(false); fetchPromo(); showToast(pmEdit ? "Banner diperbarui" : "Banner ditambahkan") }}
         onError={showToast} />
-      <KategoriModal open={katModal} initial={katEdit} onClose={() => setKatModal(false)}
+      <DepartemenModal open={deptModal} initial={deptEdit}
+        onClose={() => setDeptModal(false)}
+        onSaved={() => { setDeptModal(false); fetchDepts(); fetchLayanan(); showToast(deptEdit ? "Departemen diperbarui" : "Departemen ditambahkan") }}
+        onError={showToast} />
+      <KategoriModal open={katModal} initial={katEdit}
+        defaultScope={(katScope === "departemen" ? "layanan" : katScope) as KategoriScope}
+        onClose={() => setKatModal(false)}
         onSaved={() => { setKatModal(false); fetchKategori(); showToast(katEdit ? "Kategori diperbarui" : "Kategori ditambahkan") }}
         onError={showToast} />
 
@@ -1871,12 +1958,14 @@ function SeoFields({
 }
 
 // ── Kategori Informasi Table ────────────────────────────────────────────────
-function KategoriTable({ data, loading, onEdit, onDelete }: {
+function KategoriTable({ data, loading, onEdit, onDelete, scopeLabel }: {
   data: KategoriRow[]; loading: boolean
   onEdit: (k: KategoriRow) => void; onDelete: (k: KategoriRow) => void
+  /** Nama cakupan yang sedang dibuka, dipakai di keadaan kosong. */
+  scopeLabel: string
 }) {
   if (loading) return <TableLoading />
-  if (!data.length) return <TableEmpty label="kategori informasi" />
+  if (!data.length) return <TableEmpty label={`kategori ${scopeLabel.toLowerCase()}`} />
   return (
     <>
       <div className="hidden lg:block overflow-x-auto">
@@ -1944,20 +2033,51 @@ function KategoriTable({ data, loading, onEdit, onDelete }: {
 }
 
 // ── Kategori Informasi Modal ────────────────────────────────────────────────
-const KATEGORI_COLORS = [
-  { color: "#112a46", label: "Navy" },
-  { color: "#5a5c62", label: "Slate" },
-  { color: "#5e7a85", label: "Steel Deep" },
-  { color: "#f07a26", label: "Orange" },
-  { color: "#f07a26", label: "Orange" },
-  { color: "#4a5a63", label: "Operasional" },
+/**
+ * Warna penanda kategori, diambil dari palet situs.
+ *
+ * Warna-warna ini dipakai sebagai GARIS tepi dan tint tipis, bukan sebagai
+ * warna teks: sebagian di antaranya (orange) gagal kontras bila dipakai
+ * menulis di latar terang. Teks label selalu memakai warna palet yang aman.
+ */
+/**
+ * Empat cakupan kategori yang bisa dikelola dari satu tab.
+ *
+ * Dulu hanya tiga (layanan, berita, informasi) dan admin harus berpindah tab
+ * untuk mengurusinya. Sekarang keempatnya ada di satu tempat dengan sub-tab,
+ * termasuk departemen, karena departemen juga berfungsi sebagai pengelompok
+ * di halaman Layanan dan Portofolio.
+ */
+/**
+ * Sub-tab di dalam tab Kategori.
+ *
+ * Tiga pertama adalah cakupan pada tabel `kategori`. Yang keempat, Departemen,
+ * dibaca dari tabel `layanan_depts` karena kolom `layanan.dept` mengacu ke
+ * sana. Dari sisi Anda keduanya satu tempat: pilih sub-tab, kelola, selesai.
+ */
+const KATEGORI_SCOPES: { value: KategoriScope | "departemen"; label: string; hint: string }[] = [
+  { value: "layanan",    label: "Layanan",    hint: "Pengelompokan pekerjaan di halaman Layanan." },
+  { value: "berita",     label: "Berita",     hint: "Pengelompokan artikel di halaman Berita." },
+  { value: "informasi",  label: "Informasi",  hint: "Pengelompokan dokumen di halaman Informasi." },
+  { value: "departemen", label: "Departemen", hint: "Departemen perusahaan. Dipakai untuk mengelompokkan Layanan dan Portofolio." },
 ]
 
-function KategoriModal({ open, initial, onClose, onSaved, onError }: {
+const KATEGORI_COLORS = [
+  { color: "#112a46", label: "Navy" },
+  { color: "#1b3e6b", label: "Navy Terang" },
+  { color: "#2a4a6e", label: "Navy Sedang" },
+  { color: "#5a5c62", label: "Slate" },
+  { color: "#f07a26", label: "Orange" },
+  { color: "#b45610", label: "Orange Tua" },
+]
+
+function KategoriModal({ open, initial, defaultScope, onClose, onSaved, onError }: {
   open: boolean; initial: KategoriRow | null
+  /** Cakupan yang sedang dibuka di sub-tab, dipakai untuk kategori baru. */
+  defaultScope: KategoriScope
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
-  const blank: KategoriRow = { id: "", scope: "informasi", slug: "", label: "", description: "", color: KATEGORI_COLORS[1].color, sort_order: 0, status: "active" }
+  const blank: KategoriRow = { id: "", scope: defaultScope, slug: "", label: "", description: "", color: KATEGORI_COLORS[0].color, sort_order: 0, status: "active" }
   const [form, setForm] = useState<KategoriRow>(blank)
   const [saving, setSaving] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
@@ -1965,9 +2085,13 @@ function KategoriModal({ open, initial, onClose, onSaved, onError }: {
   useEffect(() => {
     if (!open) return
     if (initial) { setForm({ ...initial, description: initial.description ?? "" }); setSlugManual(true) }
-    else { setForm(blank); setSlugManual(false) }
+    else {
+      // Kategori baru selalu masuk ke cakupan yang sedang dibuka.
+      setForm({ id: "", scope: defaultScope, slug: "", label: "", description: "", color: KATEGORI_COLORS[0].color, sort_order: 0, status: "active" })
+      setSlugManual(false)
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initial])
+  }, [open, initial, defaultScope])
 
   const set = <K extends keyof KategoriRow>(k: K, v: KategoriRow[K]) => setForm(f => ({ ...f, [k]: v }))
   const handleLabel = (v: string) => {
@@ -1990,7 +2114,7 @@ function KategoriModal({ open, initial, onClose, onSaved, onError }: {
     // dengan artikel lama yang memakai slug tersebut.
     const res = initial
       ? await fetch(`/api/admin/kategori?scope=${encodeURIComponent(initial.scope ?? form.scope ?? "informasi")}&slug=${encodeURIComponent(initial.slug)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
-      : await fetch("/api/admin/kategori", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...payload, slug: form.slug.trim() }) })
+      : await fetch("/api/admin/kategori", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...payload, scope: form.scope, slug: form.slug.trim() }) })
     setSaving(false)
     if (!res.ok) { onError((await res.json()).error ?? "Gagal menyimpan", "error"); return }
     onSaved()
@@ -1998,8 +2122,44 @@ function KategoriModal({ open, initial, onClose, onSaved, onError }: {
 
   return (
     <Modal open={open} onClose={onClose} maxW="max-w-lg">
-      <ModalHeader icon={<Tag size={15} className="text-powder" />} iconBg="bg-powder/10" title={initial ? "Edit Kategori Informasi" : "Tambah Kategori Informasi"} onClose={onClose} />
+      <ModalHeader icon={<Tag size={15} className="text-powder" />} iconBg="bg-powder/10"
+        title={`${initial ? "Edit" : "Tambah"} Kategori ${KATEGORI_SCOPES.find(x => x.value === (initial?.scope ?? defaultScope))?.label ?? ""}`}
+        onClose={onClose} />
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
+        {/* Cakupan kategori. Saat mengedit, cakupan dikunci: memindahkannya
+            akan memutus kaitan dengan artikel lama yang memakai slug ini. */}
+        <Field label="Dipakai untuk" hint={initial ? "Cakupan tidak bisa dipindah setelah kategori dibuat." : "Pilih modul yang memakai kategori ini."}>
+          {initial ? (
+            <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-[#2d3733] border border-white/[0.07]">
+              <Tag size={12} className="text-powder" />
+              <span className="text-[12.5px] text-white/70">
+                {KATEGORI_SCOPES.find(x => x.value === initial.scope)?.label ?? initial.scope}
+              </span>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {/* Hanya tiga cakupan tabel kategori. Departemen dikelola di
+                  modalnya sendiri karena tabelnya berbeda. */}
+              {KATEGORI_SCOPES.filter(sc => sc.value !== "departemen").map(sc => (
+                <button
+                  key={sc.value}
+                  type="button"
+                  onClick={() => set("scope", sc.value as KategoriScope)}
+                  title={sc.hint}
+                  className={cn(
+                    "px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold border transition-all",
+                    form.scope === sc.value
+                      ? "bg-powder/10 text-powder border-powder/30"
+                      : "bg-[#2d3733] text-white/40 border-white/[0.07] hover:text-white/70 hover:border-white/20"
+                  )}
+                >
+                  {sc.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </Field>
+
         <Field label="Nama Kategori" required hint="Label yang tampil ke pengunjung, mis. “Pengumuman”.">
           <Input value={form.label} onChange={handleLabel} placeholder="Pengumuman" />
         </Field>
@@ -2046,6 +2206,237 @@ function KategoriModal({ open, initial, onClose, onSaved, onError }: {
       </div>
       <ModalFooter>
         <button onClick={onClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
+        <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-powder text-carbon hover:bg-steel transition-all disabled:opacity-50">
+          {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+          {saving ? "Menyimpan…" : "Simpan"}
+        </button>
+      </ModalFooter>
+    </Modal>
+  )
+}
+
+
+// ── Departemen Table ───────────────────────────────────────────────────────
+/**
+ * Daftar departemen layanan.
+ *
+ * Berbeda dari KategoriTable karena datanya di tabel `layanan_depts`, dan
+ * karena satu departemen bisa dipakai banyak layanan: kolom "Dipakai" memberi
+ * tahu berapa, supaya Anda tahu departemen mana yang aman dihapus.
+ */
+function DepartemenTable({ data, loading, jumlahLayanan, onEdit, onDelete }: {
+  data: LayananDept[]
+  loading: boolean
+  /** Berapa layanan yang memakai departemen ini. */
+  jumlahLayanan: (value: string) => number
+  onEdit: (d: LayananDept) => void
+  onDelete: (d: LayananDept) => void
+}) {
+  if (loading) return <TableLoading />
+  if (!data.length) {
+    return (
+      <div className="text-center py-12 px-4">
+        <p className="text-white/50 text-[13px] font-medium mb-1.5">Belum ada departemen</p>
+        <p className="text-white/25 text-[11.5px] max-w-sm mx-auto leading-relaxed">
+          Tekan tombol Tambah Departemen untuk membuat yang pertama. Departemen dipakai
+          untuk mengelompokkan layanan dan portofolio.
+        </p>
+      </div>
+    )
+  }
+  return (
+    <>
+      <div className="hidden lg:block overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-white/[0.05]">
+              {["Departemen", "Kode", "Lingkup Kerja", "Dipakai", "Warna", "Aksi"].map(h => (
+                <th key={h} className="text-left text-[9.5px] font-bold uppercase tracking-widest text-white/20 px-4 py-2.5">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.map(d => {
+              const dipakai = jumlahLayanan(d.value)
+              return (
+                <tr key={d.value} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+                  <td className="px-4 py-3">
+                    <p className="text-[13px] font-medium text-white">{d.label}</p>
+                    {d.description && <p className="text-[11px] text-white/30 mt-0.5 max-w-[300px] truncate">{d.description}</p>}
+                  </td>
+                  <td className="px-4 py-3"><code className="text-[10px] bg-[#2d3733] text-white/40 px-1.5 py-0.5 rounded-md">{d.value}</code></td>
+                  <td className="px-4 py-3">
+                    <span className="text-[12px] text-white/40">{d.scope?.length ?? 0} butir</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1",
+                      dipakai > 0 ? "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20" : "bg-white/[0.04] text-white/30 ring-white/[0.06]")}>
+                      {dipakai} layanan
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-4 h-4 rounded-full border border-white/15 flex-shrink-0" style={{ backgroundColor: d.color }} />
+                      <code className="text-[10px] text-white/35">{d.color}</code>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => onEdit(d)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={12} /></button>
+                      <button onClick={() => onDelete(d)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={12} /></button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Kartu untuk layar kecil */}
+      <div className="lg:hidden divide-y divide-white/[0.05]">
+        {data.map(d => {
+          const dipakai = jumlahLayanan(d.value)
+          return (
+            <div key={d.value} className="p-3.5">
+              <div className="flex items-start gap-3">
+                <span className="w-8 h-8 rounded-lg flex-shrink-0 mt-0.5" style={{ backgroundColor: `${d.color}22`, boxShadow: `inset 0 0 0 1.5px ${d.color}` }} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13.5px] font-medium text-white truncate">{d.label}</p>
+                  <code className="text-[10px] text-white/30">{d.value}</code>
+                  {d.description && <p className="text-[11.5px] text-white/35 mt-1 line-clamp-2">{d.description}</p>}
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1",
+                      dipakai > 0 ? "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20" : "bg-white/[0.04] text-white/30 ring-white/[0.06]")}>
+                      {dipakai} layanan
+                    </span>
+                    <span className="text-[10px] text-white/25">{d.scope?.length ?? 0} lingkup</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <button onClick={() => onEdit(d)} className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white/30 border border-white/[0.07]"><Pencil size={13} /></button>
+                  <button onClick={() => onDelete(d)} className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white/30 border border-white/[0.07]"><Trash2 size={13} /></button>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </>
+  )
+}
+
+
+// ── Departemen Modal ───────────────────────────────────────────────────────
+/**
+ * Form tambah/edit departemen.
+ *
+ * Kode (value) dikunci saat mengedit: kolom `layanan.dept` menyimpan nilai itu,
+ * jadi mengubahnya akan memutus kaitan dengan layanan yang sudah ada. Saat
+ * membuat baru, kode diturunkan otomatis dari nama dan masih bisa disesuaikan.
+ */
+function DepartemenModal({ open, initial, onClose, onSaved, onError }: {
+  open: boolean; initial: LayananDept | null
+  onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
+}) {
+  const [label, setLabel] = useState("")
+  const [value, setValue] = useState("")
+  const [description, setDescription] = useState("")
+  const [color, setColor] = useState(KATEGORI_COLORS[0].color)
+  const [scope, setScope] = useState("")
+  const [sortOrder, setSortOrder] = useState(1)
+  const [kodeManual, setKodeManual] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    if (initial) {
+      setLabel(initial.label); setValue(initial.value)
+      setDescription(initial.description ?? ""); setColor(initial.color)
+      setScope((initial.scope ?? []).join("\n")); setSortOrder(initial.sort_order ?? 1)
+      setKodeManual(true)
+    } else {
+      setLabel(""); setValue(""); setDescription("")
+      setColor(KATEGORI_COLORS[0].color); setScope(""); setSortOrder(1)
+      setKodeManual(false)
+    }
+  }, [open, initial])
+
+  const handleLabel = (v: string) => {
+    setLabel(v)
+    if (!kodeManual) {
+      setValue(v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 40))
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!label.trim()) { onError("Nama departemen wajib diisi", "error"); return }
+    if (!value.trim()) { onError("Kode departemen wajib diisi", "error"); return }
+    setSaving(true)
+    const payload = {
+      label: label.trim(),
+      value: value.trim(),
+      description: description.trim() || null,
+      color,
+      scope,
+      sort_order: Number(sortOrder) || 0,
+    }
+    const res = initial
+      ? await fetch(`/api/admin/tipe?value=${encodeURIComponent(initial.value)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      : await fetch("/api/admin/tipe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+    setSaving(false)
+    if (!res.ok) { onError((await res.json()).error ?? "Gagal menyimpan", "error"); return }
+    onSaved()
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} maxW="max-w-lg">
+      <ModalHeader icon={<Layers size={15} className="text-powder" />} iconBg="bg-powder/10"
+        title={initial ? "Edit Departemen" : "Tambah Departemen"} onClose={onClose} />
+      <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
+        <Field label="Nama Departemen" required hint="Tampil sebagai judul kartu di halaman Layanan, mis. “IT Consultant”.">
+          <Input value={label} onChange={handleLabel} placeholder="IT Consultant" />
+        </Field>
+
+        <Field label="Kode" required
+          hint={initial
+            ? "Kode tidak bisa diubah: layanan yang sudah ada menyimpan kode ini."
+            : "Dipakai di dalam sistem. Diturunkan dari nama, bisa disesuaikan. Huruf kecil, angka, garis bawah."}>
+          <Input value={value} onChange={v => { setKodeManual(true); setValue(v.toLowerCase().replace(/[^a-z0-9_]/g, "")) }}
+            placeholder="it_konsulting" />
+        </Field>
+
+        <Field label="Deskripsi" hint="Penjelasan singkat yang tampil di bawah nama departemen (opsional).">
+          <Input value={description} onChange={setDescription} placeholder="Pengembangan perangkat lunak dan sistem informasi." />
+        </Field>
+
+        <Field label="Lingkup Kerja" hint="Satu butir per baris. Tampil sebagai daftar bercentang di kartu departemen. Boleh dikosongkan.">
+          <textarea
+            value={scope}
+            onChange={e => setScope(e.target.value)}
+            rows={5}
+            placeholder={"Website & aplikasi web\nAplikasi mobile & desktop\nBackend, API, dan basis data"}
+            className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[12.5px] text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors resize-y leading-relaxed"
+          />
+        </Field>
+
+        <Field label="Warna Penanda" hint="Warna aksen dari palet situs, dipakai pada kartu departemen.">
+          <div className="flex flex-wrap gap-2 mt-1">
+            {KATEGORI_COLORS.map(c => (
+              <button key={c.color} type="button" onClick={() => setColor(c.color)} title={c.label}
+                className={cn("w-7 h-7 rounded-full border-2 transition-all", color === c.color ? "border-white scale-110" : "border-transparent hover:scale-105")}
+                style={{ backgroundColor: c.color }} />
+            ))}
+          </div>
+        </Field>
+
+        <Field label="Urutan Tampil" hint="Angka kecil tampil lebih dulu di halaman Layanan.">
+          <input type="number" value={sortOrder} onChange={e => setSortOrder(Number(e.target.value))}
+            className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
+        </Field>
+      </div>
+      <ModalFooter>
+        <button onClick={onClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all">Batal</button>
         <button onClick={handleSubmit} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold bg-powder text-carbon hover:bg-steel transition-all disabled:opacity-50">
           {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
           {saving ? "Menyimpan…" : "Simpan"}

@@ -11,7 +11,7 @@ import CTA from "@/components/cta"
 import Footer from "@/components/footer"
 import { supabase } from "@/lib/supabase"
 import type { Layanan, PromoBanner, Berita, Informasi } from "@/lib/database.types"
-import { LAYANAN_DEPTS } from "@/lib/layanan-config"
+import { getDepts } from "@/lib/layanan-config"
 import { getKategori, kategoriDariDokumen } from "@/lib/kategori"
 import { generateOrganizationSchema, generateLocalBusinessSchema } from "@/lib/structured-data"
 
@@ -33,7 +33,7 @@ export const revalidate = 60
 export default async function Home() {
   // Urutan section di beranda: Hero, Banner Promosi, Layanan, Informasi, Berita.
   // Semua data diambil paralel supaya waktu render tidak menumpuk.
-  const [layananRes, promoRes, beritaRes, informasiRes, kategoriInformasi, kategoriBerita] =
+  const [layananRes, promoRes, beritaRes, informasiRes, kategoriInformasi, kategoriBerita, depts] =
     await Promise.all([
     supabase
       .from("layanan")
@@ -61,6 +61,7 @@ export default async function Home() {
       .limit(5),
     getKategori("informasi"),
     getKategori("berita"),
+    getDepts(),
   ])
 
   if (layananRes.error) console.error("Error fetching layanan:", layananRes.error.message)
@@ -109,7 +110,7 @@ export default async function Home() {
           supaya terbaca sebagai satu tumpukan, bukan halaman terpisah. */}
       <Hero data={hero} />
       <PromoCarousel slides={promoBanners} interval={6000} />
-      <Services allLayanan={allLayanan} depts={LAYANAN_DEPTS} />
+      <Services allLayanan={allLayanan} depts={depts} />
       <InformasiHighlight articles={informasiTerbaru} kategori={kategoriInfo} />
       <NewsHighlight articles={beritaTerbaru} kategori={kategoriBeritaList} />
       <About data={about} />

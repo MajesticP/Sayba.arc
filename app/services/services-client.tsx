@@ -7,7 +7,7 @@ import PageTransition from "@/components/page-transition"
 import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
 import type { Layanan } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
-import { getDeptColor } from "@/lib/layanan-config"
+import { findDeptColor } from "@/lib/layanan-config"
 import type { KategoriItem } from "@/lib/kategori"
 
 /** Link Google Drive → proxy gambar lokal, sama seperti berita/informasi */
@@ -124,12 +124,12 @@ export default function ServicesClient({ allLayanan, depts, kategori }: Props) {
                 aria-hidden="true"
               />
               <input
-                type="search"
+                type="text" inputMode="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Cari layanan…"
                 aria-label="Cari layanan"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-ice-line bg-white text-[14px] text-ink placeholder:text-ink/70 outline-none focus:border-orange focus:ring-2 focus:ring-orange/25 transition-all"
+                className="search-no-native-clear w-full pl-10 pr-4 py-2.5 rounded-xl border border-ice-line bg-white text-[14px] text-ink placeholder:text-ink/70 outline-none focus:border-orange focus:ring-2 focus:ring-orange/25 transition-all"
               />
             </div>
           </div>
@@ -195,7 +195,7 @@ export default function ServicesClient({ allLayanan, depts, kategori }: Props) {
               <div className="space-y-3 md:space-y-4">
                 {items.map((item, i) => (
                   <PageTransition key={item.id} delay={Math.min(i, 6) * 60}>
-                    <ServiceRow item={item} accent={getDeptColor(item.dept)} categoryLabel={labelKategori(item.category)} />
+                    <ServiceRow item={item} accent={findDeptColor(depts, item.dept)} categoryLabel={labelKategori(item.category)} />
                   </PageTransition>
                 ))}
               </div>

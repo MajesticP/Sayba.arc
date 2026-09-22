@@ -8,7 +8,16 @@ import type { Berita } from "@/lib/database.types"
 import type { KategoriItem } from "@/lib/kategori"
 import { formatNewsDate } from "@/lib/news-data"
 
-const FALLBACK_IMG = "/berita/berita-1-800x500.png"
+/**
+ * Gambar cadangan bila berita belum punya foto.
+ *
+ * Sebelumnya ini menunjuk berkas contoh di /public/berita. Berkas contoh itu
+ * sudah dihapus, dan memakai foto contoh sebagai cadangan justru menyesatkan
+ * pembaca (foto proyek lain tampil seolah milik berita ini). Karena itu
+ * cadangannya bukan gambar, melainkan bidang bergaris ukur dengan inisial
+ * judul: jujur bahwa fotonya belum ada, dan tetap rapi.
+ */
+const FALLBACK_IMG = ""
 
 /** Link Google Drive → proxy gambar lokal */
 function gdriveToImg(url: string | null): string {
@@ -99,13 +108,23 @@ export default function NewsHighlight({
                 style={{ transitionDelay: `${i * 100}ms` }}
               >
                 <div className="relative w-full aspect-[8/5] overflow-hidden bg-ice-dim">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={gdriveToImg(article.image_url)}
-                    alt=""
-                    loading="lazy"
-                    className="card-img-fill transition-transform duration-500 group-hover:scale-105"
-                  />
+                  {gdriveToImg(article.image_url) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={gdriveToImg(article.image_url)}
+                      alt=""
+                      loading="lazy"
+                      className="card-img-fill transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    /* Belum ada foto: bidang garis ukur dengan inisial judul.
+                       Bukan foto contoh, supaya tidak menyesatkan pembaca. */
+                    <span className="absolute inset-0 flex items-center justify-center cutting-grid">
+                      <span className="text-[34px] font-bold text-navy/25 select-none" aria-hidden="true">
+                        {article.title.charAt(0)}
+                      </span>
+                    </span>
+                  )}
                   {/* Label kategori: warna kategori jadi garis + tint tipis,
                       teksnya tetap navy supaya selalu lolos kontras. */}
                   <span

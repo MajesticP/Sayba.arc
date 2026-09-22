@@ -122,12 +122,12 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
               aria-hidden="true"
             />
             <input
-              type="search"
+              type="text" inputMode="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari panduan, standar, atau pengumuman…"
               aria-label="Cari informasi"
-              className="w-full pl-11 pr-11 py-3.5 rounded-2xl bg-ice text-[14px] text-ink placeholder:text-ink/50 outline-none focus:ring-2 focus:ring-orange transition-all"
+              className="search-no-native-clear w-full pl-11 pr-11 py-3.5 rounded-2xl bg-ice text-[14px] text-ink placeholder:text-ink/50 outline-none focus:ring-2 focus:ring-orange transition-all"
             />
             {search && (
               <button
@@ -366,7 +366,7 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
                         type="button"
                         onClick={() => setOpenFaq(isOpen ? null : i)}
                         aria-expanded={isOpen}
-                        className="w-full p-4 text-left flex items-start justify-between gap-4"
+                        className="search-no-native-clear w-full p-4 text-left flex items-start justify-between gap-4"
                       >
                         <span className="text-[14px] font-semibold text-navy leading-snug">
                           {faq.q}

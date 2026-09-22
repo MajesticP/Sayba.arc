@@ -108,12 +108,12 @@ export default function NewsList({
               aria-hidden="true"
             />
             <input
-              type="search"
+              type="text" inputMode="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari berita atau topik…"
               aria-label="Cari berita"
-              className="w-full pl-11 pr-11 py-3.5 rounded-2xl bg-ice text-[14px] text-ink placeholder:text-ink/70 outline-none focus:ring-2 focus:ring-orange transition-all"
+              className="search-no-native-clear w-full pl-11 pr-11 py-3.5 rounded-2xl bg-ice text-[14px] text-ink placeholder:text-ink/70 outline-none focus:ring-2 focus:ring-orange transition-all"
             />
             {search && (
               <button

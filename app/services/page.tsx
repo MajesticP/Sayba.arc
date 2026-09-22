@@ -4,7 +4,7 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { supabase } from "@/lib/supabase"
 import type { Layanan } from "@/lib/database.types"
-import { LAYANAN_DEPTS } from "@/lib/layanan-config"
+import { getDepts } from "@/lib/layanan-config"
 import { getKategori, kategoriDariDokumen } from "@/lib/kategori"
 import ServicesClient from "./services-client"
 
@@ -27,13 +27,14 @@ export const metadata: Metadata = {
 export const revalidate = 60
 
 export default async function ServicesPage() {
-  const [layananRes, kategoriDb] = await Promise.all([
+  const [layananRes, kategoriDb, depts] = await Promise.all([
     supabase
       .from("layanan")
       .select("*")
       .eq("status", "active")
       .order("created_at", { ascending: true }),
     getKategori("layanan"),
+    getDepts(),
   ])
 
   if (layananRes.error) console.error("Error fetching layanan:", layananRes.error.message)
@@ -50,7 +51,7 @@ export default async function ServicesPage() {
   return (
     <main className="board-area min-h-screen flex flex-col">
       <Header navItems={navItems} />
-      <ServicesClient allLayanan={allLayanan} depts={LAYANAN_DEPTS} kategori={kategori} />
+      <ServicesClient allLayanan={allLayanan} depts={depts} kategori={kategori} />
       <Footer footerLinks={footerLinks} socialLinks={socialLinks} />
     </main>
   )

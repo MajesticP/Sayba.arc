@@ -3,7 +3,6 @@ import { ArrowRight, Check } from "lucide-react"
 import { BoardSection } from "@/components/cutting-board-bg"
 import type { Layanan } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
-import { getDept } from "@/lib/layanan-config"
 
 /**
  * Services: section Layanan di beranda.

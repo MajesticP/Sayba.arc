@@ -8,6 +8,7 @@ import PageTransition from "@/components/page-transition"
 import { supabase } from "@/lib/supabase"
 import type { Portfolio } from "@/lib/database.types"
 import { ArrowRight } from "lucide-react"
+import { getDepts } from "@/lib/layanan-config"
 import { BoardSection } from "@/components/cutting-board-bg"
 
 export const metadata: Metadata = {
@@ -46,15 +47,17 @@ function hexToRgba(hex: string, alpha: number): string {
 export const revalidate = 60
 
 export default async function PortfolioPage() {
-  const [{ data: portfolioItems, error }, { data: deptRows }] = await Promise.all([
+  const [{ data: portfolioItems, error }, deptRows] = await Promise.all([
     supabase.from("portfolio").select("*").eq("status", "active").order("created_at", { ascending: false }),
-    supabase.from("layanan_depts").select("value, label, color, badge_class").order("sort_order", { ascending: true }),
+    getDepts(),
   ])
   if (error) console.error("Error fetching portfolio:", error)
   const items: Portfolio[] = portfolioItems ?? []
 
+  // Departemen dibaca dari tabel `layanan_depts` lewat helper getDepts(),
+  // jadi departemen yang ditambah dari admin langsung tampil di sini.
   const deptMap = new Map<string, DeptConfig>()
-  for (const row of deptRows ?? []) {
+  for (const row of deptRows) {
     deptMap.set(row.value, { value: row.value, label: row.label, color: row.color ?? "#000000" })
   }
   const fallback: DeptConfig = { value: "unknown", label: "DEPT", color: "#000000" }
@@ -65,8 +68,6 @@ export default async function PortfolioPage() {
 
       {/* Hero */}
       <PageHero
-        image="/banners/portfolio-1920x600.webp"
-        imageMobile="/banners/portfolio-mobile-900x450.webp"
         eyebrow="Karya Kami"
         title="Portofolio"
         subtitle="Hasil kerja nyata dari berbagai proyek yang telah kami selesaikan untuk klien."

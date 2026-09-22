@@ -4,6 +4,17 @@ export type Json = string | number | boolean | null | { [key: string]: Json } | 
  * Scope kategori. Satu tabel `kategori` melayani tiga modul supaya admin
  * hanya perlu mengelola satu daftar.
  */
+/**
+ * Cakupan kategori pada tabel `kategori`. Satu tabel melayani tiga modul:
+ *  - layanan   : kategori pekerjaan di halaman Layanan
+ *  - berita    : kategori artikel Berita
+ *  - informasi : kategori dokumen Informasi
+ *
+ * Departemen TIDAK di sini, melainkan di tabel `layanan_depts`. Alasannya,
+ * kolom `layanan.dept` punya foreign key ke `layanan_depts.value`, jadi
+ * departemen harus berada di tabel itu supaya layanan bisa memakainya.
+ * Di admin keduanya tetap tampil dalam satu tab dengan sub-tab.
+ */
 export type KategoriScope = "layanan" | "berita" | "informasi"
 
 /** Satu blok isi yang bisa disusun bebas dari admin (halaman slug layanan). */
@@ -123,6 +134,10 @@ export type Database = {
           label: string
           description: string | null
           color: string
+          /** Kelas Tailwind opsional untuk lencana departemen. */
+          badge_class: string | null
+          /** Ringkasan lingkup kerja, satu butir per elemen. */
+          sub_categories: string[] | null
           sort_order: number
           created_at: string
         }
@@ -131,6 +146,8 @@ export type Database = {
           label: string
           description?: string | null
           color?: string
+          badge_class?: string | null
+          sub_categories?: string[] | null
           sort_order?: number
           created_at?: string
         }

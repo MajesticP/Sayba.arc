@@ -5,7 +5,7 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { supabase } from "@/lib/supabase"
 import type { Layanan } from "@/lib/database.types"
-import { getDept } from "@/lib/layanan-config"
+import { getDepts, findDept } from "@/lib/layanan-config"
 import { getKategori, resolveKategori } from "@/lib/kategori"
 import { buildSeoMetadata, gdriveToProxy } from "@/lib/seo"
 import ServiceDetailClient from "./service-detail-client"
@@ -51,7 +51,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
   const service = await getService(slug)
   if (!service) notFound()
 
-  const dept = getDept(service.dept)
+  const dept = findDept(await getDepts(), service.dept)
 
   // Label kategori dari tabel `kategori`. Kalau kategori sudah dihapus tapi
   // layanan lama masih memakainya, `resolveKategori` menampilkan slug apa

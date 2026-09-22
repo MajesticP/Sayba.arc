@@ -19,11 +19,19 @@ interface PageProps {
 
 export const revalidate = 60
 
-const FALLBACK_IMG = "/berita/berita-1-800x500.png"
+/**
+ * Halaman detail berita: gambar utama artikel.
+ *
+ * Dulu ada gambar contoh di /public/berita yang dipakai sebagai cadangan.
+ * Berkas contoh itu sudah dihapus, dan memakai foto contoh sebagai cadangan
+ * menyesatkan pembaca (foto proyek lain tampil seolah milik berita ini).
+ * Kalau artikel belum punya foto, bidang gambarnya tidak ditampilkan sama
+ * sekali: judul dan isi tetap terbaca, dan tidak ada gambar palsu.
+ */
 
 /** Link Google Drive → proxy gambar lokal */
 function gdriveToImg(url: string | null): string {
-  return gdriveToProxy(url) || FALLBACK_IMG
+  return gdriveToProxy(url) || ""
 }
 
 function absoluteUrl(url: string): string {
@@ -67,7 +75,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     excerpt: article.excerpt,
     metaDescription: article.meta_description,
     metaKeywords: article.meta_keywords,
-    image: gdriveToProxy(article.og_image) || gdriveToProxy(article.image_url) || FALLBACK_IMG,
+    image: gdriveToProxy(article.og_image) || gdriveToProxy(article.image_url) || "",
     path: `/berita/${article.slug}`,
     canonicalUrl: article.canonical_url,
     type: "article",
@@ -115,7 +123,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
     "@type": "Article",
     headline: article.title,
     description: article.excerpt ?? undefined,
-    image: absoluteUrl(article.og_image || article.image_url || FALLBACK_IMG),
+    image: absoluteUrl(article.og_image || article.image_url || ""),
     datePublished: article.published_at,
     author: { "@type": "Organization", name: article.author },
     publisher: {
@@ -196,10 +204,14 @@ export default async function BeritaDetailPage({ params }: PageProps) {
       {/* ══ ISI ══ */}
       <BoardSection id="isi-artikel" as="article" panelClassName="panel-top-pad">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 lg:px-10 pb-10 md:pb-16">
-          <figure className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-ice-line bg-ice-dim mb-8 md:mb-10">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={heroImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          </figure>
+          {/* Gambar utama: hanya kalau artikel punya foto. Tanpa foto, blok
+              ini tidak ditampilkan sama sekali, bukan diisi gambar contoh. */}
+          {heroImg && (
+            <figure className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-ice-line bg-ice-dim mb-8 md:mb-10">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={heroImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            </figure>
+          )}
 
           <div>
             {blocks.map((block, i) =>

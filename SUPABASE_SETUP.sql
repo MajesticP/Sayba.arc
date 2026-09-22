@@ -56,6 +56,71 @@ create policy "kategori_service_all" on public.kategori
   for all to service_role using (true) with check (true);
 
 
+-- ── 1.1b Departemen Layanan ────────────────────────────────────────────────
+-- Kolom `dept` pada tabel `layanan` mengacu ke sini, jadi tabel ini harus ada
+-- lebih dulu. Departemen bisa ditambah, diubah, dan dihapus dari admin.
+create table if not exists public.layanan_depts (
+  value       text primary key,
+  label       text not null,
+  description text,
+  color       text not null default '#5a5c62',
+  badge_class text,
+  sub_categories text[] not null default '{}',
+  sort_order  integer not null default 0,
+  created_at  timestamptz not null default now()
+);
+
+-- Kolom baru bila tabel sudah ada dari versi sebelumnya
+alter table public.layanan_depts add column if not exists sub_categories text[] not null default '{}';
+alter table public.layanan_depts add column if not exists badge_class text;
+alter table public.layanan_depts add column if not exists sort_order integer not null default 0;
+
+alter table public.layanan_depts enable row level security;
+
+drop policy if exists "depts_public_read" on public.layanan_depts;
+create policy "depts_public_read" on public.layanan_depts for select using (true);
+
+drop policy if exists "depts_auth_all" on public.layanan_depts;
+create policy "depts_auth_all" on public.layanan_depts
+  for all to authenticated using (true) with check (true);
+
+drop policy if exists "depts_service_all" on public.layanan_depts;
+create policy "depts_service_all" on public.layanan_depts
+  for all to service_role using (true) with check (true);
+
+-- Dua departemen awal.
+-- Warna memakai palet Executive Navy (lihat DESIGN.md): orange untuk departemen
+-- pertama, slate untuk kedua. Kalau tabel sudah berisi departemen ini, isinya
+-- diperbarui supaya warna dan labelnya ikut palet yang berlaku, sementara
+-- lingkup kerja yang sudah Anda ubah sendiri tidak ditimpa.
+insert into public.layanan_depts (value, label, description, color, sub_categories, sort_order) values
+  ('it_konsulting', 'IT Consultant',
+   'Pengembangan perangkat lunak, sistem informasi, dan infrastruktur digital yang dipakai sehari-hari oleh tim Anda.',
+   '#f07a26',
+   ARRAY['Website & aplikasi web', 'Aplikasi mobile & desktop', 'Backend, API, dan basis data', 'Machine learning & analisis data', 'Cloud, deployment, dan pemeliharaan'],
+   1),
+  ('engineering_konsulting', 'Engineering Consultant',
+   'Pemetaan spasial, rancang bangun, dan dokumen teknik yang siap dipakai untuk perizinan maupun pelaksanaan lapangan.',
+   '#5a5c62',
+   ARRAY['Pemetaan & analisis spasial (GIS)', 'Gambar teknik 2D & 3D (AutoCAD)', 'Desain rancang bangun', 'Survey dan pengolahan data lapangan', 'Dokumen teknis & laporan'],
+   2)
+on conflict (value) do update set
+  label       = excluded.label,
+  description = excluded.description,
+  color       = excluded.color,
+  sort_order  = excluded.sort_order;
+
+-- Warna dan label versi lama (biru terang #60a5fa, orange lama #ff914d)
+-- dirapikan ke palet yang berlaku.
+update public.layanan_depts
+set color = '#f07a26'
+where value = 'it_konsulting' and color in ('#60a5fa', '#3b82f6');
+
+update public.layanan_depts
+set color = '#5a5c62'
+where value = 'engineering_konsulting' and color in ('#ff914d', '#f97316');
+
+
 -- ── 1.2 Informasi ──────────────────────────────────────────────────────────
 create table if not exists public.informasi (
   id               uuid primary key default gen_random_uuid(),
