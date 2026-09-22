@@ -3033,7 +3033,7 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
         <ImageUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="promo" label="Gambar Banner (JPG/PNG/WebP/GIF/SVG)" />
         <p className="text-[10.5px] text-white/30 -mt-1.5 leading-relaxed">
-          Rasio <span className="text-white/50">8 : 3</span> (contoh 1600 × 600 px). Gambar tampil utuh tanpa lapisan gelap, jadi seluruh bagian gambar terlihat, termasuk tengah dan kiri.
+          Rasio <span className="text-white/50">16 : 9</span> (contoh 1600 × 900 px). Rasio ini dipakai sama persis di ponsel dan desktop, jadi tampilannya tidak berubah. Gambar tampil utuh tanpa lapisan gelap.
         </p>
 
         <Field label="Teks Alternatif (alt)" hint="Deskripsi gambar untuk pembaca layar dan SEO">
@@ -3045,11 +3045,11 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
             <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Teks banner</span>
           </div>
           <p className="text-[10.5px] text-white/30 leading-relaxed">
-            Teks tampil di strip putih <span className="text-white/50">di bawah gambar</span>, bukan menimpa gambar. Kosongkan ketiganya kalau gambar Anda sudah memuat teksnya sendiri, strip otomatis hilang dan hanya gambar yang tampil.
+            Keterangan tampil di baris tipis <span className="text-white/50">di bawah gambar</span>, bukan menimpa gambar. Kosongkan semuanya kalau gambar Anda sudah memuat teksnya sendiri: barisnya otomatis hilang dan bannernya jadi gambar polos.
           </p>
           <Field label="Label Kecil (eyebrow)"><Input value={form.eyebrow} onChange={v => set("eyebrow", v)} placeholder="GIS & Pemetaan" /></Field>
-          <Field label="Judul" hint="Baris utama di strip bawah gambar"><Input value={form.title} onChange={v => set("title", v)} placeholder="Pemetaan & Analisis Spasial" /></Field>
-          <Field label="Subjudul" hint="Tampil di strip bawah gambar, di semua ukuran layar">
+          <Field label="Judul" hint="Judul besar. Kosongkan kalau gambar sudah memuat judulnya sendiri."><Input value={form.title} onChange={v => set("title", v)} placeholder="Pemetaan & Analisis Spasial" /></Field>
+          <Field label="Subjudul" hint="Keterangan singkat di baris bawah gambar. Boleh dikosongkan.">
             <Textarea value={form.subtitle} onChange={v => set("subtitle", v)} placeholder="Survei, pengolahan data spasial, sampai peta siap cetak, dikerjakan satu tim." />
           </Field>
         </div>
@@ -3058,7 +3058,7 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
           <Field label="Teks Tombol" hint="Kosongkan agar banner tidak bisa diklik">
             <Input value={form.cta_text} onChange={v => set("cta_text", v)} placeholder="Lihat Layanan" />
           </Field>
-          <Field label="Link Tombol" hint="Contoh: /services">
+          <Field label="Link Tombol" hint="Halaman dalam situs (/services) atau alamat luar (https://...)">
             <Input value={form.cta_href} onChange={v => set("cta_href", v)} placeholder="/services" />
           </Field>
         </div>

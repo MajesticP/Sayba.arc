@@ -73,7 +73,7 @@ export default function InformasiHighlight({
             <TiltCard key={article.id} max={3} lift={2}>
             <Link
               href={`/informasi/${article.slug}`}
-              className={`group grid grid-cols-[auto_1fr] md:grid-cols-[auto_1fr_auto] items-start gap-4 md:gap-6 rounded-xl md:rounded-2xl border border-ice-line bg-white px-4 md:px-6 py-4 md:py-5 transition-all duration-500 hover:border-orange/45 hover:bg-ice-dim/60 ${
+              className={`kartu-sorot group grid grid-cols-[auto_1fr] md:grid-cols-[auto_1fr_auto] items-start gap-4 md:gap-6 rounded-xl md:rounded-2xl border border-ice-line bg-white px-4 md:px-6 py-4 md:py-5 transition-all duration-500 hover:border-orange/45 hover:bg-ice-dim/60 ${
                 list.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
               }`}
               style={{ transitionDelay: `${i * 90}ms` }}

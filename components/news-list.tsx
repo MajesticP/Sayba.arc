@@ -135,7 +135,7 @@ export default function NewsList({
 
       {/* ══ ISI ══ */}
       <BoardSection id="berita-list" panelClassName="panel-top-pad">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-14">
+        <div className="max-w-5xl mx-auto panel-pad pt-8 md:pt-14">
 
           {/* ── Belum ada berita ── */}
           {initialArticles.length === 0 && (
@@ -254,7 +254,7 @@ export default function NewsList({
                     <TiltCard max={4} lift={3}>
                     <Link
                       href={`/berita/${article.slug}`}
-                      className="group flex flex-col sm:flex-row gap-4 md:gap-5 bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-lg transition-all duration-200 p-3 sm:p-4"
+                      className="kartu-sorot group flex flex-col sm:flex-row gap-4 md:gap-5 bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-lg transition-all duration-200 p-3 sm:p-4"
                     >
                       {/* Foto 4:3 di kiri pada layar lebar */}
                       {img && (

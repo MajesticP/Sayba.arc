@@ -49,10 +49,10 @@ export default function Hero({ data }: { data: HeroData }) {
           tambahan di atas latar, jadi kontras teks tetap persis seperti yang
           diukur dan tidak ada bidang gelap kedua yang menutupi meja. */}
       <div
-        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[420px] sm:h-[420px] lg:w-[540px] lg:h-[540px] globe-fade"
+        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] sm:w-[440px] sm:h-[440px] lg:w-[560px] lg:h-[560px]"
         aria-hidden="true"
       >
-        <Globe className="w-full h-full" scale={0.46} idleSpin={5} />
+        <Globe className="w-full h-full" />
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto panel-pad pt-0 text-center">

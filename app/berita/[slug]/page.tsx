@@ -268,7 +268,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
       {/* ══ ARTIKEL LAIN ══ */}
       {related.length > 0 && (
         <BoardSection id="artikel-lain" panelClassName="panel-top-pad">
-          <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
+          <div className="panel-pad">
             <div className="flex items-baseline justify-between gap-3 mb-5">
               <h2 className="text-[18px] md:text-2xl font-bold text-navy">Artikel Lainnya</h2>
               <Link

@@ -264,7 +264,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
 
       {/* ══ ISI: dua kolom ══ */}
       <BoardSection id="isi-informasi" panelClassName="panel-top-pad">
-        <div className="px-5 sm:px-7 lg:px-10 pb-8 md:pb-14">
+        <div className="panel-pad">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
 
             {/* ── Kiri: isi dokumen ── */}

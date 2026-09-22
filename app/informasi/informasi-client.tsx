@@ -146,7 +146,7 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
 
       {/* ══ ISI ══ */}
       <BoardSection id="informasi-list" panelClassName="panel-top-pad">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-14">
+        <div className="max-w-5xl mx-auto panel-pad pt-8 md:pt-14">
 
           {/* ── Belum ada dokumen sama sekali ── */}
           {initialArticles.length === 0 && (
@@ -461,7 +461,7 @@ function DocumentCard({ article, cat }: { article: Informasi; cat: KategoriItem 
     <TiltCard max={4} lift={3} className="h-full">
     <Link
       href={`/informasi/${article.slug}`}
-      className="group flex flex-col h-full bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-lg transition-all duration-200"
+      className="kartu-sorot group flex flex-col h-full bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-lg transition-all duration-200"
     >
       <span className="block h-1 w-full" style={{ backgroundColor: cat.color }} aria-hidden="true" />
 

@@ -30,7 +30,7 @@ export default function CTA({ data }: { data: CTAData }) {
 
   return (
     <BoardSection id="cta" aria-labelledby="cta-heading" panelClassName="panel-top-pad">
-      <div ref={ref} className="panel-pad py-0 md:py-2">
+      <div ref={ref} className="panel-pad">
         <div className="text-center max-w-2xl mx-auto">
 
           {/* Garis ukur sebagai penanda mulai, bukan dekorasi: menandai bahwa

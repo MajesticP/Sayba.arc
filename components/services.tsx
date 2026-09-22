@@ -274,7 +274,7 @@ function CarouselDepartemen({ dept, items }: { dept: LayananDept; items: Layanan
           {/* Dua salinan. Salinan kedua memakai `inert`: isinya sama persis,
               jadi tidak boleh dijangkau Tab maupun pembaca layar. `aria-hidden`
               saja tidak cukup karena tautan di dalamnya tetap bisa di-Tab. */}
-          {[0, 1].map((salinan) => (
+          {(perluGulir ? [0, 1] : [0]).map((salinan) => (
             <div key={salinan} inert={salinan === 1 ? true : undefined}>
               {items.map((item) => (
                 <div key={`${salinan}-${item.id}`} className="services-kartu">

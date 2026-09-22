@@ -57,7 +57,7 @@ export default async function AboutPage() {
 
       {/* Misi & Visi */}
       <BoardSection id="misi-visi" panelClassName="panel-top-pad">
-        <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
+        <div className="panel-pad">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div className="bg-white rounded-2xl p-5 md:p-8 border border-ice-line">
               <div className="w-9 h-9 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-ice-dim flex items-center justify-center mb-3 md:mb-5">
@@ -87,7 +87,7 @@ export default async function AboutPage() {
           tidak pernah muncul di halaman publik. */}
       {hasTeam && (
         <BoardSection id="tim" panelClassName="panel-top-pad">
-          <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
+          <div className="panel-pad">
             <PageTransition delay={100}>
               <div className="text-center mb-5 md:mb-14">
                 <span className="text-[10px] font-bold text-slate-brand uppercase tracking-widest mb-1 block">Tim Kami</span>

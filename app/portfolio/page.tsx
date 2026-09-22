@@ -77,7 +77,7 @@ export default async function PortfolioPage() {
       {/* Grid */}
       <BoardSection id="portofolio" panelClassName="panel-top-pad">
         <PageTransition delay={100}>
-          <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
+          <div className="panel-pad">
             {items.length === 0 ? (
               /* Keadaan kosong yang jujur: sebutkan sebabnya dan beri satu
                  tindakan, bukan sekadar "belum ada data". */

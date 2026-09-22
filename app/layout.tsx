@@ -5,6 +5,7 @@ import { headers } from "next/headers"
 import { ogImage } from "@/lib/data"
 import CuttingBoardBackground from "@/components/cutting-board-bg"
 import MatCursorGrid from "@/components/mat-cursor-grid"
+import KartuSorot from "@/components/kartu-sorot"
 import "./globals.css"
 
 export const viewport: Viewport = {
@@ -87,6 +88,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             dipakai, dan itu mengambil jatah koneksi di jalur kritis. */}
       </head>
       <body className={`${geist.className} antialiased bg-ice text-ink`}>
+        <KartuSorot />
         {/* Motif meja potong sebagai latar halaman penuh. Elemen ini fixed di
             belakang konten, jadi terlihat konsisten dari atas sampai bawah
             halaman, termasuk di sela-sela section yang mengambang di atasnya. */}

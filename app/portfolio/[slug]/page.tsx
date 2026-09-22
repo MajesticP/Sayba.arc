@@ -96,7 +96,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
         {/* Breadcrumb: panel tipis tersendiri, jadi ia juga bagian dari
             tumpukan lembar, bukan bilah yang menempel di tepi layar. */}
         <BoardSection id="breadcrumb" className="pb-0" panelClassName="py-3">
-          <div className="px-5 sm:px-7 lg:px-10">
+          <div className="panel-pad pt-0">
             <nav className="flex items-center gap-1.5 text-[12.5px] text-slate-brand flex-wrap" aria-label="Breadcrumb">
               <Link href="/" className="hover:text-navy transition-colors">Beranda</Link>
               <ChevronRight size={13} />
@@ -110,7 +110,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
         {/* Hero Section - two column */}
         <BoardSection id="hero-proyek" panelClassName="panel-top-pad">
           <PageTransition>
-            <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
+            <div className="panel-pad">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
                 {/* Left: Content */}
@@ -213,7 +213,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
         {(features.length > 0 || techStack.length > 0) && (
           <BoardSection id="detail-proyek" panelClassName="panel-top-pad">
             <PageTransition delay={150}>
-              <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
+              <div className="panel-pad">
                 <FeatureTabs features={features} techStack={techStack} accent={accent} />
               </div>
             </PageTransition>

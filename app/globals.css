@@ -589,9 +589,13 @@ header { padding-top: env(safe-area-inset-top); }
 /* Bola dunia di hero: tepinya dipudarkan supaya tidak berhenti mendadak di
    tepi panel. Memakai mask, bukan tabir di atas panel, sehingga tidak ada
    lapisan warna tambahan yang menutupi latar dan menurunkan kontras teks. */
-.globe-fade {
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 46%, transparent 82%);
-  mask-image: radial-gradient(circle at 50% 50%, #000 46%, transparent 82%);
+/* Wadah globe. Latarnya dibiarkan tembus supaya kisi meja potong tetap
+   terlihat di belakangnya, jadi bolanya terbaca sebagai bagian dari meja,
+   bukan gambar yang ditempel di atasnya. */
+.globe-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -634,6 +638,42 @@ header { padding-top: env(safe-area-inset-top); }
 
 @media (prefers-reduced-motion: reduce) {
   .services-track { transition: none; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Sorot kursor pada kartu
+   Diadaptasi dari pola SpotlightCard di React Bits. Kartu membaca posisi
+   kursor dari dua variabel CSS yang diperbarui oleh JavaScript, lalu
+   menggambar sorotan lembut tepat di bawah kursor.
+
+   Dipakai CSS, bukan JavaScript, supaya sorotannya tidak menambah satu pun
+   perhitungan per frame: browser yang mengurus penggambarannya.
+
+   Hanya di perangkat berpenunjuk. Di layar sentuh tidak ada kursor, jadi
+   variabelnya tidak pernah diisi dan sorotannya tidak pernah muncul.
+   ════════════════════════════════════════════════════════════════════════ */
+.kartu-sorot {
+  position: relative;
+}
+.kartu-sorot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 260ms ease-out;
+  background: radial-gradient(
+    220px circle at var(--sx, 50%) var(--sy, 50%),
+    rgba(240, 122, 38, 0.13),
+    transparent 68%
+  );
+}
+@media (hover: hover) and (pointer: fine) {
+  .kartu-sorot:hover::after { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kartu-sorot::after { transition: none; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════
