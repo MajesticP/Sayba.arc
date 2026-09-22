@@ -1,28 +1,15 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { isGambarContoh } from "@/lib/image-path"
 import Link from "next/link"
-import { ArrowRight, ImageIcon, Search } from "lucide-react"
+import { ArrowRight, Search } from "lucide-react"
+import ServiceCard from "@/components/service-card"
 import PageTransition from "@/components/page-transition"
 import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
 import type { Layanan } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
 import { findDeptColor } from "@/lib/layanan-config"
 import type { KategoriItem } from "@/lib/kategori"
-
-/** Link Google Drive → proxy gambar lokal, sama seperti berita/informasi */
-function gdriveToImg(url: string | null): string | null {
-  // Path gambar contoh dari versi lama diperlakukan sebagai "belum ada gambar".
-  if (url && isGambarContoh(url)) return null
-  if (!url) return null
-  if (url.startsWith("/api/gdrive-img")) return url
-  const fileMatch = url.match(/\/d\/([\w-]+)/)
-  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
-  const idMatch = url.match(/[?&]id=([\w-]+)/)
-  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
-  return url
-}
 
 interface Props {
   allLayanan: Layanan[]
@@ -195,10 +182,13 @@ export default function ServicesClient({ allLayanan, depts, kategori }: Props) {
               )}
 
               {/* Kartu memanjang: foto 1:1 di kiri, teks di kanan */}
-              <div className="space-y-3 md:space-y-4">
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--kartu-jarak)" }}>
                 {items.map((item, i) => (
                   <PageTransition key={item.id} delay={Math.min(i, 6) * 60}>
-                    <ServiceRow item={item} accent={findDeptColor(depts, item.dept)} categoryLabel={labelKategori(item.category)} />
+                    {/* Kartu yang SAMA dengan carousel di beranda. Ukurannya
+                        tidak mungkin berbeda karena keduanya memakai komponen
+                        dan tinggi dari --kartu-h yang sama. */}
+                    <ServiceCard item={item} accent={findDeptColor(depts, item.dept)} />
                   </PageTransition>
                 ))}
               </div>
@@ -258,78 +248,5 @@ function FilterChip({
     >
       {label}
     </button>
-  )
-}
-
-/* ── Kartu layanan memanjang: foto 1:1 kiri + isi kanan ─────────────────── */
-function ServiceRow({
-  item,
-  accent,
-  categoryLabel,
-}: {
-  item: Layanan
-  accent: string
-  categoryLabel: string | null
-}) {
-  const img = gdriveToImg(item.image_url)
-
-  return (
-    /* Kartu MEMANJANG di semua ukuran layar, termasuk ponsel. Sebelumnya di
-       ponsel kartu ini menumpuk jadi kartu besar (foto di atas, teks di
-       bawah), dan itu membuat satu layar hanya memuat satu layanan. Bentuk
-       memanjang lebih ringkas: pembaca melihat lebih banyak pilihan sekaligus
-       tanpa menggulir, dan polanya sama di semua perangkat. */
-    <Link
-      href={`/services/${item.slug}`}
-      className="group flex flex-row items-stretch bg-white rounded-xl md:rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-md transition-all duration-200"
-    >
-      {/* Foto 1:1 di kiri. Di ponsel 84px, di desktop 120px. */}
-      <div className="relative w-[84px] sm:w-[104px] md:w-[120px] shrink-0 self-stretch bg-ice-dim overflow-hidden">
-        {img ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={img}
-            alt=""
-            loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <ImageIcon className="w-6 h-6 text-slate-brand" aria-hidden="true" />
-          </div>
-        )}
-      </div>
-
-      {/* Isi */}
-      <div className="flex flex-col flex-1 min-w-0 px-3.5 py-3 md:px-5 md:py-4">
-        <div className="flex items-start justify-between gap-2.5 mb-1.5">
-          <h3 className="text-[14px] md:text-[16px] font-bold text-navy leading-snug group-hover:text-orange-text transition-colors line-clamp-2">
-            {item.title}
-          </h3>
-          {categoryLabel && (
-            <span
-              className="shrink-0 text-[10px] md:text-[11px] font-semibold px-2 py-0.5 rounded-md border text-navy hidden sm:inline-block"
-              style={{ borderColor: `${accent}99`, backgroundColor: `${accent}14` }}
-            >
-              {categoryLabel}
-            </span>
-          )}
-        </div>
-
-        {item.description && (
-          <p className="text-[12.5px] md:text-[13.5px] text-slate-brand leading-relaxed line-clamp-2 mb-2">
-            {item.description}
-          </p>
-        )}
-
-        <span className="mt-auto inline-flex items-center gap-1.5 text-[12.5px] md:text-[13px] font-semibold text-navy">
-          Lihat detail
-          <ArrowRight
-            className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform"
-            aria-hidden="true"
-          />
-        </span>
-      </div>
-    </Link>
   )
 }

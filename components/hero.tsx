@@ -55,7 +55,7 @@ export default function Hero({ data }: { data: HeroData }) {
         <Globe className="w-full h-full" scale={0.46} idleSpin={5} />
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 lg:px-10 pb-14 md:pb-20 text-center">
+      <div className="relative z-10 max-w-4xl mx-auto panel-pad pt-0 text-center">
         {data.badge && (
           <p className="animate-fade-in stagger-1 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-ice/20 bg-navy/60 backdrop-blur-sm text-[12px] md:text-[12.5px] font-medium text-ice/90 mb-5 md:mb-7">
             <MapPin className="w-3.5 h-3.5 text-orange-soft shrink-0" aria-hidden="true" />

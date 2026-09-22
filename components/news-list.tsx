@@ -5,6 +5,7 @@ import { isGambarContoh } from "@/lib/image-path"
 import Link from "next/link"
 import { ArrowRight, Clock, Eye, Search, X } from "lucide-react"
 import PageTransition from "@/components/page-transition"
+import TiltCard from "@/components/tilt-card"
 import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
 import type { Berita } from "@/lib/database.types"
 import type { KategoriItem } from "@/lib/kategori"
@@ -248,6 +249,9 @@ export default function NewsList({
                 const cat = catOf(article.category)
                 return (
                   <PageTransition key={article.id} delay={Math.min(i, 6) * 60}>
+                    {/* Kartu berita miring mengikuti kursor, efek TiltedCard
+                        dari React Bits. Bentuk dan isinya tidak berubah. */}
+                    <TiltCard max={4} lift={3}>
                     <Link
                       href={`/berita/${article.slug}`}
                       className="group flex flex-col sm:flex-row gap-4 md:gap-5 bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-lg transition-all duration-200 p-3 sm:p-4"
@@ -307,6 +311,7 @@ export default function NewsList({
                         </span>
                       </span>
                     </Link>
+                    </TiltCard>
                   </PageTransition>
                 )
               })}

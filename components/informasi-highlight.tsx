@@ -37,7 +37,7 @@ export default function InformasiHighlight({
 
   return (
     <BoardSection id="informasi" aria-labelledby="informasi-heading" panelClassName="panel-top-pad">
-      <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
+      <div className="panel-pad">
 
         <div
           ref={header.ref}

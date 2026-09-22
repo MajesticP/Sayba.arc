@@ -3033,7 +3033,7 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
         <ImageUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="promo" label="Gambar Banner (JPG/PNG/WebP/GIF/SVG)" />
         <p className="text-[10.5px] text-white/30 -mt-1.5 leading-relaxed">
-          Rasio ideal <span className="text-white/50">1600 × 600 px</span>. Sisi kiri banner tertutup gradient gelap untuk teks, letakkan visual utama di sisi kanan.
+          Rasio <span className="text-white/50">8 : 3</span> (contoh 1600 × 600 px). Gambar tampil utuh tanpa lapisan gelap, jadi seluruh bagian gambar terlihat, termasuk tengah dan kiri.
         </p>
 
         <Field label="Teks Alternatif (alt)" hint="Deskripsi gambar untuk pembaca layar dan SEO">
@@ -3042,14 +3042,14 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
 
         <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Teks di atas gambar</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Teks banner</span>
           </div>
           <p className="text-[10.5px] text-white/30 leading-relaxed">
-            Kosongkan ketiganya kalau gambar Anda sudah memuat teksnya sendiri, overlay teks otomatis hilang dan gambar tampil penuh.
+            Teks tampil di strip putih <span className="text-white/50">di bawah gambar</span>, bukan menimpa gambar. Kosongkan ketiganya kalau gambar Anda sudah memuat teksnya sendiri, strip otomatis hilang dan hanya gambar yang tampil.
           </p>
           <Field label="Label Kecil (eyebrow)"><Input value={form.eyebrow} onChange={v => set("eyebrow", v)} placeholder="GIS & Pemetaan" /></Field>
-          <Field label="Judul"><Input value={form.title} onChange={v => set("title", v)} placeholder="Pemetaan & Analisis Spasial" /></Field>
-          <Field label="Subjudul" hint="Disembunyikan otomatis di layar ponsel">
+          <Field label="Judul" hint="Baris utama di strip bawah gambar"><Input value={form.title} onChange={v => set("title", v)} placeholder="Pemetaan & Analisis Spasial" /></Field>
+          <Field label="Subjudul" hint="Tampil di strip bawah gambar, di semua ukuran layar">
             <Textarea value={form.subtitle} onChange={v => set("subtitle", v)} placeholder="Survei, pengolahan data spasial, sampai peta siap cetak, dikerjakan satu tim." />
           </Field>
         </div>

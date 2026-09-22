@@ -34,6 +34,16 @@
   --panel-line: #d5dee9;      /* garis tepi panel, sedikit lebih tegas */
   --panel-shadow: rgba(17, 42, 70, 0.16); /* bayangan panel, diturunkan dari navy */
   --mat: #dde4ec;             /* permukaan meja potong: lebih gelap dari panel */
+
+  /* ── Ukuran kartu layanan (SATU sumber) ──
+     Dipakai kartu itu sendiri (components/service-card.tsx) dan dipakai
+     carousel di beranda untuk menghitung tinggi jendelanya. Karena keduanya
+     membaca angka yang sama, jendela carousel tidak mungkin melenceng dari
+     tinggi kartu, dan kartu di beranda tidak mungkin berbeda dari kartu di
+     halaman Layanan. */
+  --kartu-h: 92px;
+  /* Jarak antar kartu. Dipakai kartu dan carousel, jadi gulirannya pas. */
+  --kartu-jarak: 12px;
   --mat-line: rgba(17, 42, 70, 0.16);   /* garis kisi halus di meja */
   --mat-line-bold: rgba(17, 42, 70, 0.26); /* garis kisi tegas tiap 5 satuan */
 
@@ -295,6 +305,9 @@
   view-timeline-axis: block;
 }
 @media (min-width: 768px) {
+  :root { --kartu-h: 104px; }
+}
+@media (min-width: 768px) {
   .board-panel { border-radius: 26px; }
 }
 
@@ -391,6 +404,23 @@
 .board-panel-dark .panel-dots i:first-child { background-color: var(--orange); }
 
 /* Ruang di bawah titik supaya konten panel tidak bertabrakan dengannya. */
+/* ── Padding isi panel (SATU sumber) ──
+   Semua section memakai kelas ini supaya tepi kiri, kanan, dan bawah isinya
+   selalu sejajar dari panel pertama sampai terakhir. Sebelumnya tiap section
+   menulis angkanya sendiri dan pelan-pelan berbeda: ada yang px-5 sm:px-7
+   lg:px-10, ada yang px-5 sm:px-8 lg:px-12, dan banner promosi bahkan tidak
+   punya padding sama sekali sehingga gambarnya menempel ke tepi panel. */
+.panel-pad { padding-left: 20px; padding-right: 20px; padding-bottom: 28px; }
+@media (min-width: 640px) {
+  .panel-pad { padding-left: 28px; padding-right: 28px; }
+}
+@media (min-width: 1024px) {
+  .panel-pad { padding-left: 40px; padding-right: 40px; }
+}
+@media (min-width: 768px) {
+  .panel-pad { padding-bottom: 48px; }
+}
+
 .panel-top-pad { padding-top: 52px; }
 @media (min-width: 768px) {
   .panel-top-pad { padding-top: 68px; }
@@ -566,38 +596,60 @@ header { padding-top: env(safe-area-inset-top); }
 
 /* ════════════════════════════════════════════════════════════════════════
    Carousel layanan di beranda
-   Daftar digulir ke atas memakai dua salinan berdampingan. Saat salinan
-   pertama habis, salinan kedua sudah berada tepat di posisi awalnya, jadi
-   gulirannya tidak pernah terlihat putus.
+   Satu carousel per departemen. Jendelanya setinggi DUA kartu, jadi selalu
+   tepat dua kartu terlihat, di ponsel maupun desktop. Kartunya sendiri
+   memakai komponen bersama (components/service-card.tsx), jadi ukurannya
+   tidak mungkin berbeda dari kartu di halaman Layanan.
 
-   Gerakannya CSS murni, bukan timer JavaScript: lebih halus dan tidak
-   memakan apa pun saat dihentikan. Berhenti saat kursor berhenti di atasnya,
-   saat ada yang menekan Tab ke dalamnya, dan saat pengguna memilih reduce
-   motion (WCAG 2.2.2).
+   Gerakannya bertingkat seperti banner promosi: satu langkah = satu kartu,
+   dengan animasi. Bisa otomatis, bisa manual lewat tombol naik/turun, usap
+   di layar sentuh, dan tombol-tombol posisi. Tombol jeda memberi kendali
+   penuh (WCAG 2.2.2).
+
+   Agar gulirannya tidak pernah terlihat "memutar balik", daftar ditulis dua
+   kali dan hanya maju terus. Saat salinan kedua tercapai, posisinya
+   dilompatkan kembali ke salinan pertama tanpa animasi. Karena isinya sama
+   persis, lompatan itu tidak terlihat.
    ════════════════════════════════════════════════════════════════════════ */
+.services-view {
+  /* Tepat dua kartu + satu jarak di antaranya. */
+  height: calc(var(--kartu-h) * 2 + var(--kartu-jarak));
+  overflow: hidden;
+}
 .services-track {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  animation: servicesScroll 42s linear infinite;
+  /* Satu langkah = tinggi kartu + jaraknya. */
+  transform: translateY(calc(var(--pos, 0) * -1 * (var(--kartu-h) + var(--kartu-jarak))));
+  transition: transform 700ms cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
 }
-.services-group { display: block; }
+/* Dipakai sesaat saat posisi dilompatkan: harus tanpa animasi, kalau tidak
+   lompatannya terlihat sebagai guliran cepat. */
+.services-track[data-lompat="true"] { transition: none; }
+/* Hanya bergerak kalau isinya memang melebihi jendela. */
+.services-track[data-gulir="false"] { transition: none; }
 
-/* Setengah tinggi trek = tinggi satu salinan. Menggeser tepat setengah
-   membuat salinan kedua mendarat di posisi awal salinan pertama. */
-@keyframes servicesScroll {
-  from { transform: translateY(0); }
-  to   { transform: translateY(-50%); }
-}
-
-.services-marquee:hover .services-track,
-.services-marquee:focus-within .services-track {
-  animation-play-state: paused;
-}
+.services-kartu { margin-bottom: var(--kartu-jarak); }
 
 @media (prefers-reduced-motion: reduce) {
-  .services-track { animation: none; }
+  .services-track { transition: none; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   TiltCard: kartu miring mengikuti kursor
+   Diadaptasi dari TiltedCard di React Bits. Pegasnya pakai transisi CSS,
+   bukan pustaka `motion`, supaya tidak ada dependensi baru untuk satu efek.
+   Efeknya sendiri hanya menyala di perangkat berpenunjuk (lihat
+   components/tilt-card.tsx), jadi tidak ada biaya di layar sentuh.
+   ════════════════════════════════════════════════════════════════════════ */
+.tilt-card {
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tilt-card { transition: none; transform: none !important; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════

@@ -51,7 +51,7 @@ export default function About({ data }: { data: AboutData }) {
 
   return (
     <BoardSection id="about" aria-labelledby="about-heading" panelClassName="panel-top-pad">
-      <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
+      <div className="panel-pad">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-7 items-stretch">
 
           {/* Kartu statistik: satu-satunya bidang navy di section ini. */}

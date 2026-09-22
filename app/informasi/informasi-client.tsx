@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react"
 import PageTransition from "@/components/page-transition"
+import TiltCard from "@/components/tilt-card"
 import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
 import type { Informasi } from "@/lib/database.types"
 import type { KategoriItem } from "@/lib/kategori"
@@ -291,7 +292,7 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
           {viewMode === "grid" && filtered.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
               {filtered.map((article, i) => (
-                <PageTransition key={article.id} delay={Math.min(i, 6) * 60}>
+                <PageTransition key={article.id} delay={Math.min(i, 6) * 60} className="h-full">
                   <DocumentCard article={article} cat={catOf(article.category)} />
                 </PageTransition>
               ))}
@@ -455,6 +456,9 @@ function FilterChip({
 /* ── Kartu dokumen ──────────────────────────────────────────────────────── */
 function DocumentCard({ article, cat }: { article: Informasi; cat: KategoriItem }) {
   return (
+    /* Kartu dokumen miring mengikuti kursor, efek TiltedCard dari React Bits.
+       Dibatasi 4 derajat: kartunya berisi teks yang harus tetap terbaca. */
+    <TiltCard max={4} lift={3} className="h-full">
     <Link
       href={`/informasi/${article.slug}`}
       className="group flex flex-col h-full bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-lg transition-all duration-200"
@@ -496,5 +500,6 @@ function DocumentCard({ article, cat }: { article: Informasi; cat: KategoriItem 
         </span>
       </span>
     </Link>
+    </TiltCard>
   )
 }
