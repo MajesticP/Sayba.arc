@@ -133,8 +133,8 @@ export default function Globe({ className = "" }: { className?: string }) {
       const gaya = getComputedStyle(document.documentElement)
       return {
         ice: gaya.getPropertyValue("--ice").trim() || "#F4F6F9",
-        orange: gaya.getPropertyValue("--orange").trim() || "#F07A26",
         navy: gaya.getPropertyValue("--navy").trim() || "#112A46",
+        orange: gaya.getPropertyValue("--orange").trim() || "#F07A26",
       }
     }
 
@@ -258,11 +258,17 @@ export default function Globe({ className = "" }: { className?: string }) {
 
       // ── Titik bola ──
       // Dua jalur saja untuk ribuan titik: satu untuk daratan, satu untuk
-      // lautan. Titik laut digambar sebagai kotak (fillRect) karena ukurannya
-      // di bawah 1,5 px sehingga bentuknya tidak terlihat bedanya, dan kotak
-      // jauh lebih ringan daripada busur.
-      const rDarat = Math.max(1.5, R * 0.0135) * dpr
-      const rLaut = Math.max(1, R * 0.0085) * dpr
+      // lautan. Titik laut digambar sebagai kotak karena ukurannya di bawah
+      // 1,5 px sehingga bentuknya tidak terlihat bedanya, dan kotak jauh
+      // lebih ringan daripada busur.
+      //
+      // Titik daratan jauh lebih terang DAN lebih besar dari titik lautan;
+      // keduanya yang membuat bentuk benua terbaca. Judul hero berada tepat
+      // di atas bola, jadi kontrasnya diamankan oleh tabir elips di bawah ini,
+      // bukan dengan meredupkan titiknya. Jangan naikkan alpha di sini tanpa
+      // menghitung ulang kontras teks hero: angkanya sudah dihitung.
+      const rDarat = Math.max(1.8, R * 0.016) * dpr
+      const rLaut = Math.max(0.9, R * 0.0085) * dpr
 
       // Laut: satu jalur, satu kali gambar.
       g.beginPath()
@@ -273,7 +279,7 @@ export default function Globe({ className = "" }: { className?: string }) {
         const s = rLaut * tepi
         g.rect(cx + p.x * R - s, cy + p.y * R - s, s * 2, s * 2)
       }
-      g.fillStyle = hexA(ice, 0.17)
+      g.fillStyle = hexA(ice, 0.10)
       g.fill()
 
       // Darat: satu jalur, satu kali gambar. Titiknya lebih besar dan lebih
@@ -289,22 +295,31 @@ export default function Globe({ className = "" }: { className?: string }) {
         g.moveTo(x + s, y)
         g.arc(x, y, s, 0, Math.PI * 2)
       }
-      g.fillStyle = hexA(ice, 0.62)
+      g.fillStyle = hexA(ice, 0.58)
       g.fill()
 
-      // ── Tabir tipis di tengah ──
-      // Judul hero berada tepat di atas bola. Tanpa ini, titik-titik terang
-      // di belakang teks menurunkan kontras judul. Tabirnya memakai warna
-      // panel itu sendiri (navy), jadi yang terlihat hanya titik yang meredup
-      // di tengah, bukan lapisan warna baru.
-      const scrim = g.createRadialGradient(cx, cy, 0, cx, cy, R * 1.05)
-      scrim.addColorStop(0, hexA(navy, 0.92))
-      scrim.addColorStop(0.62, hexA(navy, 0.72))
-      scrim.addColorStop(1, hexA(navy, 0))
-      g.fillStyle = scrim
+      // ── Tabir elips di area teks ──
+      // Judul hero berada tepat di atas bola, jadi titik-titik di area itu
+      // harus diredam supaya teksnya tetap lolos kontras. Tabirnya ELIPS dan
+      // hanya menutupi bagian tengah tempat teks berada, bukan seluruh bola:
+      // bagian atas, bawah, dan tepi bola tetap memperlihatkan titik penuh,
+      // dan di situlah bentuk benua paling terlihat.
+      //
+      // Bentuk elips dipilih karena area teks di hero memang melebar ke
+      // samping, bukan bulat. Tabir bulat akan meredam lebih banyak bola
+      // daripada yang perlu.
+      g.save()
+      g.translate(cx, cy)
+      g.scale(1, 0.62)
+      const tabir = g.createRadialGradient(0, 0, 0, 0, 0, R * 1.15)
+      tabir.addColorStop(0, hexA(navy, 0.78))
+      tabir.addColorStop(0.55, hexA(navy, 0.66))
+      tabir.addColorStop(1, hexA(navy, 0))
+      g.fillStyle = tabir
       g.beginPath()
-      g.arc(cx, cy, R * 1.05, 0, Math.PI * 2)
+      g.arc(0, 0, R * 1.15, 0, Math.PI * 2)
       g.fill()
+      g.restore()
 
       // ── Penanda lokasi ──
       const latR = (LOKASI.lat * Math.PI) / 180
