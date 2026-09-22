@@ -1,6 +1,8 @@
+"use client"
+
 import Link from "next/link"
-import { isGambarContoh } from "@/lib/image-path"
 import { ArrowRight, Check } from "lucide-react"
+import { isGambarContoh } from "@/lib/image-path"
 import { BoardSection } from "@/components/cutting-board-bg"
 import type { Layanan } from "@/lib/database.types"
 import type { LayananDept } from "@/lib/layanan-config"
@@ -8,12 +10,20 @@ import type { LayananDept } from "@/lib/layanan-config"
 /**
  * Services: section Layanan di beranda.
  *
- * Layanan bersifat TERPUSAT: tidak ada paket, tidak ada tingkat harga.
- * Klien menghubungi kami, lingkup dan biaya disusun per proyek. Karena itu
- * tidak ada kartu harga di sini, hanya lingkup pekerjaan dan tautan ke detail.
+ * Semua layanan yang terbit ditampilkan, bergulir sendiri ke atas seperti
+ * papan pengumuman. Dua kartu terlihat sekaligus, di ponsel maupun desktop,
+ * supaya jumlahnya sama dan tidak ada kejutan tata letak saat berpindah
+ * perangkat.
  *
- * Setiap departemen dibungkus kartu tersendiri di dalam panel, jadi tidak ada
- * teks yang jatuh langsung di atas permukaan panel tanpa bingkai.
+ * Cara gulirnya: daftar ditulis DUA KALI bersebelahan, lalu keduanya digeser
+ * bersama dengan satu animasi CSS. Saat salinan pertama habis, salinan kedua
+ * sudah berada tepat di posisi awalnya, jadi gulirannya tidak pernah terlihat
+ * putus. Salinan kedua disembunyikan dari pembaca layar supaya tidak dibaca
+ * dua kali.
+ *
+ * Berhenti saat kursor berhenti di atasnya, saat ada yang menekan Tab ke
+ * dalamnya, dan saat pengguna memilih reduce motion (WCAG 2.2.2: gerakan
+ * lebih dari 5 detik harus bisa dihentikan).
  */
 
 /** Link Google Drive → proxy gambar lokal */
@@ -27,6 +37,10 @@ function gdriveToImg(url: string | null): string | null {
   return url
 }
 
+/** Tinggi satu kartu. Dipakai untuk menghitung tinggi jendela carousel. */
+const KARTU_H = 108
+const JARAK = 12
+
 export default function Services({
   allLayanan,
   depts,
@@ -34,6 +48,9 @@ export default function Services({
   allLayanan: Layanan[]
   depts: LayananDept[]
 }) {
+  const labelDept = (value: string) => depts.find((d) => d.value === value)?.label ?? value
+  const warnaDept = (value: string) => depts.find((d) => d.value === value)?.color ?? "#5a5c62"
+
   return (
     <BoardSection id="layanan" aria-labelledby="layanan-heading" panelClassName="panel-top-pad">
       <div className="px-5 sm:px-7 lg:px-10 pb-7 md:pb-12">
@@ -61,96 +78,126 @@ export default function Services({
           </div>
         </div>
 
-        {/* Dua departemen sebagai dua kolom. Isi kolom adalah layanan yang
-            benar-benar ada di database, bukan daftar contoh. */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
-          {depts.map((dept) => {
-            const items = allLayanan.filter((l) => l.dept === dept.value)
-            return (
-              <div key={dept.value} className="bg-white rounded-2xl border border-ice-line overflow-hidden flex flex-col">
-                <div className="bg-navy px-5 md:px-7 py-5 md:py-6">
-                  <h3 className="text-[17px] md:text-[20px] font-bold text-ice">{dept.label}</h3>
-                  <p className="text-ice/80 text-[13px] leading-relaxed mt-1.5">{dept.description}</p>
-                </div>
-
-                <div className="p-5 md:p-7 flex-1 flex flex-col">
-                  <ul className="space-y-2.5">
-                    {dept.scope.map((s) => (
-                      <li key={s} className="flex items-start gap-2.5 text-[14px] text-ink leading-relaxed">
-                        <Check className="w-4 h-4 text-orange-text shrink-0 mt-0.5" aria-hidden="true" />
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* Kalau ada layanan terbit di departemen ini, tampilkan
-                      tautan langsung ke halaman detailnya. Bagian ini ditaruh
-                      di bawah (mt-auto) supaya kedua kartu tetap sejajar
-                      walau jumlah lingkupnya berbeda. */}
-                  {items.length > 0 ? (
-                    <div className="mt-auto pt-6">
-                      <div className="pt-5 border-t border-ice-line space-y-2">
-                        <p className="text-[11.5px] font-bold text-slate-brand uppercase tracking-wider">
-                          Sudah kami kerjakan
-                        </p>
-                        {items.map((item) => {
-                          const img = gdriveToImg(item.image_url)
-                          return (
-                            <Link
-                              key={item.id}
-                              href={`/services/${item.slug}`}
-                              className="group flex items-center gap-3.5 p-2 -mx-2 rounded-xl hover:bg-ice-dim transition-colors"
-                            >
-                              {/* Foto 1:1 di kiri, seperti di halaman layanan */}
-                              <span className="relative w-12 h-12 rounded-lg overflow-hidden bg-ice-dim shrink-0">
-                                {img ? (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={img} alt="" loading="lazy" className="card-img-fill" />
-                                ) : (
-                                  <span className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-brand">
-                                    {item.title.charAt(0)}
-                                  </span>
-                                )}
-                              </span>
-                              <span className="min-w-0 flex-1">
-                                <span className="block text-[14px] font-semibold text-navy group-hover:text-orange-text transition-colors line-clamp-1">
-                                  {item.title}
-                                </span>
-                                {item.category && (
-                                  <span className="block text-[11.5px] text-slate-brand line-clamp-1 mt-0.5">
-                                    {item.category}
-                                  </span>
-                                )}
-                              </span>
-                              <ArrowRight className="w-4 h-4 text-slate-brand group-hover:text-orange-text group-hover:translate-x-0.5 transition-all shrink-0" aria-hidden="true" />
-                            </Link>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  ) : (
-                    /* Departemen belum punya layanan terbit: katakan apa adanya
-                       dan beri satu tindakan, jangan biarkan kartu menggantung. */
-                    <div className="mt-auto pt-6">
-                      <div className="pt-5 border-t border-ice-line">
-                        <p className="text-[12.5px] text-slate-brand leading-relaxed mb-3">
-                          Lingkup di atas bisa langsung ditanyakan. Kami susun penawaran per proyek.
-                        </p>
-                        <Link
-                          href="/contact"
-                          className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-orange-text hover:text-navy transition-colors group"
-                        >
-                          Tanyakan lingkup ini
-                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-                </div>
+        {/* Lingkup kerja tiap departemen, sebagai rujukan cepat */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5 mb-7 md:mb-9">
+          {depts.map((dept) => (
+            <div key={dept.value} className="rounded-2xl border border-ice-line bg-white p-4 md:p-5">
+              <div className="flex items-center gap-2.5 mb-3">
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: dept.color }}
+                  aria-hidden="true"
+                />
+                <h3 className="text-[14.5px] md:text-[16px] font-bold text-navy">{dept.label}</h3>
               </div>
-            )
-          })}
+              <ul className="space-y-2">
+                {(dept.scope ?? []).slice(0, 4).map((s) => (
+                  <li key={s} className="flex items-start gap-2 text-[12.5px] md:text-[13.5px] text-ink leading-relaxed">
+                    <Check className="w-3.5 h-3.5 text-orange-text shrink-0 mt-0.5" aria-hidden="true" />
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
+
+        {/* ── Carousel layanan ────────────────────────────────────────────── */}
+        {allLayanan.length > 0 ? (
+          <div className="relative">
+            <p className="text-[11.5px] font-bold text-slate-brand uppercase tracking-wider mb-3">
+              Sudah kami kerjakan
+            </p>
+
+            {/* Jendela: tingginya tepat dua kartu + satu jarak, jadi yang
+                terlihat selalu dua, di layar sekecil apa pun. */}
+            <div
+              className="services-marquee overflow-hidden"
+              style={{ height: KARTU_H * 2 + JARAK }}
+            >
+              <div className="services-track" style={{ ["--gap" as string]: `${JARAK}px` }}>
+                {[0, 1].map((salinan) => (
+                  <div
+                    key={salinan}
+                    className="services-group"
+                    aria-hidden={salinan === 1 ? true : undefined}
+                  >
+                    {allLayanan.map((item) => {
+                      const img = gdriveToImg(item.image_url)
+                      return (
+                        <Link
+                          key={`${salinan}-${item.id}`}
+                          href={`/services/${item.slug}`}
+                          tabIndex={salinan === 1 ? -1 : undefined}
+                          className="group flex items-center gap-3.5 rounded-2xl border border-ice-line bg-white px-3.5 md:px-4 hover:border-orange hover:bg-ice-dim/60 transition-colors"
+                          style={{ height: KARTU_H, marginBottom: JARAK }}
+                        >
+                          {/* Foto 1:1 di kiri, sama seperti halaman layanan */}
+                          <span className="relative w-14 h-14 md:w-16 md:h-16 rounded-xl overflow-hidden bg-ice-dim shrink-0">
+                            {img ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={img} alt="" loading="lazy" className="card-img-fill" />
+                            ) : (
+                              <span className="w-full h-full flex items-center justify-center text-[13px] font-bold text-slate-brand">
+                                {item.title.charAt(0)}
+                              </span>
+                            )}
+                          </span>
+
+                          <span className="min-w-0 flex-1">
+                            <span className="flex items-center gap-2 mb-1">
+                              <span
+                                className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full text-navy shrink-0"
+                                style={{
+                                  backgroundColor: "rgba(255,255,255,0.94)",
+                                  boxShadow: `inset 0 0 0 1.5px ${warnaDept(item.dept)}`,
+                                }}
+                              >
+                                {labelDept(item.dept)}
+                              </span>
+                            </span>
+                            <span className="block text-[14.5px] md:text-[15.5px] font-bold text-navy group-hover:text-orange-text transition-colors line-clamp-1">
+                              {item.title}
+                            </span>
+                            {item.description && (
+                              <span className="block text-[12px] md:text-[12.5px] text-slate-brand leading-snug line-clamp-1 mt-0.5">
+                                {item.description}
+                              </span>
+                            )}
+                          </span>
+
+                          <ArrowRight
+                            className="w-4 h-4 text-slate-brand group-hover:text-orange-text group-hover:translate-x-0.5 transition-all shrink-0"
+                            aria-hidden="true"
+                          />
+                        </Link>
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Gradasi atas-bawah: menandakan daftarnya bergulir, bukan
+                terpotong. Warnanya mengikuti permukaan panel, bukan hitam. */}
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-14"
+              style={{ background: "linear-gradient(to top, var(--panel), transparent)" }}
+              aria-hidden="true"
+            />
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-ice-line bg-white p-5 md:p-6">
+            <p className="text-[13.5px] text-slate-brand leading-relaxed mb-3">
+              Daftar pekerjaan belum kami tampilkan di sini. Lingkup tiap departemen
+              di atas bisa langsung ditanyakan.
+            </p>
+            <Link href="/contact" className="btn-solid">
+              Tanyakan lingkup
+              <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
+            </Link>
+          </div>
+        )}
 
         <div className="mt-6 md:mt-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-ice-line">
           <p className="text-slate-brand text-[13.5px] text-center sm:text-left max-w-lg leading-relaxed">

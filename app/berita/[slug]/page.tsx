@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { isGambarContoh } from "@/lib/image-path"
-import { BoardSection } from "@/components/cutting-board-bg"
+import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { siteConfig, navItems, footerLinks, socialLinks } from "@/lib/data"
@@ -159,8 +159,10 @@ export default async function BeritaDetailPage({ params }: PageProps) {
       <Header navItems={navItems} />
 
       {/* ══ JUDUL ARTIKEL ══ */}
-      <BoardSection dark id="judul-artikel" panelClassName="relative">
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 lg:px-10 pt-20 pb-10 md:pt-28 md:pb-14">
+      <BoardSection dark id="judul-artikel" panelClassName="relative overflow-hidden">
+        {/* Kisi meja potong, sama seperti hero beranda dan halaman lain. */}
+        <CuttingBoardBackground tone="dark" />
+        <div className="relative z-10 max-w-3xl mx-auto px-5 sm:px-8 lg:px-10 pt-20 pb-10 md:pt-28 md:pb-14">
           <nav
             className="flex items-center gap-1.5 text-[12px] text-orange-soft mb-6 flex-wrap"
             aria-label="Breadcrumb"
@@ -185,7 +187,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
             {catLabel}
           </span>
 
-          <h1 className="text-[24px] md:text-[36px] font-bold text-ice leading-[1.2] tracking-tight mb-4">
+          <h1 className="text-[24px] md:text-[38px] font-bold text-ice leading-tight mb-4">
             {article.title}
           </h1>
 

@@ -556,6 +556,50 @@ img { max-width: 100%; height: auto; display: block; }
 .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
 header { padding-top: env(safe-area-inset-top); }
 
+/* Bola dunia di hero: tepinya dipudarkan supaya tidak berhenti mendadak di
+   tepi panel. Memakai mask, bukan tabir di atas panel, sehingga tidak ada
+   lapisan warna tambahan yang menutupi latar dan menurunkan kontras teks. */
+.globe-fade {
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 46%, transparent 82%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 46%, transparent 82%);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Carousel layanan di beranda
+   Daftar digulir ke atas memakai dua salinan berdampingan. Saat salinan
+   pertama habis, salinan kedua sudah berada tepat di posisi awalnya, jadi
+   gulirannya tidak pernah terlihat putus.
+
+   Gerakannya CSS murni, bukan timer JavaScript: lebih halus dan tidak
+   memakan apa pun saat dihentikan. Berhenti saat kursor berhenti di atasnya,
+   saat ada yang menekan Tab ke dalamnya, dan saat pengguna memilih reduce
+   motion (WCAG 2.2.2).
+   ════════════════════════════════════════════════════════════════════════ */
+.services-track {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  animation: servicesScroll 42s linear infinite;
+  will-change: transform;
+}
+.services-group { display: block; }
+
+/* Setengah tinggi trek = tinggi satu salinan. Menggeser tepat setengah
+   membuat salinan kedua mendarat di posisi awal salinan pertama. */
+@keyframes servicesScroll {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+
+.services-marquee:hover .services-track,
+.services-marquee:focus-within .services-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .services-track { animation: none; }
+}
+
 /* ════════════════════════════════════════════════════════════════════════
    Tombol situs publik
    Satu sistem untuk seluruh halaman. Tinggi seragam, target sentuh aman,

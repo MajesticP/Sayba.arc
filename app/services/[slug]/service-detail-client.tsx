@@ -70,7 +70,7 @@ export default function ServiceDetailClient({ service, deptLabel, categoryLabel,
             )}
           </div>
 
-          <h1 className="text-[24px] leading-[1.18] md:text-[36px] font-bold text-ice tracking-tight mb-4">
+          <h1 className="text-[24px] md:text-[38px] font-bold text-ice leading-tight tracking-tight mb-4">
             {service.title}
           </h1>
 

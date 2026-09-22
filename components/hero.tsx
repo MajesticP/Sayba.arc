@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { ArrowRight, MapPin } from "lucide-react"
 import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
+import Globe from "@/components/globe"
 
 interface HeroData {
   title: string
@@ -26,17 +27,37 @@ const FACTS = [
  *
  * Panel bernada gelap, bukan latar penuh. Alasannya, permukaan meja harus
  * tetap terlihat di kiri-kanan lembar pertama supaya aturan "semua section
- * mengambang di atas satu meja" terbaca sejak layar pertama. Padding atas
- * sengaja besar karena header kapsul mengambang di atas panel ini.
+ * mengambang di atas satu meja" terbaca sejak layar pertama.
+ *
+ * Bola dunia digambar di belakang teks dan mengikuti kursor. Ia diletakkan
+ * sebagai latar, bukan di samping teks, karena judul hero sengaja rata tengah.
+ * Warnanya sengaja sangat tipis (alfa 0.05 sampai 0.21) sehingga latar di
+ * belakang huruf tetap gelap dan kontras teks tidak turun. Titik oranye di
+ * bola menandai Pontianak, jadi bola itu membawa keterangan: dari mana kami
+ * bekerja.
  */
 export default function Hero({ data }: { data: HeroData }) {
   return (
-    <BoardSection dark id="beranda" panelClassName="pt-24 md:pt-36">
+    <BoardSection dark id="beranda" panelClassName="relative overflow-hidden pt-24 md:pt-36">
       <CuttingBoardBackground tone="dark" />
+
+      {/* Bola dunia: latar, di belakang teks. Ukurannya bertingkat mengikuti
+          lebar layar supaya tidak berdesakan di ponsel.
+
+          Tepinya dipudarkan memakai mask pada bola itu sendiri, bukan dengan
+          menumpuk tabir di atas panel. Dengan mask, tidak ada lapisan warna
+          tambahan di atas latar, jadi kontras teks tetap persis seperti yang
+          diukur dan tidak ada bidang gelap kedua yang menutupi meja. */}
+      <div
+        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[420px] sm:h-[420px] lg:w-[540px] lg:h-[540px] globe-fade"
+        aria-hidden="true"
+      >
+        <Globe className="w-full h-full" scale={0.46} idleSpin={5} />
+      </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 lg:px-10 pb-14 md:pb-20 text-center">
         {data.badge && (
-          <p className="animate-fade-in stagger-1 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-ice/20 bg-ice/[0.06] text-[12px] md:text-[12.5px] font-medium text-ice/85 mb-5 md:mb-7">
+          <p className="animate-fade-in stagger-1 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-ice/20 bg-navy/60 backdrop-blur-sm text-[12px] md:text-[12.5px] font-medium text-ice/90 mb-5 md:mb-7">
             <MapPin className="w-3.5 h-3.5 text-orange-soft shrink-0" aria-hidden="true" />
             {data.badge}
           </p>
@@ -56,7 +77,7 @@ export default function Hero({ data }: { data: HeroData }) {
           <span className="h-2 w-px bg-orange/60" />
         </div>
 
-        <p className="animate-fade-in-up stagger-4 text-[14px] md:text-[17px] leading-relaxed text-ice/80 max-w-2xl mx-auto mb-8 md:mb-10">
+        <p className="animate-fade-in-up stagger-4 text-[14px] md:text-[17px] leading-relaxed text-ice/85 max-w-2xl mx-auto mb-8 md:mb-10">
           {data.subtitle}
         </p>
 
@@ -81,7 +102,7 @@ export default function Hero({ data }: { data: HeroData }) {
                   <span className="block text-[19px] sm:text-[22px] md:text-2xl font-bold text-ice tabular-nums leading-none">
                     {fact.value}
                   </span>
-                  <span className="block text-[10.5px] sm:text-[11px] text-ice/70 mt-1.5 leading-tight">{fact.label}</span>
+                  <span className="block text-[10.5px] sm:text-[11px] text-ice/75 mt-1.5 leading-tight">{fact.label}</span>
                 </dd>
               </div>
             ))}

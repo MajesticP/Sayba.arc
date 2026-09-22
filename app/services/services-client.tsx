@@ -89,7 +89,7 @@ export default function ServicesClient({ allLayanan, depts, kategori }: Props) {
           <p className="animate-fade-in stagger-1 text-[12px] font-bold text-orange-soft mb-4">
             Layanan
           </p>
-          <h1 className="animate-blur-in stagger-2 text-[28px] leading-[1.15] sm:text-4xl lg:text-[44px] font-bold text-ice tracking-tight mb-4 max-w-3xl">
+          <h1 className="animate-blur-in stagger-2 text-[24px] md:text-[38px] font-bold text-ice leading-tight mb-4 max-w-3xl">
             Dua Departemen, Lingkup Kerja yang Jelas
           </h1>
           <p className="animate-fade-in-up stagger-3 text-[14px] md:text-lg text-ice/75 leading-relaxed max-w-2xl">
@@ -274,12 +274,17 @@ function ServiceRow({
   const img = gdriveToImg(item.image_url)
 
   return (
+    /* Kartu MEMANJANG di semua ukuran layar, termasuk ponsel. Sebelumnya di
+       ponsel kartu ini menumpuk jadi kartu besar (foto di atas, teks di
+       bawah), dan itu membuat satu layar hanya memuat satu layanan. Bentuk
+       memanjang lebih ringkas: pembaca melihat lebih banyak pilihan sekaligus
+       tanpa menggulir, dan polanya sama di semua perangkat. */
     <Link
       href={`/services/${item.slug}`}
-      className="group flex flex-col sm:flex-row bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-lg transition-all duration-200"
+      className="group flex flex-row items-stretch bg-white rounded-xl md:rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-md transition-all duration-200"
     >
-      {/* Foto 1:1: rasio persegi di kiri */}
-      <div className="relative w-full sm:w-40 md:w-44 aspect-square shrink-0 bg-ice-dim overflow-hidden">
+      {/* Foto 1:1 di kiri. Di ponsel 84px, di desktop 120px. */}
+      <div className="relative w-[84px] sm:w-[104px] md:w-[120px] shrink-0 self-stretch bg-ice-dim overflow-hidden">
         {img ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -290,20 +295,20 @@ function ServiceRow({
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <ImageIcon className="w-7 h-7 text-slate-brand" aria-hidden="true" />
+            <ImageIcon className="w-6 h-6 text-slate-brand" aria-hidden="true" />
           </div>
         )}
       </div>
 
       {/* Isi */}
-      <div className="flex flex-col flex-1 min-w-0 p-5 md:p-6">
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="text-[16px] md:text-[17px] font-bold text-navy leading-snug group-hover:text-orange-text transition-colors">
+      <div className="flex flex-col flex-1 min-w-0 px-3.5 py-3 md:px-5 md:py-4">
+        <div className="flex items-start justify-between gap-2.5 mb-1.5">
+          <h3 className="text-[14px] md:text-[16px] font-bold text-navy leading-snug group-hover:text-orange-text transition-colors line-clamp-2">
             {item.title}
           </h3>
           {categoryLabel && (
             <span
-              className="shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md border text-navy"
+              className="shrink-0 text-[10px] md:text-[11px] font-semibold px-2 py-0.5 rounded-md border text-navy hidden sm:inline-block"
               style={{ borderColor: `${accent}99`, backgroundColor: `${accent}14` }}
             >
               {categoryLabel}
@@ -312,15 +317,15 @@ function ServiceRow({
         </div>
 
         {item.description && (
-          <p className="text-[13.5px] text-slate-brand leading-relaxed line-clamp-2 md:line-clamp-3 mb-4">
+          <p className="text-[12.5px] md:text-[13.5px] text-slate-brand leading-relaxed line-clamp-2 mb-2">
             {item.description}
           </p>
         )}
 
-        <span className="mt-auto inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-navy">
+        <span className="mt-auto inline-flex items-center gap-1.5 text-[12.5px] md:text-[13px] font-semibold text-navy">
           Lihat detail
           <ArrowRight
-            className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+            className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform"
             aria-hidden="true"
           />
         </span>

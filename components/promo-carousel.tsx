@@ -104,9 +104,12 @@ export default function PromoCarousel({ slides, interval = 3000 }: PromoCarousel
             const hasCopy = Boolean(slide.title || slide.eyebrow || slide.subtitle)
             const cta = slide.cta_text && slide.cta_href ? { text: slide.cta_text, href: slide.cta_href } : null
             const body = (
-              /* Rasio banner: 4:3 di ponsel supaya gambar tidak terpotong
-                 separuh, lalu melebar mengikuti layar sampai 8:3 di desktop. */
-              <div className="relative w-full aspect-[4/3] sm:aspect-[2/1] md:aspect-[8/3]">
+              /* Rasio banner SAMA di ponsel dan desktop: 8:3 (persegi
+                 panjang). Sebelumnya ponsel memakai 4:3 dan desktop 8:3,
+                 sehingga banner yang sama tampil berbeda potongannya di tiap
+                 perangkat. Dengan satu rasio, gambar yang Anda unggah tampil
+                 persis sama di mana pun. */
+              <div className="relative w-full aspect-[8/3]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={gdriveToImg(slide.image_url)}

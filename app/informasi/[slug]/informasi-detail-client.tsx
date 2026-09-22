@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { BoardSection } from "@/components/cutting-board-bg"
+import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import {
@@ -168,14 +168,10 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
 
       {/* ══ HERO: pita terang, beda dari banner halaman lain ══ */}
       <BoardSection id="kepala-informasi" panelClassName="relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-[0.5] pointer-events-none"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(17,42,70,0.10) 1px, transparent 1px), linear-gradient(90deg, rgba(17,42,70,0.10) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-          }}
-        />
+        {/* Kisi meja potong, sama seperti hero beranda dan halaman lain.
+            Sebelumnya kepala halaman ini memakai kisi ad-hoc berjarak 48px
+            yang membuatnya terlihat berbeda dari halaman lain. */}
+        <CuttingBoardBackground tone="light" />
 
         <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 lg:px-10 pt-20 pb-9 md:pt-28 md:pb-14">
           <PageTransition>
@@ -206,7 +202,7 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
               <span className="text-[11.5px]" style={{ color: SLATE }}>{formatInformasiDate(article.published_at)}</span>
             </div>
 
-            <h1 className="text-[24px] md:text-[40px] font-black leading-[1.18] tracking-tight mb-4" style={{ color: NAVY }}>
+            <h1 className="text-[24px] md:text-[38px] font-bold text-ice leading-tight mb-4" style={{ color: NAVY }}>
               {article.title}
             </h1>
 

@@ -109,7 +109,7 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
           <p className="animate-fade-in stagger-1 text-[12px] font-bold text-orange-soft mb-4">
             Informasi
           </p>
-          <h1 className="animate-blur-in stagger-2 text-[28px] leading-[1.15] sm:text-4xl lg:text-[44px] font-bold text-ice tracking-tight mb-4 max-w-3xl">
+          <h1 className="animate-blur-in stagger-2 text-[24px] md:text-[38px] font-bold text-ice leading-tight mb-4 max-w-3xl">
             Panduan, Standar &amp; Pengumuman
           </h1>
           <p className="animate-fade-in-up stagger-3 text-[14px] md:text-lg text-ice/75 leading-relaxed max-w-2xl mb-7">
