@@ -5,6 +5,7 @@ import { isGambarContoh } from "@/lib/image-path"
 import { ArrowRight } from "lucide-react"
 import { useInView } from "@/hooks/use-in-view"
 import { BoardSection } from "@/components/cutting-board-bg"
+import TiltCard from "@/components/tilt-card"
 import type { Berita } from "@/lib/database.types"
 import type { KategoriItem } from "@/lib/kategori"
 import { formatNewsDate } from "@/lib/news-data"
@@ -100,10 +101,12 @@ export default function NewsHighlight({
             const warna = kat?.color ?? "#5a5c62"
             const label = kat?.label ?? article.category
             return (
+              /* Kartu berita miring mengikuti kursor, efek TiltedCard dari
+                 React Bits. Di layar sentuh efeknya mati sendiri. */
+              <TiltCard key={article.id} max={4} lift={3} className="shrink-0 w-[85%] snap-center sm:w-auto sm:shrink">
               <Link
-                key={article.id}
                 href={`/berita/${article.slug}`}
-                className={`group flex flex-col items-stretch justify-start shrink-0 w-[85%] snap-center sm:w-auto sm:shrink rounded-2xl overflow-hidden border border-ice-line bg-white transition-all duration-700 hover:-translate-y-1 hover:shadow-xl hover:border-orange ${
+                className={`group flex flex-col items-stretch justify-start h-full rounded-2xl overflow-hidden border border-ice-line bg-white transition-all duration-700 hover:-translate-y-1 hover:shadow-xl hover:border-orange ${
                   cards.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
                 }`}
                 style={{ transitionDelay: `${i * 100}ms` }}
@@ -155,6 +158,7 @@ export default function NewsHighlight({
                   </div>
                 </div>
               </Link>
+              </TiltCard>
             )
           })}
         </div>

@@ -88,7 +88,7 @@ export default function ServicesClient({ allLayanan, depts, kategori }: Props) {
 
       {/* ══ DAFTAR LAYANAN ══ */}
       <BoardSection id="services-list" panelClassName="panel-top-pad">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-14">
+        <div className="max-w-5xl mx-auto panel-pad pt-8 md:pt-14">
 
           {/* ── Filter departemen + pencarian ── */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 md:mb-12">

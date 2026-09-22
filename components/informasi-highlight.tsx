@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ArrowRight, Clock, FileText } from "lucide-react"
 import { useInView } from "@/hooks/use-in-view"
 import { BoardSection } from "@/components/cutting-board-bg"
+import TiltCard from "@/components/tilt-card"
 import type { Informasi } from "@/lib/database.types"
 import type { KategoriItem } from "@/lib/kategori"
 import { formatInformasiDate } from "@/lib/informasi-data"
@@ -67,8 +68,10 @@ export default function InformasiHighlight({
 
         <div ref={list.ref} className="space-y-2.5 md:space-y-3">
           {articles.map((article, i) => (
+            /* Kartu dokumen miring mengikuti kursor, efek TiltedCard dari
+               React Bits. Kemiringannya kecil karena kartunya berisi teks. */
+            <TiltCard key={article.id} max={3} lift={2}>
             <Link
-              key={article.id}
               href={`/informasi/${article.slug}`}
               className={`group grid grid-cols-[auto_1fr] md:grid-cols-[auto_1fr_auto] items-start gap-4 md:gap-6 rounded-xl md:rounded-2xl border border-ice-line bg-white px-4 md:px-6 py-4 md:py-5 transition-all duration-500 hover:border-orange/45 hover:bg-ice-dim/60 ${
                 list.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
@@ -115,6 +118,7 @@ export default function InformasiHighlight({
                 <ArrowRight className="w-4 h-4 text-slate-brand group-hover:text-orange-text group-hover:translate-x-0.5 transition-all" aria-hidden="true" />
               </span>
             </Link>
+            </TiltCard>
           ))}
         </div>
 
