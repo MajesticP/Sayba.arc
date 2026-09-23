@@ -65,10 +65,28 @@ export default function NewsList({
     })
   }, [initialArticles, activeCategory, search])
 
-  const featured = useMemo(
-    () => initialArticles.find((a) => a.featured) ?? null,
-    [initialArticles]
-  )
+  /**
+   * Sorotan: berita bernomor `featured_order` 1, 2, 3.
+   *
+   * Berita dengan nomor lebih kecil tampil lebih dulu, dan nomor 1 selalu
+   * paling atas. Urutan ini sama dengan yang dipakai beranda, jadi apa yang
+   * disorot admin di satu tempat sama di tempat lain.
+   *
+   * Berita yang ditandai `featured = true` TAPI belum punya nomor tetap ikut
+   * tampil sebagai cadangan, supaya penanda sorotan versi lama tidak hilang
+   * sebelum admin memberi nomornya.
+   */
+  const sorotan = useMemo(() => {
+    const bernomor = initialArticles
+      .filter((a) => a.featured_order !== null && a.featured_order !== undefined)
+      .sort((a, b) => (a.featured_order ?? 99) - (b.featured_order ?? 99))
+    const cadangan = initialArticles.filter(
+      (a) => a.featured && (a.featured_order === null || a.featured_order === undefined)
+    )
+    return [...bernomor, ...cadangan].slice(0, 3)
+  }, [initialArticles])
+
+  const sorotanIds = useMemo(() => new Set(sorotan.map((a) => a.id)), [sorotan])
 
   // Hanya tampilkan kategori yang benar-benar dipakai artikel
   const usedCategories = useMemo(() => {
@@ -87,7 +105,7 @@ export default function NewsList({
   }, [initialArticles, usedCategories])
 
   const isFiltering = activeCategory !== "semua" || search.trim() !== ""
-  const showFeatured = featured !== null && !isFiltering
+  const showSorotan = sorotan.length > 0 && !isFiltering
 
   return (
     <>
@@ -178,32 +196,112 @@ export default function NewsList({
             </div>
           )}
 
-          {/* ── Sorotan ── */}
-          {showFeatured && featured && (
+          {/* ── Sorotan 1, 2, 3 ──
+              Nomor 1 jadi kartu besar paling atas; 2 dan 3 jadi kartu kecil di
+              bawahnya. Nomor diambil dari kolom `featured_order` di admin, jadi
+              urutannya ditentukan admin, bukan tanggal terbit. */}
+          {showSorotan && (
             <PageTransition>
-              <Link
-                href={`/berita/${featured.slug}`}
-                className="group block bg-navy rounded-2xl md:rounded-3xl overflow-hidden mb-10 md:mb-14 p-6 md:p-9 hover:shadow-2xl transition-all duration-200"
-              >
-                <p className="text-[11px] font-bold uppercase tracking-wider text-orange-soft mb-3">
+              <section aria-label="Sorotan" className="mb-10 md:mb-14">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-orange-text mb-3.5">
                   Sorotan
                 </p>
-                <h2 className="text-[19px] md:text-[26px] font-bold text-ice leading-snug mb-3 group-hover:text-orange-soft transition-colors max-w-3xl">
-                  {featured.title}
-                </h2>
-                {featured.excerpt && (
-                  <p className="text-ice/75 text-[13.5px] md:text-[15px] leading-relaxed line-clamp-2 mb-5 max-w-3xl">
-                    {featured.excerpt}
-                  </p>
+
+                {/* Sorotan #1: kartu utama */}
+                {(() => {
+                  const utama = sorotan[0]
+                  const kat = catOf(utama.category)
+                  const img = gdriveToImg(utama.image_url)
+                  return (
+                    <Link
+                      href={`/berita/${utama.slug}`}
+                      className="group block bg-navy rounded-2xl md:rounded-3xl overflow-hidden mb-3.5 hover:shadow-2xl transition-all duration-200"
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-[1.15fr_1fr]">
+                        {img && (
+                          <span className="relative w-full aspect-[16/9] md:aspect-auto md:min-h-[260px] overflow-hidden bg-navy-800 order-first md:order-last">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={img}
+                              alt=""
+                              className="card-img-fill transition-transform duration-500 group-hover:scale-105"
+                            />
+                          </span>
+                        )}
+                        <span className="block p-6 md:p-9">
+                          <span className="inline-flex items-center gap-2 mb-3">
+                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-orange text-navy text-[11px] font-black tabular-nums shrink-0">
+                              1
+                            </span>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-orange-soft">
+                              Sorotan Utama
+                            </span>
+                          </span>
+                          <h2 className="block text-[19px] md:text-[26px] font-bold text-ice leading-snug mb-3 group-hover:text-orange-soft transition-colors">
+                            {utama.title}
+                          </h2>
+                          {utama.excerpt && (
+                            <p className="text-ice/75 text-[13.5px] md:text-[15px] leading-relaxed line-clamp-3 mb-5">
+                              {utama.excerpt}
+                            </p>
+                          )}
+                          <span className="flex items-center flex-wrap gap-x-3 gap-y-1.5 text-[11.5px] text-ice/70">
+                            <span className="text-orange-soft font-semibold">{kat.label}</span>
+                            <span aria-hidden="true">·</span>
+                            <span>{formatNewsDate(utama.published_at)}</span>
+                            <span aria-hidden="true">·</span>
+                            <span>{utama.read_minutes} menit baca</span>
+                          </span>
+                        </span>
+                      </div>
+                    </Link>
+                  )
+                })()}
+
+                {/* Sorotan #2 dan #3: kartu kecil berdampingan */}
+                {sorotan.length > 1 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {sorotan.slice(1).map((item, i) => {
+                      const kat = catOf(item.category)
+                      const img = gdriveToImg(item.image_url)
+                      return (
+                        <Link
+                          key={item.id}
+                          href={`/berita/${item.slug}`}
+                          className="kartu-sorot group flex gap-3.5 bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-lg transition-all duration-200 p-3"
+                        >
+                          {img ? (
+                            <span className="relative w-24 sm:w-28 aspect-square rounded-xl overflow-hidden bg-ice-dim shrink-0">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={img} alt="" loading="lazy" className="card-img-fill transition-transform duration-500 group-hover:scale-105" />
+                            </span>
+                          ) : (
+                            <span className="relative w-24 sm:w-28 aspect-square rounded-xl overflow-hidden bg-ice-dim shrink-0 flex items-center justify-center">
+                              <span className="text-[28px] font-bold text-navy/25 select-none" aria-hidden="true">
+                                {item.title.charAt(0)}
+                              </span>
+                            </span>
+                          )}
+                          <span className="flex flex-col flex-1 min-w-0 justify-center">
+                            <span className="flex items-center gap-2 mb-1.5">
+                              <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-orange/15 text-orange-text text-[10px] font-black tabular-nums shrink-0">
+                                {i + 2}
+                              </span>
+                              <span className="text-[10.5px] font-bold text-orange-text truncate">{kat.label}</span>
+                            </span>
+                            <span className="block text-[13.5px] md:text-[14.5px] font-bold text-navy leading-snug line-clamp-2 group-hover:text-orange-text transition-colors">
+                              {item.title}
+                            </span>
+                            <span className="text-[11px] text-slate-brand mt-1.5">
+                              {formatNewsDate(item.published_at)} · {item.read_minutes} mnt
+                            </span>
+                          </span>
+                        </Link>
+                      )
+                    })}
+                  </div>
                 )}
-                <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 text-[11.5px] text-ice/70">
-                  <span className="text-orange-soft font-semibold">{catOf(featured.category).label}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{formatNewsDate(featured.published_at)}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{featured.read_minutes} menit baca</span>
-                </div>
-              </Link>
+              </section>
             </PageTransition>
           )}
 
@@ -244,7 +342,13 @@ export default function NewsList({
           {/* ── Daftar ── */}
           {filtered.length > 0 && (
             <div className="space-y-4 md:space-y-5">
-              {filtered.map((article, i) => {
+              {filtered
+                // Berita yang sudah tampil di blok Sorotan tidak diulang di
+                // daftar: pembaca tidak perlu melihat artikel yang sama dua kali.
+                // Saat sedang memfilter, sorotan tidak ditampilkan, jadi
+                // daftarnya tetap lengkap.
+                .filter((a) => isFiltering || !sorotanIds.has(a.id))
+                .map((article, i) => {
                 const img = gdriveToImg(article.image_url)
                 const cat = catOf(article.category)
                 return (

@@ -212,7 +212,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
           {/* Isi artikel: perender bersama dengan halaman Informasi, jadi
               aturan penulisannya sama di kedua modul. Panduan penulisan
               ditampilkan di bawah isi. */}
-          <IsiArtikel body={article.body} warnaTeks="#5a5c62" panduan />
+          <IsiArtikel body={article.body} warnaTeks="#5a5c62" />
 
           {article.tags && article.tags.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 mt-9 pt-6 border-t border-ice-line">

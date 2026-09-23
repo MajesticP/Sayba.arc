@@ -47,10 +47,14 @@ export default async function Home() {
       .select("*")
       .eq("status", "active")
       .order("sort_order", { ascending: true }),
+    // Berita untuk beranda: SOROTAN dulu (featured_order 1, 2, 3), lalu sisanya
+    // menurut tanggal terbit. Jadi tiga kartu di beranda berisi berita yang
+    // memang dipilih admin, bukan sekadar yang terbaru.
     supabase
       .from("berita")
-      .select("id, title, slug, excerpt, category, image_url, published_at, read_minutes, views")
+      .select("id, title, slug, excerpt, category, image_url, published_at, read_minutes, views, featured, featured_order")
       .eq("status", "active")
+      .order("featured_order", { ascending: true, nullsFirst: false })
       .order("published_at", { ascending: false })
       .limit(3),
     supabase

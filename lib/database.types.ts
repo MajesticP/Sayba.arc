@@ -233,6 +233,8 @@ export type Database = {
           read_minutes: number
           views: number
           featured: boolean
+          /** Nomor sorotan: 1, 2, 3 = disorot (kecil lebih dulu), null = biasa. */
+          featured_order: number | null
           tags: string[] | null
           status: "active" | "draft" | "archived"
           meta_title: string | null
@@ -245,6 +247,7 @@ export type Database = {
         Insert: Omit<Database["public"]["Tables"]["berita"]["Row"], "id" | "created_at"> & {
           id?: string
           created_at?: string
+          featured_order?: number | null
         }
         Update: Partial<Database["public"]["Tables"]["berita"]["Insert"]>
       }

@@ -704,7 +704,7 @@ export default function AdminDashboard() {
       <InformasiModal open={inModal} initial={inEdit} kategori={kategoriData} onClose={() => setInModal(false)}
         onSaved={() => { setInModal(false); fetchInformasi(); showToast(inEdit ? "Informasi diperbarui" : "Informasi ditambahkan") }}
         onError={showToast} />
-      <BeritaModal open={brModal} initial={brEdit} kategori={kategoriBerita} labelKategori={kategoriLabelBerita} onClose={() => setBrModal(false)}
+      <BeritaModal open={brModal} initial={brEdit} kategori={kategoriBerita} labelKategori={kategoriLabelBerita} allBerita={beritaData} onClose={() => setBrModal(false)}
         onSaved={() => { setBrModal(false); fetchBerita(); showToast(brEdit ? "Berita diperbarui" : "Berita ditambahkan") }}
         onError={showToast} />
       <PromoModal open={pmModal} initial={pmEdit} nextOrder={promoData.length + 1} onClose={() => setPmModal(false)}
@@ -2774,19 +2774,21 @@ function BeritaTable({ data, loading, labelKategori, onEdit, onDelete }: {
 }
 
 // ── Berita Modal ───────────────────────────────────────────────────────────
-function BeritaModal({ open, initial, kategori, labelKategori, onClose, onSaved, onError }: {
+function BeritaModal({ open, initial, kategori, labelKategori, allBerita, onClose, onSaved, onError }: {
   open: boolean; initial: Berita | null
   /** Kategori scope "berita" dari tabel `kategori` */
   kategori: KategoriRow[]
   /** Ubah slug kategori jadi label yang terbaca */
   labelKategori: (slug: string) => string
+  /** Semua berita, dipakai untuk memeriksa posisi sorotan yang sudah terpakai. */
+  allBerita: Berita[]
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
   const today = new Date().toISOString().slice(0, 10)
   const blank = {
     title: "", slug: "", excerpt: "", category: kategori[0]?.slug ?? "", image_url: "",
     author: "Redaksi SAYBA ARC", body: "", published_at: today, read_minutes: 3, views: 0,
-    featured: false, tags: "", status: "active" as Status,
+    featured: false, featured_order: null as number | null, tags: "", status: "active" as Status,
     meta_title: "", meta_description: "", meta_keywords: "", og_image: "", canonical_url: "",
   }
   const [form, setForm] = useState(blank)
@@ -2808,7 +2810,8 @@ function BeritaModal({ open, initial, kategori, labelKategori, onClose, onSaved,
         title: initial.title, slug: initial.slug, excerpt: initial.excerpt ?? "", category: initial.category,
         image_url: initial.image_url ?? "", author: initial.author, body: initial.body ?? "",
         published_at: initial.published_at.slice(0, 10), read_minutes: initial.read_minutes, views: initial.views,
-        featured: initial.featured, tags: (initial.tags ?? []).join("\n"), status: initial.status,
+        featured: initial.featured, featured_order: initial.featured_order ?? null,
+        tags: (initial.tags ?? []).join("\n"), status: initial.status,
         meta_title: initial.meta_title ?? "", meta_description: initial.meta_description ?? "",
         meta_keywords: (initial.meta_keywords ?? []).join("\n"), og_image: initial.og_image ?? "",
         canonical_url: initial.canonical_url ?? "",
@@ -2838,7 +2841,11 @@ function BeritaModal({ open, initial, kategori, labelKategori, onClose, onSaved,
       published_at: form.published_at || today,
       read_minutes: Number(form.read_minutes) || 1,
       views: Number(form.views) || 0,
-      featured: form.featured, status: form.status,
+      // `featured` disimpan sebagai cermin `featured_order` supaya kolom lama
+      // tetap benar dan berita yang sudah ditandai sorotan sebelum migrasi
+      // tidak kehilangan tandanya.
+      featured: form.featured_order !== null, featured_order: form.featured_order,
+      status: form.status,
       tags: form.tags ? form.tags.split("\n").map(s => s.trim()).filter(Boolean) : null,
       meta_title: form.meta_title || null, meta_description: form.meta_description || null,
       meta_keywords: form.meta_keywords ? form.meta_keywords.split("\n").map(s => s.trim()).filter(Boolean) : null,
@@ -2934,21 +2941,64 @@ function BeritaModal({ open, initial, kategori, labelKategori, onClose, onSaved,
           <Textarea value={form.tags} onChange={v => set("tags", v)} placeholder={"ArcGIS\nSurvei Lapangan\nTata Ruang"} />
         </Field>
 
-        <button
-          type="button"
-          onClick={() => set("featured", !form.featured)}
-          className={cn("w-full flex items-start gap-2.5 rounded-xl border p-3 text-left transition-all",
-            form.featured ? "border-powder/40 bg-powder/[0.07]" : "border-white/[0.08] bg-white/[0.02] hover:border-white/20")}
-        >
-          <span className={cn("mt-0.5 w-4 h-4 rounded-md border flex items-center justify-center flex-shrink-0 transition-all",
-            form.featured ? "bg-powder border-powder" : "border-white/20")}>
-            {form.featured && <CheckCircle size={11} className="text-carbon" />}
-          </span>
-          <span>
-            <span className={cn("block text-[12.5px] font-semibold", form.featured ? "text-powder" : "text-white/70")}>Jadikan artikel Sorotan</span>
-            <span className="block text-[10.5px] text-white/30 mt-0.5">Tampil sebagai kartu besar di atas halaman /berita. Hanya satu artikel yang bisa jadi Sorotan: menandai ini otomatis melepas tanda dari artikel lain.</span>
-          </span>
-        </button>
+        {/* ── Sorotan Berita (nomor 1, 2, 3) ──
+            Nomor 1 tampil sebagai kartu besar paling atas di halaman /berita
+            dan ikut muncul di beranda; nomor 2 dan 3 jadi kartu kecil di
+            bawahnya. Angka kecil tampil lebih dulu. */}
+        <div className="rounded-xl border border-powder/15 bg-powder/5 p-4 space-y-2.5">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-powder">Sorotan Berita</span>
+            <span className="text-[10px] text-white/30">, tampil di beranda &amp; atas halaman berita (maks 3 posisi)</span>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {([null, 1, 2, 3] as (number | null)[]).map(v => {
+              const takenBy = v !== null ? allBerita.find(b => b.featured_order === v && b.id !== initial?.id) : null
+              const isSelected = form.featured_order === v
+              const isTaken = !!takenBy
+              return (
+                <button
+                  key={String(v)}
+                  type="button"
+                  onClick={() => set("featured_order", v)}
+                  className={cn(
+                    "relative px-3 py-1.5 rounded-lg text-[11.5px] font-semibold border transition-all text-left",
+                    isSelected
+                      ? "bg-powder text-carbon border-powder"
+                      : isTaken
+                        ? "bg-yellow-500/8 text-yellow-400 border-yellow-500/25 hover:bg-yellow-500/15"
+                        : "bg-[#2d3733] text-white/40 border-white/[0.07] hover:text-white/70"
+                  )}
+                >
+                  <span>{v === null ? "Bukan Sorotan" : `Sorotan #${v}`}</span>
+                  {isTaken && !isSelected && (
+                    <span className="block text-[9px] font-normal opacity-70 truncate max-w-[110px]">{takenBy!.title}</span>
+                  )}
+                  {isTaken && isSelected && (
+                    <span className="block text-[9px] font-normal opacity-80 truncate max-w-[110px]">akan geser: {takenBy!.title}</span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+          {form.featured_order !== null && (
+            (() => {
+              const conflict = allBerita.find(b => b.featured_order === form.featured_order && b.id !== initial?.id)
+              return conflict ? (
+                <div className="flex items-start gap-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-3 py-2">
+                  <AlertTriangle size={12} className="text-yellow-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  <p className="text-[11px] text-yellow-400/90 leading-relaxed">
+                    Posisi #{form.featured_order} sudah dipakai oleh <span className="font-bold">"{conflict.title}"</span>. Menyimpan akan memindahkan berita tersebut keluar dari sorotan.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-[10px] text-powder/70">
+                  Berita ini akan tampil di posisi sorotan #{form.featured_order}
+                  {form.featured_order === 1 ? " sebagai kartu utama di paling atas halaman berita." : " sebagai kartu pendamping."}
+                </p>
+              )
+            })()
+          )}
+        </div>
 
         <SeoFields
           metaTitle={form.meta_title} onMetaTitle={v => set("meta_title", v)}

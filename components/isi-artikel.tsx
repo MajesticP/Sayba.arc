@@ -1,16 +1,17 @@
 "use client"
 
 import { useMemo } from "react"
-import { Info } from "lucide-react"
-import { parseIsi, renderSebaris, PANDUAN_TULIS } from "@/lib/markdown"
+import { parseIsi, renderSebaris } from "@/lib/markdown"
 
 /**
  * IsiArtikel: perender isi artikel untuk halaman Informasi dan Berita.
  *
  * Satu komponen dipakai dua halaman, jadi tampilan isi artikel tidak mungkin
- * berbeda antara keduanya. Aturan sintaksnya ada di lib/markdown.tsx, dan
- * panduannya ditampilkan di bawah isi supaya penulis tidak perlu membuka
- * berkas kode untuk tahu cara menulis.
+ * berbeda antara keduanya. Aturan sintaksnya ada di lib/markdown.tsx.
+ *
+ * Panduan penulisan TIDAK ditampilkan di halaman publik: pembaca tidak perlu
+ * melihat cara menulis artikel. Panduannya ada di form admin, tempat penulis
+ * benar-benar membutuhkannya.
  *
  * Sub-judul diberi atribut `data-info-heading`. Halaman Informasi memakainya
  * untuk menyorot bagian yang sedang dibaca lewat IntersectionObserver yang
@@ -26,8 +27,6 @@ interface Props {
   warnaTeks?: string
   /** Warna aksen (butir daftar, garis kutipan, titik panduan). */
   aksen?: string
-  /** Tampilkan panduan penulisan di bawah isi. */
-  panduan?: boolean
 }
 
 export default function IsiArtikel({
@@ -35,7 +34,6 @@ export default function IsiArtikel({
   warnaTebal = "#112a46",
   warnaTeks = "#112a46",
   aksen = "#f07a26",
-  panduan = false,
 }: Props) {
   const blok = useMemo(() => parseIsi(body), [body])
 
@@ -176,54 +174,6 @@ export default function IsiArtikel({
 
         return null
       })}
-
-      {panduan && <PanduanPenulisan />}
     </div>
-  )
-}
-
-/**
- * PanduanPenulisan: daftar sintaks yang bisa dipakai penulis.
- *
- * Ditampilkan di bawah isi artikel, bukan disembunyikan di dokumentasi kode,
- * karena yang menulis artikel adalah admin lewat dashboard. Bentuknya tabel
- * dua kolom: sintaks di kiri (font mono supaya tanda bintangnya terlihat apa
- * adanya), artinya di kanan.
- */
-function PanduanPenulisan() {
-  return (
-    <aside
-      className="mt-10 rounded-2xl border overflow-hidden"
-      style={{ borderColor: "#d8e0ea", backgroundColor: "#f4f6f9" }}
-      aria-label="Panduan penulisan"
-    >
-      <div className="flex items-center gap-2 px-5 py-3.5 border-b" style={{ borderColor: "#d8e0ea" }}>
-        <Info className="w-4 h-4 shrink-0" style={{ color: "#b45610" }} aria-hidden="true" />
-        <h2 className="text-[13px] font-black" style={{ color: "#112a46" }}>
-          Panduan Penulisan Isi
-        </h2>
-      </div>
-      <div className="px-5 py-4">
-        <p className="text-[12.5px] leading-relaxed mb-3.5" style={{ color: "#5a5c62" }}>
-          Tulis isi artikel memakai penanda di bawah ini. Pisahkan setiap bagian
-          dengan satu baris kosong.
-        </p>
-        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
-          {PANDUAN_TULIS.map((p) => (
-            <div key={p.sintaks} className="flex items-baseline gap-3">
-              <dt
-                className="text-[11.5px] font-mono font-bold shrink-0 px-1.5 py-0.5 rounded bg-white border"
-                style={{ borderColor: "#d8e0ea", color: "#112a46", minWidth: "8.5rem" }}
-              >
-                {p.sintaks}
-              </dt>
-              <dd className="text-[12px] leading-snug" style={{ color: "#5a5c62" }}>
-                {p.arti}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </aside>
   )
 }

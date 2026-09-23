@@ -253,7 +253,7 @@ export default function InformasiDetailClient({ article, related, heroImg, categ
                 {/* Isi artikel: perender bersama dengan halaman Berita.
                     Sub-judulnya diberi data-info-heading, yang dipakai
                     daftar isi di samping untuk menyorot bagian aktif. */}
-                <IsiArtikel body={article.body} warnaTebal={NAVY} warnaTeks={NAVY} aksen={catColor} panduan />
+                <IsiArtikel body={article.body} warnaTebal={NAVY} warnaTeks={NAVY} aksen={catColor} />
               </article>
 
               {article.tags && article.tags.length > 0 && (

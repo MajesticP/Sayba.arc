@@ -26,11 +26,15 @@ export const metadata: Metadata = {
 export const revalidate = 60
 
 export default async function BeritaPage() {
+  // Sorotan dulu (featured_order 1, 2, 3), lalu sisanya menurut tanggal.
+  // Urutan ini dipakai halaman berita sendiri, jadi sorotan #1 selalu paling
+  // atas dan sama dengan yang tampil di beranda.
   const [articlesRes, kategoriDb] = await Promise.all([
     supabase
       .from("berita")
       .select("*")
       .eq("status", "active")
+      .order("featured_order", { ascending: true, nullsFirst: false })
       .order("published_at", { ascending: false }),
     getKategori("berita"),
   ])

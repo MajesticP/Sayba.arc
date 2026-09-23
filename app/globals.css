@@ -701,41 +701,42 @@ header { padding-top: env(safe-area-inset-top); }
    yang sama. Selama diseret, transisinya dimatikan supaya kartunya persis
    mengikuti jari, bukan tertinggal di belakang.
    ════════════════════════════════════════════════════════════════════════ */
-.info-view {
-  /* Geser tegak ditangani sendiri; gulir mendatar diteruskan ke halaman. */
-  touch-action: pan-x;
-  overflow: hidden;
-  position: relative;
+.carousel-gulir {
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Gulir TEGAK di sini yang utama, jadi browser harus mengurusnya. Kalau
+     ditulis `pan-x`, gulir tegak dengan jari justru diblokir dan isinya tidak
+     bisa digulir sama sekali di ponsel. */
+  touch-action: pan-y;
+  /* SENGAJA tanpa `scroll-behavior: smooth`.
+     Guliran otomatis menambah `scrollTop` sedikit demi sedikit tiap frame.
+     Dengan `smooth`, setiap penambahan memulai animasi baru dari posisi saat
+     itu, dan hasilnya isinya nyaris tidak bergerak. Kehalusan untuk tombol
+     naik/turun dipasang di tombolnya sendiri lewat `behavior: "smooth"`. */
+  scroll-behavior: auto;
+  /* Scrollbar disembunyikan: kendalinya sudah ada tombol naik/turun, dan
+     guliran otomatis berjalan sendiri. Isi yang bisa digulir tetap terbaca
+     dari kartu yang terpotong di tepi bawah. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* Ruang untuk bayangan kartu saat hover, supaya tidak terpotong. */
+  padding: 2px;
+  margin: -2px;
 }
-.info-view[data-seret="true"] { cursor: grab; }
-.info-view[data-drag="true"] { cursor: grabbing; }
+.carousel-gulir::-webkit-scrollbar { display: none; }
+/* Kursor: teks tetap bisa dipilih, tapi jendelanya tidak menangkap fokus
+   tanpa alasan. */
+.carousel-gulir:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; border-radius: 12px; }
 
-/* Satu grup = satu salinan seluruh daftar. */
-.info-grup { display: block; }
-
-/* Jarak antar kartu. Dipakai juga oleh penghitung tinggi jendela. */
-.info-kartu { margin-bottom: var(--info-jarak, 10px); }
-.info-kartu:last-child { margin-bottom: 0; }
-
-.info-track {
-  transition: transform 650ms cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform;
-  /* Satu langkah = satu kartu, dalam piksel. Nilainya diisi komponen karena
-     tinggi kartu mengikuti panjang teksnya. Transformasi di sini adalah
-     cadangan supaya posisinya sudah benar sebelum JavaScript mengukur. */
-  transform: translate3d(0, calc(var(--pos, 0) * -1 * var(--info-step, 0px)), 0);
-}
-/* Sesaat saat posisi dilompatkan diam-diam: tanpa animasi. */
-.info-track[data-lompat="true"] { transition: none; }
-/* Saat diseret: kartu harus menempel di jari. */
-.info-track[data-drag="true"] { transition: none; }
-
+/* Jarak antar kartu di dalam carousel gulir. */
+.carousel-gulir [data-item] { margin-bottom: 10px; }
+.carousel-gulir [data-item]:last-child { margin-bottom: 0; }
 @media (min-width: 768px) {
-  .info-kartu { margin-bottom: var(--info-jarak-md, 12px); }
+  .carousel-gulir [data-item] { margin-bottom: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .info-track { transition: none; }
+  .carousel-gulir { scroll-behavior: auto; }
 }
 
 .services-kartu { margin-bottom: var(--kartu-jarak); }

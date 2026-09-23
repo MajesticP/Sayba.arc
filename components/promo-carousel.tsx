@@ -43,14 +43,16 @@ function gdriveToImg(url: string): string {
  * jadi bisa diklik dan mengarah ke tautan itu (halaman dalam situs atau alamat
  * luar). Kalau dikosongkan, banner tetap tampil sebagai gambar saja.
  *
- * Rasio: 16:9 di ponsel, 3:1 di layar sedang ke atas (md). Banner 16:9 di
- * desktop terlalu tinggi dan mendorong isi halaman ke bawah; 3:1 membuatnya
- * terbaca sebagai banner, bukan hero kedua. Angka ini mengikuti acuan
- * nexshop.cloud (1216x405 = 3:1 di desktop, 16:9 di ponsel).
+ * Rasio 3:1 (2400 x 800), SAMA di ponsel dan desktop.
+ *
+ * Angka ini sengaja tidak berubah antar ukuran layar: banner yang rasionya
+ * berbeda antara ponsel dan desktop membuat gambar yang sama terlihat
+ * terpotong berbeda, dan itu terlihat sebagai ketidakkonsistenan saat
+ * dibandingkan berdampingan. Dengan satu rasio, apa yang dilihat admin di
+ * desktop persis sama proporsinya dengan yang dilihat pengunjung di ponsel.
  *
  * Gambar yang rasionya berbeda dipotong tengah (object-cover) supaya tidak ada
- * bidang kosong; unggah 2400 x 800 (3:1) supaya tampil utuh di desktop, dan
- * bagian tengahnya tetap aman saat dipotong 16:9 di ponsel.
+ * bidang kosong; unggah 2400 x 800 (3:1) supaya tampil utuh.
  *
  * Geser: bisa diseret manual (tetikus, jari, pena), digeser otomatis tiap
  * 4 detik, lewat tombol panah, titik penanda, atau tombol panah kiri/kanan di
@@ -343,7 +345,7 @@ export default function PromoCarousel({ slides, interval = JEDA_MS }: PromoCarou
           aria-roledescription="carousel"
           aria-label="Promosi SAYBA ARC"
           aria-live={berhenti ? "polite" : "off"}
-          className="promo-view group relative aspect-[16/9] md:aspect-[3/1] w-full overflow-hidden rounded-2xl border border-ice-line bg-ice-dim"
+          className="promo-view group relative aspect-[3/1] w-full overflow-hidden rounded-2xl border border-ice-line bg-ice-dim"
           data-seret={count > 1 ? "true" : "false"}
           data-drag={drag ? "true" : "false"}
           data-lompat={lompat ? "true" : "false"}
