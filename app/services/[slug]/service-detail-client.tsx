@@ -102,7 +102,14 @@ export default function ServiceDetailClient({ service, deptLabel, categoryLabel,
 
       {/* ══ ISI ══ */}
       <BoardSection id="service-body" panelClassName="panel-top-pad">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-14">
+        {/* Padding bawah WAJIB ada: tanpa ini, kartu terakhir (ajakan
+            WhatsApp, atau daftar layanan lain) menempel ke tepi bawah panel.
+            Halaman Informasi, Berita, dan Portofolio semuanya memakai
+            `.panel-pad` yang sudah menyertakan padding bawah; halaman Layanan
+            ini satu-satunya yang menulis paddingnya sendiri dan lupa bagian
+            bawahnya. Jaraknya disamakan dengan halaman Berita supaya seluruh
+            halaman detail terasa sama. */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-14 pb-10 md:pb-16">
 
           {/* Gambar utama: hanya bila ada */}
           {heroImg && (
