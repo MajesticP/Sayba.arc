@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ArrowRight, Clock, FileText } from "lucide-react"
 import { BoardSection } from "@/components/cutting-board-bg"
 import CarouselGulir from "@/components/carousel-gulir"
+import TiltCard from "@/components/tilt-card"
 import { useInView } from "@/hooks/use-in-view"
 import type { Informasi } from "@/lib/database.types"
 import type { KategoriItem } from "@/lib/kategori"
@@ -79,50 +80,54 @@ export default function InformasiHighlight({
         <CarouselGulir jumlah={articles.length} minItem={2} label="Dokumen informasi">
           {articles.map((article, i) => (
             <div key={article.id} data-item>
-              <Link
-                href={`/informasi/${article.slug}`}
-                className="kartu-sorot group grid grid-cols-[auto_1fr] md:grid-cols-[auto_1fr_auto] items-start gap-4 md:gap-6 rounded-xl md:rounded-2xl border border-ice-line bg-white px-4 md:px-6 py-4 md:py-5 transition-all duration-300 hover:border-orange/45 hover:bg-ice-dim/60"
-              >
-                <span className="flex items-center gap-3 pt-0.5">
-                  <span className="text-[12px] font-bold text-slate-brand tabular-nums w-6">
-                    {String(i + 1).padStart(2, "0")}
+              {/* Efek kartu disamakan dengan section lain: sorot kursor
+                  (.kartu-sorot) plus kemiringan mengikuti kursor (TiltCard). */}
+              <TiltCard max={3} lift={3}>
+                <Link
+                  href={`/informasi/${article.slug}`}
+                  className="kartu-sorot group grid grid-cols-[auto_1fr] md:grid-cols-[auto_1fr_auto] items-start gap-4 md:gap-6 rounded-xl md:rounded-2xl border border-ice-line bg-white px-4 md:px-6 py-4 md:py-5 transition-all duration-300 hover:border-orange/45 hover:bg-ice-dim/60"
+                >
+                  <span className="flex items-center gap-3 pt-0.5">
+                    <span className="text-[12px] font-bold text-slate-brand tabular-nums w-6">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="hidden sm:flex w-9 h-9 rounded-lg bg-ice-dim items-center justify-center shrink-0">
+                      <FileText className="w-4 h-4 text-navy" aria-hidden="true" />
+                    </span>
                   </span>
-                  <span className="hidden sm:flex w-9 h-9 rounded-lg bg-ice-dim items-center justify-center shrink-0">
-                    <FileText className="w-4 h-4 text-navy" aria-hidden="true" />
-                  </span>
-                </span>
 
-                <span className="min-w-0">
-                  <span className="flex items-center gap-2.5 flex-wrap mb-1.5">
-                    <span className="text-[11.5px] font-bold text-orange-text">
-                      {labelOf(article.category)}
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-2.5 flex-wrap mb-1.5">
+                      <span className="text-[11.5px] font-bold text-orange-text">
+                        {labelOf(article.category)}
+                      </span>
+                      <span aria-hidden="true" className="text-slate-brand">·</span>
+                      <span className="inline-flex items-center gap-1 text-[11.5px] text-slate-brand">
+                        <Clock className="w-3 h-3" aria-hidden="true" />
+                        {article.read_minutes} mnt baca
+                      </span>
                     </span>
-                    <span aria-hidden="true" className="text-slate-brand">·</span>
-                    <span className="inline-flex items-center gap-1 text-[11.5px] text-slate-brand">
-                      <Clock className="w-3 h-3" aria-hidden="true" />
-                      {article.read_minutes} mnt baca
+                    <span className="block text-[15.5px] md:text-[17px] font-bold text-navy leading-snug group-hover:text-orange-text transition-colors line-clamp-2">
+                      {article.title}
+                    </span>
+                    {article.excerpt && (
+                      <span className="block text-[13px] text-slate-brand leading-relaxed line-clamp-2 mt-1.5">
+                        {article.excerpt}
+                      </span>
+                    )}
+                    <span className="block md:hidden text-[11.5px] text-slate-brand mt-2">
+                      {formatInformasiDate(article.published_at)}
                     </span>
                   </span>
-                  <span className="block text-[15.5px] md:text-[17px] font-bold text-navy leading-snug group-hover:text-orange-text transition-colors line-clamp-2">
-                    {article.title}
-                  </span>
-                  {article.excerpt && (
-                    <span className="block text-[13px] text-slate-brand leading-relaxed line-clamp-2 mt-1.5">
-                      {article.excerpt}
-                    </span>
-                  )}
-                  <span className="block md:hidden text-[11.5px] text-slate-brand mt-2">
-                    {formatInformasiDate(article.published_at)}
-                  </span>
-                </span>
 
-                <span className="hidden md:flex items-center gap-3 pt-1 shrink-0">
-                  <span className="text-[12px] text-slate-brand whitespace-nowrap">
-                    {formatInformasiDate(article.published_at)}
+                  <span className="hidden md:flex items-center gap-3 pt-1 shrink-0">
+                    <span className="text-[12px] text-slate-brand whitespace-nowrap">
+                      {formatInformasiDate(article.published_at)}
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-slate-brand group-hover:text-orange-text group-hover:translate-x-0.5 transition-all" aria-hidden="true" />
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-brand group-hover:text-orange-text group-hover:translate-x-0.5 transition-all" aria-hidden="true" />
-                </span>
-              </Link>
+                </Link>
+              </TiltCard>
             </div>
           ))}
         </CarouselGulir>

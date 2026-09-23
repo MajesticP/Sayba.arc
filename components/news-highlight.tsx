@@ -103,61 +103,66 @@ export default function NewsHighlight({
             return (
               /* Kartu berita miring mengikuti kursor, efek TiltedCard dari
                  React Bits. Di layar sentuh efeknya mati sendiri. */
-              <TiltCard key={article.id} max={4} lift={3} className="shrink-0 w-[85%] snap-center sm:w-auto sm:shrink">
-              <Link
-                href={`/berita/${article.slug}`}
-                className={`kartu-sorot group flex flex-col items-stretch justify-start h-full rounded-2xl overflow-hidden border border-ice-line bg-white transition-all duration-700 hover:shadow-xl hover:border-orange ${
-                  cards.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-                }`}
-                style={{ transitionDelay: `${i * 100}ms` }}
+              <TiltCard
+                key={article.id}
+                max={4}
+                lift={3}
+                className="shrink-0 w-[85%] snap-center sm:w-auto sm:shrink"
               >
-                <div className="relative w-full aspect-[8/5] overflow-hidden bg-ice-dim">
-                  {gdriveToImg(article.image_url) ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={gdriveToImg(article.image_url)}
-                      alt=""
-                      loading="lazy"
-                      className="card-img-fill transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    /* Belum ada foto: bidang garis ukur dengan inisial judul.
-                       Bukan foto contoh, supaya tidak menyesatkan pembaca. */
-                    <span className="absolute inset-0 flex items-center justify-center cutting-grid">
-                      <span className="text-[34px] font-bold text-navy/25 select-none" aria-hidden="true">
-                        {article.title.charAt(0)}
+                <Link
+                  href={`/berita/${article.slug}`}
+                  className={`kartu-sorot group flex flex-col items-stretch justify-start h-full rounded-2xl overflow-hidden border border-ice-line bg-white transition-all duration-700 hover:shadow-xl hover:border-orange ${
+                    cards.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                  }`}
+                  style={{ transitionDelay: `${i * 100}ms` }}
+                >
+                  <div className="relative w-full aspect-[8/5] overflow-hidden bg-ice-dim">
+                    {gdriveToImg(article.image_url) ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={gdriveToImg(article.image_url)}
+                        alt=""
+                        loading="lazy"
+                        className="card-img-fill transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      /* Belum ada foto: bidang garis ukur dengan inisial judul.
+                         Bukan foto contoh, supaya tidak menyesatkan pembaca. */
+                      <span className="absolute inset-0 flex items-center justify-center cutting-grid">
+                        <span className="text-[34px] font-bold text-navy/25 select-none" aria-hidden="true">
+                          {article.title.charAt(0)}
+                        </span>
                       </span>
+                    )}
+                    {/* Label kategori: warna kategori jadi garis + tint tipis,
+                        teksnya tetap navy supaya selalu lolos kontras. */}
+                    <span
+                      className="absolute top-2.5 left-2.5 inline-flex items-center px-2.5 py-1 rounded-full text-[10.5px] font-bold text-navy"
+                      style={{
+                        backgroundColor: "rgba(255,255,255,0.94)",
+                        boxShadow: `inset 0 0 0 1.5px ${warna}`,
+                      }}
+                    >
+                      {label}
                     </span>
-                  )}
-                  {/* Label kategori: warna kategori jadi garis + tint tipis,
-                      teksnya tetap navy supaya selalu lolos kontras. */}
-                  <span
-                    className="absolute top-2.5 left-2.5 inline-flex items-center px-2.5 py-1 rounded-full text-[10.5px] font-bold text-navy"
-                    style={{
-                      backgroundColor: "rgba(255,255,255,0.94)",
-                      boxShadow: `inset 0 0 0 1.5px ${warna}`,
-                    }}
-                  >
-                    {label}
-                  </span>
-                </div>
-
-                <div className="flex flex-col flex-1 p-4 md:p-5">
-                  <h3 className="text-[15px] md:text-[16px] font-bold text-navy leading-snug mb-1.5 line-clamp-2 group-hover:text-orange-text transition-colors duration-200">
-                    {article.title}
-                  </h3>
-                  {article.excerpt && (
-                    <p className="text-slate-brand text-[13px] leading-relaxed line-clamp-3 flex-1">
-                      {article.excerpt}
-                    </p>
-                  )}
-                  <div className="mt-3 pt-2.5 border-t border-ice-line flex items-center gap-2 text-[11.5px] text-slate-brand">
-                    <span>{formatNewsDate(article.published_at)}</span>
-                    <span aria-hidden="true">·</span>
-                    <span>{article.read_minutes} mnt baca</span>
                   </div>
-                </div>
-              </Link>
+
+                  <div className="flex flex-col flex-1 p-4 md:p-5">
+                    <h3 className="text-[15px] md:text-[16px] font-bold text-navy leading-snug mb-1.5 line-clamp-2 group-hover:text-orange-text transition-colors duration-200">
+                      {article.title}
+                    </h3>
+                    {article.excerpt && (
+                      <p className="text-slate-brand text-[13px] leading-relaxed line-clamp-3 flex-1">
+                        {article.excerpt}
+                      </p>
+                    )}
+                    <div className="mt-3 pt-2.5 border-t border-ice-line flex items-center gap-2 text-[11.5px] text-slate-brand">
+                      <span>{formatNewsDate(article.published_at)}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{article.read_minutes} mnt baca</span>
+                    </div>
+                  </div>
+                </Link>
               </TiltCard>
             )
           })}

@@ -359,7 +359,11 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
                   return (
                     <div
                       key={i}
-                      className={`rounded-xl border bg-white transition-colors ${
+                      // Kartu FAQ: efek sorot kursor disamakan dengan kartu lain.
+                      // Kemiringannya sengaja TIDAK dipakai di sini: isinya teks
+                      // yang dibaca sambil menunggu, dan kartu yang bergerak saat
+                      // kursor lewat justru mengganggu membaca.
+                      className={`kartu-sorot rounded-xl border bg-white transition-colors ${
                         isOpen ? "border-orange" : "border-ice-line"
                       }`}
                     >

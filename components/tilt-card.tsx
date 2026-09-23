@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useRef, type CSSProperties, type ReactNode } from "react"
 
 /**
  * TiltCard: kartu yang miring mengikuti kursor, seperti kartu yang diangkat
@@ -11,9 +11,27 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
  * supaya tidak ada dependensi baru hanya untuk satu efek. Hasil geraknya sama:
  * kartu miring sedikit ke arah kursor, lalu kembali rata saat kursor pergi.
  *
- * Batas kemiringan sengaja kecil (6 derajat). Kartu ini berisi teks yang harus
- * tetap terbaca; kemiringan besar membuat teksnya kabur dan terasa seperti
- * gimmick, bukan seperti kertas yang diangkat.
+ * CARA KERJANYA — posisi kursor ditulis ke dua variabel CSS di elemennya, lalu
+ * CSS yang menghitung kemiringannya. React tidak pernah dirender ulang saat
+ * kursor bergerak.
+ *
+ * Versi pertama komponen ini menyimpan kemiringan di `useState`, dan itu boros:
+ * pointermove bisa datang jauh lebih sering daripada layar menggambar, dan
+ * setiap perubahan state berarti React menyusun ulang seluruh isi kartu
+ * (gambar, judul, lencana) padahal yang berubah cuma satu transform. Sekarang
+ * yang berubah hanya dua variabel CSS.
+ *
+ * Transform 3D-nya juga hanya dipasang SAAT KURSOR DI ATAS KARTU (lewat
+ * `:hover` di CSS, lihat `.tilt-card` di globals.css). Kalau dipasang permanen,
+ * puluhan kartu sekaligus memaksa browser menyimpan lapisan komposit untuk
+ * semuanya — boros memori, dan teks di dalamnya bisa ikut berubah halus
+ * pinggirnya. Saat tidak disorot, kartunya kembali jadi elemen biasa.
+ *
+ * BATAS KEMIRINGAN: sudutnya dihitung ulang dari ukuran kartu supaya tepi yang
+ * bergeser tidak melebihi ruang di sekitarnya. Kartu yang sangat lebar (kartu
+ * layanan memanjang, ±1200 px) hanya butuh 2° untuk menggeser tepinya 20 px,
+ * sedangkan kartu berita yang lebih kecil butuh 4° penuh. Kalau batas ini tidak
+ * ada, kartu lebar akan terpotong jendela gulirnya sendiri.
  *
  * Efek ini hanya untuk perangkat berpenunjuk (mouse). Di layar sentuh tidak ada
  * kursor untuk diikuti, jadi efeknya dimatikan, bukan ditebak-tebak. Dimatikan
@@ -24,7 +42,7 @@ export default function TiltCard({
   className = "",
   /** Kemiringan maksimum dalam derajat. */
   max = 6,
-  /** Kedalaman angkat saat kursor di atas kartu. */
+  /** Kedalaman angkat saat kursor di atas kartu, dalam piksel. */
   lift = 4,
 }: {
   children: ReactNode
@@ -33,17 +51,19 @@ export default function TiltCard({
   lift?: number
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const [aktif, setAktif] = useState(false)
-  const [miring, setMiring] = useState({ x: 0, y: 0 })
-  const [angkat, setAngkat] = useState(false)
+  // Tidak memakai state: nilainya hidup di variabel CSS elemennya sendiri.
+  const aktif = useRef(false)
   const raf = useRef<number | null>(null)
+  const titik = useRef({ x: 0, y: 0 })
 
   // Hanya hidup di perangkat berpenunjuk halus (mouse/trackpad) dan saat
   // pengguna tidak meminta reduce motion.
   useEffect(() => {
     const halus = window.matchMedia("(hover: hover) and (pointer: fine)")
     const tenang = window.matchMedia("(prefers-reduced-motion: reduce)")
-    const up = () => setAktif(halus.matches && !tenang.matches)
+    const up = () => {
+      aktif.current = halus.matches && !tenang.matches
+    }
     up()
     halus.addEventListener("change", up)
     tenang.addEventListener("change", up)
@@ -55,27 +75,42 @@ export default function TiltCard({
 
   const onMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!aktif || !ref.current) return
-      // Dibatasi satu perhitungan per gambar: pointermove bisa datang jauh
-      // lebih sering daripada layar bisa menggambar.
+      if (!aktif.current || !ref.current) return
+      // Titiknya disimpan dulu; perhitungannya menyusul satu kali per gambar.
+      titik.current = { x: e.clientX, y: e.clientY }
       if (raf.current !== null) return
       raf.current = window.requestAnimationFrame(() => {
         raf.current = null
         const el = ref.current
         if (!el) return
         const r = el.getBoundingClientRect()
+        if (!r.width || !r.height) return
         // -0.5..0.5 dari tengah kartu ke tepinya.
-        const px = (e.clientX - r.left) / r.width - 0.5
-        const py = (e.clientY - r.top) / r.height - 0.5
-        setMiring({ x: -py * max * 2, y: px * max * 2 })
+        const px = (titik.current.x - r.left) / r.width - 0.5
+        const py = (titik.current.y - r.top) / r.height - 0.5
+        // Sudut dibatasi supaya tepi kartu tidak bergeser lebih jauh dari ruang
+        // yang tersedia di sekelilingnya (lihat BATAS_GESER).
+        const maxX = Math.min(max, sudutAman(r.height / 2))
+        const maxY = Math.min(max, sudutAman(r.width / 2))
+        el.style.setProperty("--tilt-x", `${(-py * maxX * 2).toFixed(2)}deg`)
+        el.style.setProperty("--tilt-y", `${(px * maxY * 2).toFixed(2)}deg`)
       })
     },
-    [aktif, max]
+    [max]
   )
 
+  // Dikembalikan ke rata saat kursor pergi. Sebenarnya `:hover` di CSS sudah
+  // cukup untuk membalikkan transformnya; ini hanya supaya saat kursor masuk
+  // lagi, kemiringannya mulai dari rata, bukan dari sudut terakhir.
   const reset = useCallback(() => {
-    setMiring({ x: 0, y: 0 })
-    setAngkat(false)
+    const el = ref.current
+    if (!el) return
+    if (raf.current !== null) {
+      window.cancelAnimationFrame(raf.current)
+      raf.current = null
+    }
+    el.style.setProperty("--tilt-x", "0deg")
+    el.style.setProperty("--tilt-y", "0deg")
   }, [])
 
   useEffect(() => {
@@ -88,14 +123,27 @@ export default function TiltCard({
     <div
       ref={ref}
       onMouseMove={onMove}
-      onMouseEnter={() => aktif && setAngkat(true)}
       onMouseLeave={reset}
       className={`tilt-card ${className}`}
-      style={{
-        transform: `perspective(900px) rotateX(${miring.x}deg) rotateY(${miring.y}deg) translateY(${angkat ? -lift : 0}px)`,
-      }}
+      // Angkatnya tetap: nilainya hanya berlaku saat `:hover` memasang
+      // transformnya, jadi tidak perlu diurus JavaScript.
+      style={{ "--tilt-lift": `-${lift}px` } as CSSProperties}
     >
       {children}
     </div>
   )
+}
+
+/**
+ * Sudut kemiringan terbesar yang pergeseran tepinya masih muat di BATAS_GESER.
+ *
+ * Pergeseran tepi ≈ setengah ukuran × sin(sudut), jadi sudutnya dibalik dari
+ * batas itu. Kartu yang sangat kecil bisa saja butuh lebih dari 90°, dan itu
+ * tidak masuk akal; karena itu hasilnya dipagari di 90°.
+ */
+const BATAS_GESER = 13 // px — tidak boleh lebih besar dari padding `.carousel-gulir`
+function sudutAman(setengahUkuran: number): number {
+  if (setengahUkuran <= 0) return 0
+  const rasio = Math.min(1, BATAS_GESER / setengahUkuran)
+  return (Math.asin(rasio) * 180) / Math.PI
 }

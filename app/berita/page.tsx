@@ -25,17 +25,44 @@ export const metadata: Metadata = {
 
 export const revalidate = 60
 
+/**
+ * Ambil semua berita, sorotan lebih dulu.
+ *
+ * Kalau kolom `featured_order` belum ada (migrasi belum dijalankan), PostgREST
+ * menolak seluruh query dan daftar berita jadi kosong. Karena itu ada
+ * percobaan kedua tanpa kolom itu: daftarnya tetap tampil, hanya urutan
+ * sorotannya yang belum berlaku.
+ */
+async function ambilSemuaBerita(): Promise<{ data: Berita[] | null; error: { message: string } | null }> {
+  const denganSorotan = await supabase
+    .from("berita")
+    .select("*")
+    .eq("status", "active")
+    .order("featured_order", { ascending: true, nullsFirst: false })
+    .order("published_at", { ascending: false })
+
+  if (!denganSorotan.error) {
+    return { data: (denganSorotan.data ?? []) as Berita[], error: null }
+  }
+
+  const tanpaSorotan = await supabase
+    .from("berita")
+    .select("*")
+    .eq("status", "active")
+    .order("published_at", { ascending: false })
+
+  return {
+    data: (tanpaSorotan.data ?? []) as Berita[],
+    error: tanpaSorotan.error ?? denganSorotan.error,
+  }
+}
+
 export default async function BeritaPage() {
   // Sorotan dulu (featured_order 1, 2, 3), lalu sisanya menurut tanggal.
   // Urutan ini dipakai halaman berita sendiri, jadi sorotan #1 selalu paling
   // atas dan sama dengan yang tampil di beranda.
   const [articlesRes, kategoriDb] = await Promise.all([
-    supabase
-      .from("berita")
-      .select("*")
-      .eq("status", "active")
-      .order("featured_order", { ascending: true, nullsFirst: false })
-      .order("published_at", { ascending: false }),
+    ambilSemuaBerita(),
     getKategori("berita"),
   ])
 

@@ -6,6 +6,7 @@ import PageHero from "@/components/page-hero"
 import PageTransition from "@/components/page-transition"
 import { DynamicIcon } from "@/lib/dynamic-icon"
 import { BoardSection } from "@/components/cutting-board-bg"
+import TiltCard from "@/components/tilt-card"
 
 export const metadata: Metadata = {
   title: `Kontak: ${siteConfig.name}`,
@@ -41,18 +42,22 @@ export default function ContactPage() {
               <div className="space-y-2.5 md:space-y-5">
                 <h2 className="text-[16px] md:text-2xl font-bold text-navy mb-3 md:mb-6">Informasi Kontak</h2>
                 {contactPage.info.map((item, index) => (
-                  <a key={index} href={item.href}
-                    target={item.href.startsWith("http") ? "_blank" : undefined}
-                    rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                    className="flex items-center justify-start gap-3.5 p-4 md:p-5 bg-white rounded-2xl border border-ice-line hover:border-orange/45 hover:shadow-lg transition-all duration-300 group">
-                    <div className="w-8 h-8 md:w-11 md:h-11 rounded-lg md:rounded-xl bg-ice-dim flex items-center justify-center flex-shrink-0 group-hover:bg-orange/20 transition-colors">
-                      <DynamicIcon name={item.icon} color="#f07a26" size={16} />
-                    </div>
-                    <div>
-                      <div className="text-[10.5px] font-bold text-slate-brand uppercase tracking-wider">{item.label}</div>
-                      <div className="text-navy font-semibold text-[13.5px] md:text-[15.5px] break-words">{item.value}</div>
-                    </div>
-                  </a>
+                  /* Efek kartu disamakan dengan kartu di section lain:
+                     sorot kursor (.kartu-sorot) plus kemiringan (TiltCard). */
+                  <TiltCard key={index} max={4} lift={3}>
+                    <a href={item.href}
+                      target={item.href.startsWith("http") ? "_blank" : undefined}
+                      rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                      className="kartu-sorot flex items-center justify-start gap-3.5 p-4 md:p-5 bg-white rounded-2xl border border-ice-line hover:border-orange/45 hover:shadow-lg transition-all duration-300 group">
+                      <div className="w-8 h-8 md:w-11 md:h-11 rounded-lg md:rounded-xl bg-ice-dim flex items-center justify-center flex-shrink-0 group-hover:bg-orange/20 transition-colors">
+                        <DynamicIcon name={item.icon} color="#f07a26" size={16} />
+                      </div>
+                      <div>
+                        <div className="text-[10.5px] font-bold text-slate-brand uppercase tracking-wider">{item.label}</div>
+                        <div className="text-navy font-semibold text-[13.5px] md:text-[15.5px] break-words">{item.value}</div>
+                      </div>
+                    </a>
+                  </TiltCard>
                 ))}
 
                 <div className="p-4 md:p-6 bg-navy rounded-2xl relative overflow-hidden">

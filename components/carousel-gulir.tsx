@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
-import { ChevronDown, ChevronUp } from "lucide-react"
 import type { ReactNode } from "react"
 
 /**
@@ -19,9 +18,12 @@ import type { ReactNode } from "react"
  *    bukan lompatan per jeda. Saat mencapai ujung bawah, gulirannya kembali
  *    ke atas dengan lembut.
  *
- *  - Bisa diseret manual (tetikus, jari, pena), roda tetikus, dan tombol
- *    naik/turun. Saat pengguna menyentuh, guliran otomatis berhenti sejenak
- *    lalu lanjut lagi sendiri.
+ *  - Bisa diseret manual (tetikus, jari, pena) dan dengan roda tetikus. Saat
+ *    pengguna menyentuh, guliran otomatis berhenti sejenak lalu lanjut lagi
+ *    sendiri. Tombol naik/turun di layar sengaja TIDAK dipakai: gulirannya
+ *    sudah otomatis dan isinya bisa diseret, jadi tombolnya hanya memakan
+ *    ruang. Kendali tanpa tetikus tetap ada lewat tombol panah, Home, dan End
+ *    di papan ketik.
  *
  *  - Aktif HANYA kalau isinya lebih dari `minItem` (bawaan 2). Dengan dua
  *    item atau kurang, semuanya tampil sekaligus dan tidak ada guliran sama
@@ -70,6 +72,11 @@ export default function CarouselGulir({
   const [reduceMotion, setReduceMotion] = useState(false)
   const [adaTetikus, setAdaTetikus] = useState(false)
   const [tinggi, setTinggi] = useState<number | null>(null)
+  // Dipakai untuk memunculkan pudaran tepi hanya di sisi yang memang masih ada
+  // isinya. Kalau selalu ditampilkan, kartu paling atas ikut memudar padahal
+  // tidak ada apa pun di atasnya.
+  const [adaDiAtas, setAdaDiAtas] = useState(false)
+  const [adaDiBawah, setAdaDiBawah] = useState(false)
 
   // Jeda otomatis berhenti sementara setelah pengguna menyentuh.
   const tahanSampai = useRef(0)
@@ -99,7 +106,8 @@ export default function CarouselGulir({
    * Ukur tinggi jendela dari item yang benar-benar dirender.
    *
    * Diukur dari `minItem` item pertama, jadi jendela selalu pas berisi tepat
-   * sekian item walau tingginya berbeda-beda karena panjang teks.
+   * sekian item walau tingginya berbeda-beda karena panjang teks. Ruang tepi
+   * jendela ditambahkan di akhir supaya isinya tidak terpotong padding.
    */
   const ukur = useCallback(() => {
     const view = viewRef.current
@@ -111,8 +119,32 @@ export default function CarouselGulir({
       const gaya = getComputedStyle(el)
       return t + r.height + (parseFloat(gaya.marginBottom) || 0)
     }, 0)
-    if (total > 0) setTinggi(Math.round(total))
+    if (total <= 0) return
+
+    // Ruang tepi jendela (lihat `.carousel-gulir` di globals.css) HARUS ikut
+    // dihitung. `box-sizing: border-box` membuat padding mengurangi tinggi isi:
+    // tanpa ditambahkan di sini, jendela setinggi dua kartu hanya menyisakan
+    // ruang untuk satu kartu lebih sedikit, dan kartu kedua terpotong.
+    const gayaView = getComputedStyle(view)
+    const tepi =
+      (parseFloat(gayaView.paddingTop) || 0) + (parseFloat(gayaView.paddingBottom) || 0)
+
+    setTinggi(Math.round(total + tepi))
   }, [minItem])
+
+  /**
+   * Perbarui penanda tepi: adakah isi di atas, adakah isi di bawah.
+   *
+   * Dipanggil saat menggulir dan saat ukuran berubah. Ambangnya 2 px supaya
+   * pembulatan piksel browser tidak membuat pudarannya berkedip di ujung.
+   */
+  const perbaruiTepi = useCallback(() => {
+    const view = viewRef.current
+    if (!view) return
+    const maks = view.scrollHeight - view.clientHeight
+    setAdaDiAtas(view.scrollTop > 2)
+    setAdaDiBawah(view.scrollTop < maks - 2)
+  }, [])
 
   // Dijalankan SETELAH DOM diperbarui (useLayoutEffect), dan bergantung pada
   // perluGulir supaya pengukuran terjadi lagi begitu jendelanya benar-benar
@@ -122,14 +154,26 @@ export default function CarouselGulir({
     const view = viewRef.current
     if (!view) return
     ukur()
-    const ro = new ResizeObserver(ukur)
+    perbaruiTepi()
+    const ro = new ResizeObserver(() => {
+      ukur()
+      perbaruiTepi()
+    })
     view.querySelectorAll("[data-item]").forEach((el) => ro.observe(el))
-    window.addEventListener("resize", ukur, { passive: true })
+    const onResize = () => {
+      ukur()
+      perbaruiTepi()
+    }
+    window.addEventListener("resize", onResize, { passive: true })
+    // Guliran manual (roda, seret, sentuh) dan guliran otomatis sama-sama
+    // memicu ini, jadi penanda tepinya selalu ikut posisi yang sebenarnya.
+    view.addEventListener("scroll", perbaruiTepi, { passive: true })
     return () => {
       ro.disconnect()
-      window.removeEventListener("resize", ukur)
+      window.removeEventListener("resize", onResize)
+      view.removeEventListener("scroll", perbaruiTepi)
     }
-  }, [ukur, perluGulir, children])
+  }, [ukur, perbaruiTepi, perluGulir, children])
 
   // Perlu gulir hanya kalau isinya lebih banyak dari yang muat di jendela.
   //
@@ -294,7 +338,14 @@ export default function CarouselGulir({
     return () => window.cancelAnimationFrame(raf)
   }, [berhenti])
 
-  // Tombol naik/turun: satu kartu per tekanan.
+  /**
+   * Geser satu kartu, dipakai tombol panah atas/bawah di papan ketik.
+   *
+   * Tombol naik/turun di layar DIHAPUS: gulirannya sudah berjalan otomatis dan
+   * isinya bisa diseret, jadi tombolnya hanya memakan ruang tanpa menambah
+   * kemampuan. Untuk pengguna yang tidak memakai tetikus, kendalinya tetap ada
+   * lewat tombol panah di papan ketik, jadi tidak ada yang kehilangan akses.
+   */
   const geserSatuKartu = useCallback(
     (arah: 1 | -1) => {
       const view = viewRef.current
@@ -309,6 +360,25 @@ export default function CarouselGulir({
     [minItem, tahanSementara]
   )
 
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault()
+      geserSatuKartu(1)
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault()
+      geserSatuKartu(-1)
+    } else if (e.key === "Home") {
+      e.preventDefault()
+      tahanSementara()
+      viewRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+    } else if (e.key === "End") {
+      e.preventDefault()
+      tahanSementara()
+      const view = viewRef.current
+      if (view) view.scrollTo({ top: view.scrollHeight, behavior: "smooth" })
+    }
+  }
+
   // Kalau isinya tidak melebihi jendela, semuanya tampil tanpa pembungkus
   // gulir: tidak ada scrollbar, tidak ada kendali, tidak ada guliran.
   if (!perluGulir) {
@@ -317,32 +387,11 @@ export default function CarouselGulir({
 
   return (
     <div>
-      <div className="flex items-center justify-end mb-2">
-        <div className="flex flex-col rounded-lg border border-ice-line overflow-hidden">
-          <button
-            type="button"
-            onClick={() => geserSatuKartu(-1)}
-            aria-label={`Gulir ${label} ke atas`}
-            className="inline-flex items-center justify-center w-8 h-5 min-h-0 text-slate-brand hover:text-navy hover:bg-ice-dim transition-colors border-b border-ice-line"
-          >
-            <ChevronUp size={13} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            onClick={() => geserSatuKartu(1)}
-            aria-label={`Gulir ${label} ke bawah`}
-            className="inline-flex items-center justify-center w-8 h-5 min-h-0 text-slate-brand hover:text-navy hover:bg-ice-dim transition-colors"
-          >
-            <ChevronDown size={13} aria-hidden="true" />
-          </button>
-        </div>
-      </div>
-
       <div className="relative">
         <div
           ref={viewRef}
           role="region"
-          aria-label={label}
+          aria-label={`${label}. Gunakan tombol panah atas dan bawah untuk menggulir.`}
           tabIndex={0}
           onMouseEnter={() => adaTetikus && setHover(true)}
           onMouseLeave={() => adaTetikus && setHover(false)}
@@ -356,6 +405,7 @@ export default function CarouselGulir({
           onPointerUp={akhiriSeret}
           onPointerCancel={akhiriSeret}
           onClickCapture={onClickCapture}
+          onKeyDown={onKeyDown}
           onWheel={tahanSementara}
           onTouchStart={tahanSementara}
           className={`carousel-gulir cursor-grab ${className}`}
@@ -364,10 +414,23 @@ export default function CarouselGulir({
           {children}
         </div>
 
-        {/* Petunjuk gulir: tipis, tidak menutupi kartu. */}
+        {/* Petunjuk gulir: pudaran tipis di tepi yang masih ada isinya.
+            Tanpa ini, kartu yang terpotong di tepi jendela terbaca seperti
+            susunan yang rusak, bukan seperti daftar yang bisa digulir. */}
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-6"
-          style={{ background: "linear-gradient(to top, var(--panel), transparent)" }}
+          className="pointer-events-none absolute inset-x-0 top-0 h-5 transition-opacity duration-300"
+          style={{
+            background: "linear-gradient(to bottom, var(--panel), transparent)",
+            opacity: adaDiAtas ? 1 : 0,
+          }}
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-6 transition-opacity duration-300"
+          style={{
+            background: "linear-gradient(to top, var(--panel), transparent)",
+            opacity: adaDiBawah ? 1 : 0,
+          }}
           aria-hidden="true"
         />
       </div>

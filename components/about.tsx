@@ -31,7 +31,10 @@ function StatCard({ value, label, active, delay }: { value: string; label: strin
   // Orange pada 70% opasitas menyatu dengan navy di belakangnya sehingga
   // rasionya jatuh di bawah 4.5:1; orange-soft penuh 7.36:1.
   return (
-    <div className={`bg-white/[0.06] rounded-xl p-3 md:p-5 border border-white/10 hover:border-orange/45 transition-all duration-500 hover:-translate-y-1 ${active ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: `${delay}ms` }}>
+    // Kartu statistik: efek sorot kursor disamakan dengan kartu konten lain.
+    // Kemiringannya tidak dipakai di sini karena kartunya kecil dan angkanya
+    // dibaca sekilas — memiringkannya justru menyulitkan.
+    <div className={`kartu-sorot bg-white/[0.06] rounded-xl p-3 md:p-5 border border-white/10 hover:border-orange/45 transition-all duration-500 hover:-translate-y-1 ${active ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: `${delay}ms` }}>
       <div className="text-[21px] md:text-3xl font-bold text-ice mb-1 tabular-nums leading-none">{value}</div>
       <div className="text-orange-soft text-[11px] md:text-[13px] leading-snug">{label}</div>
     </div>

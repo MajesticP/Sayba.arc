@@ -169,7 +169,11 @@ export default function ServiceDetailClient({ service, deptLabel, categoryLabel,
                   return (
                     <div
                       key={i}
-                      className={`rounded-xl border transition-colors ${
+                      // Kartu FAQ: efek sorot kursor disamakan dengan kartu lain.
+                      // Kemiringannya sengaja TIDAK dipakai di sini: isinya teks
+                      // yang dibaca, dan kartu yang bergerak saat kursor lewat
+                      // justru mengganggu.
+                      className={`kartu-sorot rounded-xl border transition-colors ${
                         isOpen ? "border-orange bg-white" : "border-ice-line bg-white"
                       }`}
                     >

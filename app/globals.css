@@ -609,42 +609,6 @@ header { padding-top: env(safe-area-inset-top); }
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   Carousel layanan di beranda
-   Satu carousel per departemen. Jendelanya setinggi DUA kartu, jadi selalu
-   tepat dua kartu terlihat, di ponsel maupun desktop. Kartunya sendiri
-   memakai komponen bersama (components/service-card.tsx), jadi ukurannya
-   tidak mungkin berbeda dari kartu di halaman Layanan.
-
-   Gerakannya bertingkat seperti banner promosi: satu langkah = satu kartu,
-   dengan animasi. Bisa otomatis, bisa manual lewat tombol naik/turun, usap
-   di layar sentuh, dan tombol-tombol posisi. Tombol jeda memberi kendali
-   penuh (WCAG 2.2.2).
-
-   Agar gulirannya tidak pernah terlihat "memutar balik", daftar ditulis dua
-   kali dan hanya maju terus. Saat salinan kedua tercapai, posisinya
-   dilompatkan kembali ke salinan pertama tanpa animasi. Karena isinya sama
-   persis, lompatan itu tidak terlihat.
-   ════════════════════════════════════════════════════════════════════════ */
-.services-view {
-  /* Tepat dua kartu + satu jarak di antaranya. */
-  height: calc(var(--kartu-h) * 2 + var(--kartu-jarak));
-  overflow: hidden;
-}
-.services-track {
-  display: flex;
-  flex-direction: column;
-  /* Satu langkah = tinggi kartu + jaraknya. */
-  transform: translateY(calc(var(--pos, 0) * -1 * (var(--kartu-h) + var(--kartu-jarak))));
-  transition: transform 700ms cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform;
-}
-/* Dipakai sesaat saat posisi dilompatkan: harus tanpa animasi, kalau tidak
-   lompatannya terlihat sebagai guliran cepat. */
-.services-track[data-lompat="true"] { transition: none; }
-/* Hanya bergerak kalau isinya memang melebihi jendela. */
-.services-track[data-gulir="false"] { transition: none; }
-
-/* ════════════════════════════════════════════════════════════════════════
    Banner promosi (carousel 16:9)
 
    Deretannya digambar sebagai satu baris selebar layar dan digeser dengan
@@ -719,9 +683,18 @@ header { padding-top: env(safe-area-inset-top); }
      dari kartu yang terpotong di tepi bawah. */
   scrollbar-width: none;
   -ms-overflow-style: none;
-  /* Ruang untuk bayangan kartu saat hover, supaya tidak terpotong. */
-  padding: 2px;
-  margin: -2px;
+  /* Ruang tepi untuk kartu yang miring dan bayangannya saat disorot.
+     Jendela gulir memotong apa pun yang keluar dari kotaknya, jadi tanpa ruang
+     ini tepi kartu yang miring akan terpangkas.
+
+     KIRI-KANAN dilebihkan lalu ditarik kembali dengan margin negatif, jadi
+     lebar isinya tidak berubah sedikit pun: kartunya tetap sejajar dengan teks
+     di atas dan di bawahnya. Ruang tegak cukup tipis, karena kemiringan tegak
+     hampir tidak menggeser apa pun (kartu setinggi 116 px baru bergeser 0,3 px
+     pada 4°), dan ruang tebal di sini hanya akan menambah tinggi section tanpa
+     gunanya. */
+  padding: 6px 14px;
+  margin: 0 -14px;
 }
 .carousel-gulir::-webkit-scrollbar { display: none; }
 /* Kursor: teks tetap bisa dipilih, tapi jendelanya tidak menangkap fokus
@@ -737,12 +710,6 @@ header { padding-top: env(safe-area-inset-top); }
 
 @media (prefers-reduced-motion: reduce) {
   .carousel-gulir { scroll-behavior: auto; }
-}
-
-.services-kartu { margin-bottom: var(--kartu-jarak); }
-
-@media (prefers-reduced-motion: reduce) {
-  .services-track { transition: none; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -774,11 +741,48 @@ header { padding-top: env(safe-area-inset-top); }
     transparent 68%
   );
 }
+
+/* Tepi kartu ikut menyala tepat di bawah kursor, seperti tepi kertas yang
+   tertangkap cahaya. Ini yang membuat kartunya terasa benda, bukan bidang
+   datar: sorotan di tengah saja terbaca sebagai warna, sedangkan tepi yang
+   menyala terbaca sebagai bentuk.
+
+   Caranya: satu lapis gradien radial dipotong jadi bingkai 1px memakai mask
+   (dua lapis mask, yang luar dikurangi yang dalam). Tetap CSS murni, jadi
+   tidak ada satu pun perhitungan tambahan per frame: browser yang
+   menggambarnya, dan posisinya ikut variabel yang sudah ada. */
+.kartu-sorot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 260ms ease-out;
+  padding: 1px;
+  background: radial-gradient(
+    240px circle at var(--sx, 50%) var(--sy, 50%),
+    rgba(240, 122, 38, 0.65),
+    rgba(240, 122, 38, 0.12) 55%,
+    transparent 75%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .kartu-sorot:hover::after { opacity: 1; }
+  .kartu-sorot:hover::before { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .kartu-sorot::after { transition: none; }
+  .kartu-sorot::after,
+  .kartu-sorot::before { transition: none; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -788,13 +792,35 @@ header { padding-top: env(safe-area-inset-top); }
    Efeknya sendiri hanya menyala di perangkat berpenunjuk (lihat
    components/tilt-card.tsx), jadi tidak ada biaya di layar sentuh.
    ════════════════════════════════════════════════════════════════════════ */
+/* Kartu miring mengikuti kursor.
+   Kemiringan dan angkatnya datang dari dua variabel CSS yang ditulis JavaScript
+   (lihat components/tilt-card.tsx), lalu dihitung di sini. Jadi React tidak
+   pernah dirender ulang saat kursor bergerak.
+
+   Transform 3D-nya hanya dipasang SAAT DISOROT. Kalau dipasang permanen, setiap
+   kartu di halaman (di beranda ada tiga section kartu sekaligus) memaksa
+   browser menyimpan lapisan komposit sendiri-sendiri — boros memori, dan di
+   ponsel terasa. Saat tidak disorot, kartunya kembali jadi elemen biasa.
+
+   `will-change` juga sengaja tidak dipakai, dengan alasan yang sama. */
 .tilt-card {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --tilt-lift: 0px;
   transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
-  transform-style: preserve-3d;
-  will-change: transform;
 }
+
+@media (hover: hover) and (pointer: fine) {
+  .tilt-card:hover {
+    transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y))
+      translateY(var(--tilt-lift));
+    transform-style: preserve-3d;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .tilt-card { transition: none; transform: none !important; }
+  .tilt-card,
+  .tilt-card:hover { transition: none; transform: none; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════

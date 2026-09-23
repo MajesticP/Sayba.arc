@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { ArrowRight, ImageIcon } from "lucide-react"
+import TiltCard from "@/components/tilt-card"
 import { isGambarContoh } from "@/lib/image-path"
 import type { Layanan } from "@/lib/database.types"
 
@@ -56,62 +57,68 @@ export default function ServiceCard({
   const img = gdriveToImg(item.image_url)
 
   return (
-    <Link
-      href={`/services/${item.slug}`}
-      className="kartu-sorot group flex flex-row items-stretch bg-white rounded-xl md:rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-md transition-all duration-200"
-      style={{ height: "var(--kartu-h)" }}
-    >
-      {/* Garis aksen departemen di tepi kiri. Tipis saja: penanda, bukan hiasan. */}
-      {accent && <span className="w-1 shrink-0" style={{ backgroundColor: accent }} aria-hidden="true" />}
+    // Efek kartu disamakan dengan kartu Informasi dan Berita: sorot kursor
+    // (.kartu-sorot) plus kemiringan mengikuti kursor (TiltCard). Sebelumnya
+    // kartu layanan hanya punya sorot, jadi di beranda terasa berbeda padahal
+    // sederajat.
+    <TiltCard max={4} lift={3}>
+      <Link
+        href={`/services/${item.slug}`}
+        className="kartu-sorot group flex flex-row items-stretch bg-white rounded-xl md:rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-md transition-all duration-200"
+        style={{ height: "var(--kartu-h)" }}
+      >
+        {/* Garis aksen departemen di tepi kiri. Tipis saja: penanda, bukan hiasan. */}
+        {accent && <span className="w-1 shrink-0" style={{ backgroundColor: accent }} aria-hidden="true" />}
 
-      {/* Foto 1:1 di kiri, setinggi kartu. */}
-      <div className="relative aspect-square shrink-0 self-stretch bg-ice-dim overflow-hidden">
-        {img ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={img}
-            alt=""
-            loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <ImageIcon className="w-5 h-5 text-slate-brand" aria-hidden="true" />
-          </div>
-        )}
-      </div>
-
-      {/* Isi: lencana departemen, judul, keterangan. Masing-masing satu baris
-          supaya tinggi kartu identik untuk semua item. */}
-      <div className="flex flex-col justify-center flex-1 min-w-0 px-3.5 md:px-4 py-2.5">
-        {deptLabel && (
-          <span className="flex items-center gap-1.5 mb-0.5">
-            <span
-              className="w-1.5 h-1.5 rounded-full shrink-0"
-              style={{ backgroundColor: accent ?? "#5a5c62" }}
-              aria-hidden="true"
+        {/* Foto 1:1 di kiri, setinggi kartu. */}
+        <div className="relative aspect-square shrink-0 self-stretch bg-ice-dim overflow-hidden">
+          {img ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={img}
+              alt=""
+              loading="lazy"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-brand truncate">
-              {deptLabel}
-            </span>
-          </span>
-        )}
-        <h3 className="text-[14px] md:text-[15.5px] font-bold text-navy leading-snug group-hover:text-orange-text transition-colors line-clamp-1">
-          {item.title}
-        </h3>
-        {item.description && (
-          <p className="text-[12px] md:text-[13px] text-slate-brand leading-snug line-clamp-1 mt-0.5">
-            {item.description}
-          </p>
-        )}
-      </div>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <ImageIcon className="w-5 h-5 text-slate-brand" aria-hidden="true" />
+            </div>
+          )}
+        </div>
 
-      <span className="flex items-center pr-3.5 md:pr-4 shrink-0">
-        <ArrowRight
-          className="w-4 h-4 text-slate-brand group-hover:text-orange-text group-hover:translate-x-0.5 transition-all"
-          aria-hidden="true"
-        />
-      </span>
-    </Link>
+        {/* Isi: lencana departemen, judul, keterangan. Masing-masing satu baris
+            supaya tinggi kartu identik untuk semua item. */}
+        <div className="flex flex-col justify-center flex-1 min-w-0 px-3.5 md:px-4 py-2.5">
+          {deptLabel && (
+            <span className="flex items-center gap-1.5 mb-0.5">
+              <span
+                className="w-1.5 h-1.5 rounded-full shrink-0"
+                style={{ backgroundColor: accent ?? "#5a5c62" }}
+                aria-hidden="true"
+              />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-brand truncate">
+                {deptLabel}
+              </span>
+            </span>
+          )}
+          <h3 className="text-[14px] md:text-[15.5px] font-bold text-navy leading-snug group-hover:text-orange-text transition-colors line-clamp-1">
+            {item.title}
+          </h3>
+          {item.description && (
+            <p className="text-[12px] md:text-[13px] text-slate-brand leading-snug line-clamp-1 mt-0.5">
+              {item.description}
+            </p>
+          )}
+        </div>
+
+        <span className="flex items-center pr-3.5 md:pr-4 shrink-0">
+          <ArrowRight
+            className="w-4 h-4 text-slate-brand group-hover:text-orange-text group-hover:translate-x-0.5 transition-all"
+            aria-hidden="true"
+          />
+        </span>
+      </Link>
+    </TiltCard>
   )
 }

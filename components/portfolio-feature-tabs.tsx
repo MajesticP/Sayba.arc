@@ -75,7 +75,8 @@ export default function FeatureTabs({ features, techStack, accent }: Props) {
             {items.map((item, i) => (
               <div
                 key={i}
-                className="flex items-center gap-3.5 rounded-xl px-4 md:px-5 py-3.5 md:py-4 bg-ice-dim border border-ice-line hover:border-orange/40 transition-colors duration-150"
+                // Kartu item tab: efek sorot disamakan dengan kartu lain.
+                className="kartu-sorot flex items-center gap-3.5 rounded-xl px-4 md:px-5 py-3.5 md:py-4 bg-ice-dim border border-ice-line hover:border-orange/40 transition-colors duration-150"
               >
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"

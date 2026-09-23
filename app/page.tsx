@@ -30,6 +30,48 @@ export const metadata: Metadata = {
 
 export const revalidate = 60
 
+/**
+ * Ambil berita untuk beranda.
+ *
+ * Percobaan pertama memakai urutan sorotan (`featured_order`). Kolom itu baru
+ * ada setelah migrasi `migrasi-berita-featured-order.sql` dijalankan. Kalau
+ * belum, PostgREST menolak seluruh query dan daftar beritanya kosong — dan
+ * section Berita di beranda ikut hilang tanpa penjelasan.
+ *
+ * Karena itu ada percobaan kedua tanpa kolom tersebut. Hasilnya sama-sama
+ * tiga berita terbaru, hanya urutan sorotannya yang belum berlaku. Situs tetap
+ * tampil utuh walau migrasi belum dijalankan.
+ */
+async function ambilBeritaBeranda(): Promise<{ data: Berita[] | null; error: { message: string } | null }> {
+  const kolomDasar = "id, title, slug, excerpt, category, image_url, published_at, read_minutes, views, featured"
+
+  const denganSorotan = await supabase
+    .from("berita")
+    .select(`${kolomDasar}, featured_order`)
+    .eq("status", "active")
+    .order("featured_order", { ascending: true, nullsFirst: false })
+    .order("published_at", { ascending: false })
+    .limit(3)
+
+  if (!denganSorotan.error) {
+    return { data: (denganSorotan.data ?? []) as Berita[], error: null }
+  }
+
+  // Kolom `featured_order` belum ada: ulangi tanpa kolom itu supaya berita
+  // tetap tampil di beranda.
+  const tanpaSorotan = await supabase
+    .from("berita")
+    .select(kolomDasar)
+    .eq("status", "active")
+    .order("published_at", { ascending: false })
+    .limit(3)
+
+  return {
+    data: (tanpaSorotan.data ?? []) as Berita[],
+    error: tanpaSorotan.error ?? denganSorotan.error,
+  }
+}
+
 export default async function Home() {
   // Urutan section di beranda: Hero, Banner Promosi, Layanan, Informasi, Berita.
   // Semua data diambil paralel supaya waktu render tidak menumpuk.
@@ -47,16 +89,13 @@ export default async function Home() {
       .select("*")
       .eq("status", "active")
       .order("sort_order", { ascending: true }),
-    // Berita untuk beranda: SOROTAN dulu (featured_order 1, 2, 3), lalu sisanya
-    // menurut tanggal terbit. Jadi tiga kartu di beranda berisi berita yang
-    // memang dipilih admin, bukan sekadar yang terbaru.
-    supabase
-      .from("berita")
-      .select("id, title, slug, excerpt, category, image_url, published_at, read_minutes, views, featured, featured_order")
-      .eq("status", "active")
-      .order("featured_order", { ascending: true, nullsFirst: false })
-      .order("published_at", { ascending: false })
-      .limit(3),
+    // Berita untuk beranda.
+    //
+    // Urutannya SOROTAN dulu (featured_order 1, 2, 3), lalu sisanya menurut
+    // tanggal terbit. Kalau kolom `featured_order` belum ada (migrasi belum
+    // dijalankan), query-nya gagal dan berita di beranda ikut hilang; karena
+    // itu ada percobaan kedua tanpa kolom itu.
+    ambilBeritaBeranda(),
     supabase
       .from("informasi")
       .select("id, title, slug, excerpt, category, published_at, read_minutes, views")

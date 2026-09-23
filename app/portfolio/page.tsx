@@ -11,6 +11,7 @@ import type { Portfolio } from "@/lib/database.types"
 import { ArrowRight } from "lucide-react"
 import { getDepts } from "@/lib/layanan-config"
 import { BoardSection } from "@/components/cutting-board-bg"
+import TiltCard from "@/components/tilt-card"
 
 export const metadata: Metadata = {
   title: `Portofolio: ${siteConfig.name}`,
@@ -140,84 +141,88 @@ function PortfolioCard({ item, thumbnail, dept, hexToRgba }: {
   const color = dept.color
 
   return (
-    <Link
-      href={`/portfolio/${item.slug}`}
-      className="portfolio-card group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden rounded-2xl border border-ice-line bg-white w-full flex flex-col"
-      style={{
-        "--dept-color": color,
-        "--dept-color-30": hexToRgba(color, 0.3),
-        "--dept-color-08": hexToRgba(color, 0.08),
-      } as React.CSSProperties}
-    >
-      {/* Thumbnail: hard-capped height */}
-      <div
-        className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "180px" }}
+    // Efek kartu disamakan dengan kartu Layanan, Informasi, dan Berita:
+    // sorot kursor (.kartu-sorot) plus kemiringan mengikuti kursor (TiltCard).
+    <TiltCard max={4} lift={3} className="w-full">
+      <Link
+        href={`/portfolio/${item.slug}`}
+        className="portfolio-card kartu-sorot group transition-all duration-300 overflow-hidden rounded-2xl border border-ice-line bg-white w-full flex flex-col"
+        style={{
+          "--dept-color": color,
+          "--dept-color-30": hexToRgba(color, 0.3),
+          "--dept-color-08": hexToRgba(color, 0.08),
+        } as React.CSSProperties}
       >
-        {thumbnail ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={thumbnail}
-            alt={item.title}
-            className="w-full object-cover transition-transform duration-500 group-hover:scale-105 block"
-            style={{ height: "100%" }}
-          />
-        ) : (
-          <div
-            className="w-full h-full flex items-center justify-center"
-            style={{ backgroundColor: hexToRgba(color, 0.08) }}
-          >
-            <span className="text-[11px] font-bold uppercase tracking-widest text-slate-brand">
+        {/* Thumbnail: hard-capped height */}
+        <div
+          className="relative w-full bg-black/5 overflow-hidden leading-[0]" style={{ height: "180px" }}
+        >
+          {thumbnail ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={thumbnail}
+              alt={item.title}
+              className="w-full object-cover transition-transform duration-500 group-hover:scale-105 block"
+              style={{ height: "100%" }}
+            />
+          ) : (
+            <div
+              className="w-full h-full flex items-center justify-center"
+              style={{ backgroundColor: hexToRgba(color, 0.08) }}
+            >
+              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-brand">
+                {dept.label}
+              </span>
+            </div>
+          )}
+
+          {/* Dept badge */}
+          <div className="absolute top-2.5 left-2.5">
+            {/* Label departemen: warna dept jadi garis tepi saja, teksnya navy
+                di atas bidang putih supaya selalu lolos kontras apa pun warna
+                departemennya. */}
+            <span
+              className="inline-flex items-center text-[10.5px] font-bold px-2.5 py-1 rounded-full text-navy"
+              style={{ backgroundColor: "rgba(255,255,255,0.94)", boxShadow: `inset 0 0 0 1.5px ${color}` }}
+            >
               {dept.label}
             </span>
           </div>
-        )}
 
-        {/* Dept badge */}
-        <div className="absolute top-2.5 left-2.5">
-          {/* Label departemen: warna dept jadi garis tepi saja, teksnya navy
-              di atas bidang putih supaya selalu lolos kontras apa pun warna
-              departemennya. */}
-          <span
-            className="inline-flex items-center text-[10.5px] font-bold px-2.5 py-1 rounded-full text-navy"
-            style={{ backgroundColor: "rgba(255,255,255,0.94)", boxShadow: `inset 0 0 0 1.5px ${color}` }}
-          >
-            {dept.label}
-          </span>
+          {/* Bottom color bar */}
+          <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: color }} />
         </div>
 
-        {/* Bottom color bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: color }} />
-      </div>
+        {/* Content: hard-capped at remaining 130px, clipped */}
+        <div
+          className="flex flex-col p-4 flex-1"
+        >
+          {item.category && (
+            <span
+              className="inline-flex text-[10.5px] font-bold px-2.5 py-1 rounded-full w-fit mb-2 flex-shrink-0 text-navy"
+              style={{ backgroundColor: hexToRgba(color, 0.14) }}
+            >
+              {item.category}
+            </span>
+          )}
 
-      {/* Content: hard-capped at remaining 130px, clipped */}
-      <div
-        className="flex flex-col p-4 flex-1"
-      >
-        {item.category && (
-          <span
-            className="inline-flex text-[10.5px] font-bold px-2.5 py-1 rounded-full w-fit mb-2 flex-shrink-0 text-navy"
-            style={{ backgroundColor: hexToRgba(color, 0.14) }}
-          >
-            {item.category}
-          </span>
-        )}
+          <h3 className="text-[14.5px] font-bold text-navy mb-1.5 leading-snug line-clamp-2 flex-shrink-0">
+            {item.title}
+          </h3>
 
-        <h3 className="text-[14.5px] font-bold text-navy mb-1.5 leading-snug line-clamp-2 flex-shrink-0">
-          {item.title}
-        </h3>
+          {item.description && (
+            <p className="text-slate-brand text-[12.5px] leading-relaxed line-clamp-3">
+              {item.description}
+            </p>
+          )}
 
-        {item.description && (
-          <p className="text-slate-brand text-[12.5px] leading-relaxed line-clamp-3">
-            {item.description}
-          </p>
-        )}
-
-        {/* Tautan detail: teks selalu navy, warna dept hanya pada ikon. */}
-        <div className="mt-auto flex items-center gap-1 text-[11.5px] font-bold text-navy flex-shrink-0 pt-3">
-          Lihat Detail
-          <ArrowRight size={12} className="transition-transform duration-200 group-hover:translate-x-1" style={{ color }} />
+          {/* Tautan detail: teks selalu navy, warna dept hanya pada ikon. */}
+          <div className="mt-auto flex items-center gap-1 text-[11.5px] font-bold text-navy flex-shrink-0 pt-3">
+            Lihat Detail
+            <ArrowRight size={12} className="transition-transform duration-200 group-hover:translate-x-1" style={{ color }} />
+          </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </TiltCard>
   )
 }
