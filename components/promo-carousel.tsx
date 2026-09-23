@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
-import { Pause, Play } from "lucide-react"
 import { isGambarContoh } from "@/lib/image-path"
 import { BoardSection } from "@/components/cutting-board-bg"
 import type { PromoBanner } from "@/lib/database.types"
@@ -44,9 +43,14 @@ function gdriveToImg(url: string): string {
  * jadi bisa diklik dan mengarah ke tautan itu (halaman dalam situs atau alamat
  * luar). Kalau dikosongkan, banner tetap tampil sebagai gambar saja.
  *
- * Rasio 16:9 (1600 x 900), sama persis di ponsel dan desktop. Gambar yang
- * rasionya bukan 16:9 dipotong tengah (object-cover) supaya tidak ada bidang
- * kosong; unggah 1600 x 900 supaya tampil utuh tanpa terpotong.
+ * Rasio: 16:9 di ponsel, 3:1 di layar sedang ke atas (md). Banner 16:9 di
+ * desktop terlalu tinggi dan mendorong isi halaman ke bawah; 3:1 membuatnya
+ * terbaca sebagai banner, bukan hero kedua. Angka ini mengikuti acuan
+ * nexshop.cloud (1216x405 = 3:1 di desktop, 16:9 di ponsel).
+ *
+ * Gambar yang rasionya berbeda dipotong tengah (object-cover) supaya tidak ada
+ * bidang kosong; unggah 2400 x 800 (3:1) supaya tampil utuh di desktop, dan
+ * bagian tengahnya tetap aman saat dipotong 16:9 di ponsel.
  *
  * Geser: bisa diseret manual (tetikus, jari, pena), digeser otomatis tiap
  * 4 detik, lewat tombol panah, titik penanda, atau tombol panah kiri/kanan di
@@ -57,9 +61,10 @@ function gdriveToImg(url: string): string {
  * animasinya selesai, posisinya dipindahkan diam-diam ke slide aslinya.
  *
  * Geser otomatis berhenti saat kursor di atasnya, saat Tab masuk, saat tab
- * browser tidak aktif, saat banner keluar layar, saat banner sedang diseret
- * atau ditekan, saat tombol jeda ditekan, dan saat pengguna memilih reduce
- * motion (WCAG 2.2.2).
+ * browser tidak aktif, saat banner keluar layar, dan saat banner sedang
+ * diseret atau ditekan. Berhenti saat kursor di atas banner sekaligus jadi
+ * kendali jeda yang bisa dipakai pengguna (WCAG 2.2.2), jadi tidak perlu
+ * tombol pause terpisah yang menutupi gambar.
  */
 export default function PromoCarousel({ slides, interval = JEDA_MS }: PromoCarouselProps) {
   // Banner tanpa gambar sah tidak ditampilkan: banner kosong lebih buruk
@@ -98,7 +103,6 @@ export default function PromoCarousel({ slides, interval = JEDA_MS }: PromoCarou
    * memang dipakai berpindah dengan Tab.
    */
   const [fokus, setFokus] = useState(false)
-  const [jedaManual, setJedaManual] = useState(false)
   const [reduceMotion, setReduceMotion] = useState(false)
   const [terlihat, setTerlihat] = useState(true)
   const [tabAktif, setTabAktif] = useState(true)
@@ -234,7 +238,7 @@ export default function PromoCarousel({ slides, interval = JEDA_MS }: PromoCarou
 
   const keSlide = useCallback((i: number) => pindahKe(i + 1), [pindahKe])
 
-  const berhenti = hover || fokus || jedaManual || reduceMotion || !terlihat || !tabAktif || drag || tahan
+  const berhenti = hover || fokus || reduceMotion || !terlihat || !tabAktif || drag || tahan
   useEffect(() => {
     if (berhenti || count < 2) return
     // setTimeout, bukan setInterval: jeda dihitung ulang dari perpindahan
@@ -339,7 +343,7 @@ export default function PromoCarousel({ slides, interval = JEDA_MS }: PromoCarou
           aria-roledescription="carousel"
           aria-label="Promosi SAYBA ARC"
           aria-live={berhenti ? "polite" : "off"}
-          className="promo-view group relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-ice-line bg-ice-dim"
+          className="promo-view group relative aspect-[16/9] md:aspect-[3/1] w-full overflow-hidden rounded-2xl border border-ice-line bg-ice-dim"
           data-seret={count > 1 ? "true" : "false"}
           data-drag={drag ? "true" : "false"}
           data-lompat={lompat ? "true" : "false"}
@@ -459,16 +463,6 @@ export default function PromoCarousel({ slides, interval = JEDA_MS }: PromoCarou
                 ))}
               </div>
 
-              {!reduceMotion && (
-                <button
-                  type="button"
-                  onClick={() => setJedaManual((v) => !v)}
-                  aria-label={jedaManual ? "Lanjutkan geser banner" : "Jeda geser banner"}
-                  className="pointer-events-auto absolute right-2 top-2 inline-flex h-8 w-8 min-h-0 items-center justify-center rounded-full border border-ice/20 bg-navy/55 text-ice/90 backdrop-blur-sm transition-all duration-200 hover:border-orange hover:bg-orange hover:text-navy focus-visible:opacity-100 md:right-4 md:top-4 md:h-9 md:w-9 md:opacity-70 md:group-hover:opacity-100 md:hover:bg-orange"
-                >
-                  {jedaManual ? <Play size={13} aria-hidden="true" /> : <Pause size={13} aria-hidden="true" />}
-                </button>
-              )}
             </div>
           )}
         </div>

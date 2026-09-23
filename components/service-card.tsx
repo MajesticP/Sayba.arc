@@ -19,9 +19,14 @@ import type { Layanan } from "@/lib/database.types"
  * tinggi jendelanya, jadi jendela selalu pas berisi tepat dua kartu.
  *
  * Isi kartu sengaja ramping: gambar 1:1 di kiri, judul satu baris, keterangan
- * satu baris, panah di kanan. Konteks departemen atau kategori sudah dibawa
- * judul blok di atasnya, jadi tidak diulang di dalam kartu, dan tidak ada
- * baris tambahan yang membuat tinggi kartu berbeda-beda.
+ * satu baris, panah di kanan.
+ *
+ * Lencana departemen ditampilkan sebagai baris kecil DI ATAS judul. Dulu
+ * departemen terbaca dari judul kolom di atas daftar, karena daftarnya memang
+ * dipisah per departemen. Sekarang daftarnya satu, jadi tanpa lencana ini
+ * pembaca kehilangan keterangan bidang tiap layanan. Lencananya setinggi
+ * barisnya sendiri dan teksnya satu baris, jadi tinggi kartu tetap sama untuk
+ * semua item dan jendela carousel tetap pas berisi dua kartu.
  */
 
 /** Link Google Drive → proxy gambar lokal, sama seperti berita/informasi */
@@ -39,11 +44,14 @@ export function gdriveToImg(url: string | null): string | null {
 
 export default function ServiceCard({
   item,
-  /** Aksen warna departemen, dipakai sebagai garis tepi kiri. */
+  /** Aksen warna departemen, dipakai sebagai garis tepi kiri dan titik lencana. */
   accent,
+  /** Nama departemen untuk lencana di atas judul. Kosong = lencana tidak tampil. */
+  deptLabel,
 }: {
   item: Layanan
   accent?: string
+  deptLabel?: string
 }) {
   const img = gdriveToImg(item.image_url)
 
@@ -73,8 +81,21 @@ export default function ServiceCard({
         )}
       </div>
 
-      {/* Isi: judul + keterangan, masing-masing satu baris. */}
+      {/* Isi: lencana departemen, judul, keterangan. Masing-masing satu baris
+          supaya tinggi kartu identik untuk semua item. */}
       <div className="flex flex-col justify-center flex-1 min-w-0 px-3.5 md:px-4 py-2.5">
+        {deptLabel && (
+          <span className="flex items-center gap-1.5 mb-0.5">
+            <span
+              className="w-1.5 h-1.5 rounded-full shrink-0"
+              style={{ backgroundColor: accent ?? "#5a5c62" }}
+              aria-hidden="true"
+            />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-brand truncate">
+              {deptLabel}
+            </span>
+          </span>
+        )}
         <h3 className="text-[14px] md:text-[15.5px] font-bold text-navy leading-snug group-hover:text-orange-text transition-colors line-clamp-1">
           {item.title}
         </h3>

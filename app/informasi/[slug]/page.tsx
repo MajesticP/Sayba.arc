@@ -8,8 +8,7 @@ import { generateBreadcrumbSchema } from "@/lib/structured-data"
 import { buildSeoMetadata, gdriveToProxy } from "@/lib/seo"
 import { supabase } from "@/lib/supabase"
 import type { Informasi } from "@/lib/database.types"
-import { getKategori } from "@/lib/kategori"
-import { parseInformasiBody } from "@/lib/informasi-data"
+import { getKategori, resolveKategori } from "@/lib/kategori"
 import InformasiDetailClient from "./informasi-detail-client"
 
 interface PageProps {
@@ -41,10 +40,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const article = await getArticle(slug)
   if (!article) return { title: `Informasi: ${siteConfig.name}` }
 
+  // Label kategori ikut dikirim supaya masuk ke keyword otomatis.
+  const kategori = await getKategori("informasi")
+  const label = resolveKategori(article.category, kategori).label
+
   return buildSeoMetadata({
     title: article.title,
     metaTitle: article.meta_title,
     excerpt: article.excerpt,
+    description: article.body,
     metaDescription: article.meta_description,
     metaKeywords: article.meta_keywords,
     image: gdriveToProxy(article.og_image) || gdriveToProxy(article.image_url),
@@ -52,6 +56,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     canonicalUrl: article.canonical_url,
     type: "article",
     publishedTime: article.published_at,
+    kategori: label,
   })
 }
 
@@ -59,8 +64,6 @@ export default async function InformasiDetailPage({ params }: PageProps) {
   const { slug } = await params
   const article = await getArticle(slug)
   if (!article) notFound()
-
-  const blocks = parseInformasiBody(article.body)
 
   // Kategori dari tabel `kategori` (scope "informasi") untuk label & warna chip.
   const kategori = await getKategori("informasi")
@@ -126,7 +129,6 @@ export default async function InformasiDetailPage({ params }: PageProps) {
 
       <InformasiDetailClient
         article={article}
-        blocks={blocks}
         related={related as unknown as Informasi[]}
         heroImg={gdriveToImg(article.image_url)}
         categories={kategori}

@@ -2,7 +2,7 @@
 
 import type React from "react"
 import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import {
   ArrowLeft,
@@ -19,13 +19,13 @@ import {
   Tag,
 } from "lucide-react"
 import PageTransition from "@/components/page-transition"
+import IsiArtikel from "@/components/isi-artikel"
 import type { Informasi } from "@/lib/database.types"
 import { formatInformasiDate } from "@/lib/informasi-data"
 import { resolveKategori, type KategoriItem } from "@/lib/kategori"
 
 interface Props {
   article: Informasi
-  blocks: string[]
   related: Informasi[]
   heroImg: string | null
   /**
@@ -53,44 +53,7 @@ const SLATE = "#5a5c62"
 const ICE = "#f4f6f9"
 const ICE_LINE = "#d8e0ea"
 
-/* ── Pemecahan isi menjadi seksi per sub-judul ───────────────────────────── */
-interface Section {
-  /** null = blok pembuka sebelum sub-judul pertama (bukan entri daftar isi) */
-  heading: string | null
-  blocks: string[]
-}
-
-function groupSections(blocks: string[]): Section[] {
-  const sections: Section[] = []
-  let current: Section = { heading: null, blocks: [] }
-  for (const block of blocks) {
-    if (block.startsWith("## ")) {
-      if (current.heading !== null || current.blocks.length > 0) sections.push(current)
-      current = { heading: block.slice(3).trim(), blocks: [] }
-    } else {
-      current.blocks.push(block)
-    }
-  }
-  if (current.heading !== null || current.blocks.length > 0) sections.push(current)
-  return sections
-}
-
-/** Terapkan penebalan **teks** tanpa dangerouslySetInnerHTML */
-function renderInline(text: string): React.ReactNode[] {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g)
-  return parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return (
-        <strong key={i} className="font-bold" style={{ color: NAVY }}>
-          {part.slice(2, -2)}
-        </strong>
-      )
-    }
-    return <span key={i}>{part}</span>
-  })
-}
-
-export default function InformasiDetailClient({ article, blocks, related, heroImg, categories }: Props) {
+export default function InformasiDetailClient({ article, related, heroImg, categories }: Props) {
   const [copied, setCopied] = useState(false)
   const [progress, setProgress] = useState(0)
   const [activeHeading, setActiveHeading] = useState<string | null>(null)
@@ -100,11 +63,21 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
   const catLabel = cat.label
   const catColor = cat.color
 
-  const sections = useMemo(() => groupSections(blocks), [blocks])
-  const toc = useMemo(
-    () => sections.map((s) => s.heading).filter((h): h is string => !!h),
-    [sections]
-  )
+  /**
+   * Daftar isi dibaca dari DOM, bukan dari teks mentah.
+   *
+   * Alasannya, aturan penulisan hanya boleh ada di satu tempat
+   * (lib/markdown.tsx). Kalau halaman ini ikut memecah teks sendiri, aturannya
+   * jadi dua dan pelan-pelan berbeda dari halaman Berita.
+   *
+   * Elemennya dibaca SETELAH isi ter-render, jadi daftarnya selalu cocok
+   * dengan yang benar-benar tampil.
+   */
+  const [toc, setToc] = useState<string[]>([])
+  useEffect(() => {
+    const el = document.querySelectorAll("[data-info-heading]")
+    setToc(Array.from(el).map((n) => n.getAttribute("data-info-heading") ?? "").filter(Boolean))
+  }, [article.body])
 
   // Bilah kemajuan baca
   useEffect(() => {
@@ -277,67 +250,10 @@ export default function InformasiDetailClient({ article, blocks, related, heroIm
               )}
 
               <article>
-                {sections.map((section, si) => {
-                  const isActive = section.heading !== null && section.heading === activeHeading
-                  return (
-                    <div key={si}>
-                      {section.heading && (
-                        <h2
-                          data-info-heading={section.heading}
-                          className="text-[18px] md:text-[24px] font-black mt-9 mb-4 pb-2.5 border-b flex items-start gap-2.5 scroll-mt-28 leading-snug transition-colors duration-200"
-                          style={{
-                            // Penanda aktif: warna teks + border kiri berubah.
-                            // Ukuran huruf TIDAK berubah saat aktif.
-                            color: isActive ? ORANGE_TEXT : NAVY,
-                            borderColor: ICE_LINE,
-                            borderLeft: isActive ? `3px solid ${ORANGE}` : "3px solid transparent",
-                            paddingLeft: "12px",
-                          }}
-                        >
-                          {section.heading}
-                        </h2>
-                      )}
-
-                      {section.blocks.map((block, bi) => {
-                        const lines = block.split("\n")
-                        const isList =
-                          lines.length > 1 &&
-                          lines.every((l) => l.trim().startsWith("- ") || l.trim().startsWith("* "))
-
-                        if (isList) {
-                          return (
-                            <ul key={bi} className="space-y-2.5 my-5 pl-1 max-w-[70ch]">
-                              {lines.map((l, li) => (
-                                <li
-                                  key={li}
-                                  className="flex items-start gap-2.5 text-[15px] md:text-[16px] leading-[1.75]"
-                                  style={{ color: NAVY }}
-                                >
-                                  <span
-                                    className="mt-2.5 w-1.5 h-1.5 rounded-full shrink-0"
-                                    style={{ backgroundColor: isActive ? ORANGE : ICE_LINE }}
-                                    aria-hidden="true"
-                                  />
-                                  <span>{renderInline(l.trim().replace(/^[-*]\s*/, ""))}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )
-                        }
-
-                        return (
-                          <p
-                            key={bi}
-                            className="text-[15px] md:text-[16px] leading-[1.75] my-4 whitespace-pre-line max-w-[70ch]"
-                            style={{ color: NAVY }}
-                          >
-                            {renderInline(block)}
-                          </p>
-                        )
-                      })}
-                    </div>
-                  )
-                })}
+                {/* Isi artikel: perender bersama dengan halaman Berita.
+                    Sub-judulnya diberi data-info-heading, yang dipakai
+                    daftar isi di samping untuk menyorot bagian aktif. */}
+                <IsiArtikel body={article.body} warnaTebal={NAVY} warnaTeks={NAVY} aksen={catColor} panduan />
               </article>
 
               {article.tags && article.tags.length > 0 && (

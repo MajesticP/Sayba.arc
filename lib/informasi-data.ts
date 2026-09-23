@@ -6,8 +6,9 @@
 // di Supabase dan diatur dari Admin Dashboard, sehingga halaman
 // publik bisa menambah/menghapus kategori tanpa mengubah kode.
 //
-// File ini hanya menyimpan fungsi bantu yang murni presentasional:
-// format tanggal dan parser isi dokumen. Tidak ada data contoh.
+// File ini hanya menyimpan fungsi bantu yang murni presentasional: format
+// tanggal. Parser isi dokumen ada di lib/markdown.tsx, dipakai bersama oleh
+// halaman Informasi dan Berita supaya aturan penulisannya cuma satu.
 // ============================================================
 
 /** "2026-09-05" → "5 September 2026". Mengembalikan input apa adanya bila tak valid. */
@@ -24,17 +25,4 @@ export function formatInformasiDate(iso: string): string {
   } catch {
     return iso
   }
-}
-
-/**
- * Memecah isi dokumen (Markdown ringan dari textarea admin) menjadi blok:
- * baris kosong memisah paragraf, awalan "## " menandai sub-judul.
- */
-export function parseInformasiBody(body: string | null): string[] {
-  if (!body) return []
-  return body
-    .replace(/\r\n/g, "\n")
-    .split(/\n\s*\n/)
-    .map((block) => block.trim())
-    .filter(Boolean)
 }

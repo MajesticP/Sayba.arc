@@ -43,6 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     path: `/services/${service.slug}`,
     canonicalUrl: service.canonical_url,
     type: "website",
+    departemen: service.dept,
   })
 }
 

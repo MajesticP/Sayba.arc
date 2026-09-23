@@ -43,6 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     path: `/portfolio/${slug}`,
     canonicalUrl: data.canonical_url,
     type: "article",
+    departemen: data.dept,
   })
 }
 

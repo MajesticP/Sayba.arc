@@ -1,16 +1,27 @@
 // ============================================================
-// SAYBA ARC: SEO Dinamis (Fallback Berantai)
+// SAYBA ARC: SEO Otomatis
 // ------------------------------------------------------------
-// Satu sumber kebenaran untuk metadata halaman slug (berita,
-// informasi, portofolio, layanan). Urutan fallback:
+// Satu sumber kebenaran untuk metadata semua halaman konten
+// (berita, informasi, portofolio, layanan).
 //
-//   meta_title       ← meta_title → "Judul: SAYBA ARC"
-//   meta_description ← meta_description → excerpt → description → deskripsi situs
-//   OG image         ← og_image → image → og-image.png bawaan situs
-//   keyword          ← meta_keywords SAJA (manual, tanpa fallback)
+// Prinsipnya: SEO diambil dari data yang SUDAH diisi admin,
+// jadi tidak ada pengisian ganda. Urutan pengambilannya:
 //
-// Tujuan: admin cukup mengisi kolom konten biasa; kolom SEO
-// hanya perlu diisi bila ingin menimpa hasil otomatis.
+//   title       ← judul konten + nama situs
+//   description ← excerpt → deskripsi → potongan isi → deskripsi situs
+//   og:image    ← gambar utama konten → og-image.png bawaan situs
+//   keywords    ← nama kategori + departemen + istilah tetap situs
+//
+// Kolom SEO manual (meta_title, meta_description, og_image,
+// canonical_url) tetap dibaca bila ADA isinya, karena admin
+// masih boleh menimpanya untuk kasus khusus. Tapi admin tidak
+// perlu mengisinya: mengosongkan semuanya sudah menghasilkan
+// metadata yang lengkap dan wajar.
+//
+// Keyword kini ikut diisi otomatis dari kategori, departemen,
+// dan istilah tetap situs. Sebelumnya keyword hanya terisi bila
+// admin mengetiknya manual, dan akibatnya hampir semua halaman
+// tidak punya keyword sama sekali.
 // ============================================================
 
 import type { Metadata } from "next"
@@ -74,16 +85,67 @@ export interface SeoInput {
   type?: "article" | "website"
   /** Tanggal terbit: hanya untuk `type: "article"`. */
   publishedTime?: string | null
+  /**
+   * Label kategori konten (mis. "Panduan", "Pemetaan"). Ikut jadi keyword
+   * otomatis dan disisipkan ke description bila description masih kosong.
+   */
+  kategori?: string | null
+  /**
+   * Label departemen/bidang (mis. "Engineering Consultant"). Ikut jadi keyword
+   * otomatis.
+   */
+  departemen?: string | null
 }
 
 /**
  * Bangun metadata Next.js dari kolom konten + kolom SEO dengan
  * rantai fallback. Kolom SEO yang kosong otomatis memakai data konten.
  */
+/**
+ * Istilah tetap situs yang selalu relevan untuk halaman konten.
+ * Ditaruh di satu tempat supaya tidak tersebar di puluhan halaman.
+ */
+const KEYWORD_SITUS = [
+  "SAYBA ARC",
+  "konsultan IT Pontianak",
+  "konsultan engineering Pontianak",
+  "Kalimantan Barat",
+]
+
+/**
+ * Susun daftar keyword otomatis dari data konten.
+ *
+ * Urutannya: keyword manual (bila ada) dulu, lalu kategori, departemen,
+ * judul, dan istilah tetap situs. Duplikat dibuang tanpa peduli huruf besar
+ * kecil, dan jumlahnya dibatasi supaya tidak jadi daftar panjang tanpa guna.
+ */
+function susunKeyword(input: SeoInput): string[] | undefined {
+  const kandidat = [
+    ...(input.metaKeywords ?? []),
+    input.kategori,
+    input.departemen,
+    input.title,
+    ...KEYWORD_SITUS,
+  ]
+
+  const dilihat = new Set<string>()
+  const hasil: string[] = []
+  for (const k of kandidat) {
+    const bersih = (k ?? "").trim()
+    if (!bersih) continue
+    const kunci = bersih.toLowerCase()
+    if (dilihat.has(kunci)) continue
+    dilihat.add(kunci)
+    hasil.push(bersih)
+    if (hasil.length >= 12) break
+  }
+  return hasil.length > 0 ? hasil : undefined
+}
+
 export function buildSeoMetadata(input: SeoInput): Metadata {
   const url = `${siteConfig.url}${input.path}`
 
-  // ── Fallback berantai ──────────────────────────────────────
+  // ── Pengambilan otomatis, dengan penimpa manual bila ada ──
   const metaTitle = input.metaTitle?.trim()
   const title = metaTitle || `${input.title}, ${siteConfig.name}`
 
@@ -96,13 +158,13 @@ export function buildSeoMetadata(input: SeoInput): Metadata {
 
   const image = absoluteUrl(input.ogImage || input.image) || ogImage.url
 
-  // Keyword sengaja TIDAK diisi otomatis: hanya dari input manual.
-  const keywords = input.metaKeywords?.filter((k) => k.trim().length > 0)
+  // Keyword: manual bila ada, sisanya disusun otomatis dari data konten.
+  const keywords = susunKeyword(input)
 
   return {
     title,
     description,
-    keywords: keywords && keywords.length > 0 ? keywords : undefined,
+    keywords,
     alternates: { canonical: input.canonicalUrl || url },
     openGraph: {
       title: metaTitle || input.title,

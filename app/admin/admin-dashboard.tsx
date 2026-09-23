@@ -1636,16 +1636,31 @@ function InformasiModal({ open, initial, kategori, onClose, onSaved, onError }: 
 
         <Field
           label="Isi Artikel"
-          hint='Tulis seperti biasa. Awali sebuah baris dengan "## " untuk menjadikannya sub-judul, dan pisahkan antarparagraf dengan satu baris kosong.'
+          hint='Awali paragraf pembuka dengan "# ", sub-judul dengan "## ", dan pisahkan tiap bagian dengan satu baris kosong. Daftar penanda lengkap ada di bawah kotak ini.'
         >
           <textarea
             value={form.body}
             onChange={e => set("body", e.target.value)}
             rows={14}
-            placeholder={"Paragraf pembuka artikel Anda di sini.\n\n## Sub-judul pertama\n\nIsi paragraf berikutnya.\n\n## Sub-judul kedua\n\nIsi paragraf lagi."}
+            placeholder={"# Paragraf pembuka artikel Anda di sini.\n\n## Sub-judul pertama\n\nIsi paragraf berikutnya, boleh **tebal**, *miring*, atau `kode`.\n\n- Butir daftar pertama\n- Butir daftar kedua\n\n> Kutipan penting\n\n## Sub-judul kedua\n\nIsi paragraf lagi."}
             className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] leading-relaxed text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors resize-y font-mono"
           />
         </Field>
+
+        {/* Daftar penanda penulisan. Ditampilkan di dalam form, bukan hanya di
+            halaman publik, supaya penulis tidak perlu membuka artikelnya dulu
+            untuk tahu penandanya. */}
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Penanda Penulisan</span>
+          <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+            {SINTAKS_TULIS.map(t => (
+              <div key={t.kode} className="flex items-baseline gap-2.5">
+                <code className="text-[10.5px] font-mono font-bold text-powder bg-powder/10 px-1.5 py-0.5 rounded shrink-0 min-w-[6.5rem]">{t.kode}</code>
+                <span className="text-[10.5px] text-white/40 leading-snug">{t.arti}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Penulis" hint="Nama yang tampil sebagai penulis artikel."><Input value={form.author} onChange={v => set("author", v)} placeholder="Tim GIS SAYBA ARC" /></Field>
@@ -1869,6 +1884,29 @@ function CharCount({ value, ideal }: { value: string; ideal: number }) {
   )
 }
 
+/**
+ * Daftar penanda penulisan isi artikel.
+ *
+ * Ditulis di sini sebagai daftar teks (bukan diimpor dari lib/markdown.tsx,
+ * yang berisi komponen React untuk halaman publik) supaya dashboard tidak
+ * ikut memuat perendernya. Bila sintaksnya berubah, ubah di KEDUA tempat:
+ * konstanta ini dan PANDUAN_TULIS di lib/markdown.tsx.
+ */
+const SINTAKS_TULIS: Array<{ kode: string; arti: string }> = [
+  { kode: "# Paragraf", arti: "Paragraf pembuka, huruf lebih besar" },
+  { kode: "## Sub-judul", arti: "Judul bagian, masuk Daftar Isi" },
+  { kode: "### Sub-sub", arti: "Judul bagian tingkat tiga" },
+  { kode: "**tebal**", arti: "Huruf tebal" },
+  { kode: "*miring*", arti: "Huruf miring" },
+  { kode: "`kode`", arti: "Kode sebaris" },
+  { kode: "[teks](url)", arti: "Tautan, luar atau dalam situs" },
+  { kode: "- butir", arti: "Daftar berbutir" },
+  { kode: "1. butir", arti: "Daftar bernomor" },
+  { kode: "> kutipan", arti: "Kutipan" },
+  { kode: "![alt](url)", arti: "Gambar di tengah isi" },
+  { kode: "---", arti: "Garis pemisah" },
+]
+
 function SeoFields({
   metaTitle, onMetaTitle, metaDescription, onMetaDescription,
   metaKeywords, onMetaKeywords, canonicalUrl, onCanonicalUrl,
@@ -1886,16 +1924,39 @@ function SeoFields({
   descFallback: string
   slugPlaceholder: string
 }) {
+  // Terbuka otomatis hanya kalau salah satu kolom SEO memang sudah terisi.
+  // Halaman baru membuka panel ini dalam keadaan tertutup: SEO-nya sudah
+  // diurus otomatis dari judul, deskripsi, dan gambar konten.
+  const [buka, setBuka] = useState(
+    Boolean(metaTitle || metaDescription || metaKeywords || canonicalUrl || ogImage)
+  )
+  const adaIsi = Boolean(metaTitle || metaDescription || metaKeywords || canonicalUrl || ogImage)
+
   return (
-    <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3.5">
-      <div className="flex items-center gap-2">
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setBuka((v) => !v)}
+        aria-expanded={buka}
+        className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-white/[0.03] transition-colors"
+      >
         <Info size={12} className="text-powder flex-shrink-0" />
         <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">SEO & Meta Tag</span>
-      </div>
+        {adaIsi && !buka && (
+          <span className="text-[9.5px] font-semibold px-1.5 py-0.5 rounded bg-powder/15 text-powder">terisi</span>
+        )}
+        <span className="ml-auto text-[10.5px] text-white/30">{buka ? "Sembunyikan" : "Atur manual"}</span>
+        {buka ? <ChevronUp size={13} className="text-white/30" /> : <ChevronDown size={13} className="text-white/30" />}
+      </button>
+
+      {buka && (
+      <div className="px-4 pb-4 space-y-3.5 border-t border-white/[0.06] pt-3.5">
       <p className="text-[10.5px] text-white/30 leading-relaxed">
-        Kolom di bawah mengatur bagaimana halaman ini tampil di hasil pencarian Google
-        dan saat tautannya dibagikan ke media sosial. Semuanya opsional: bila dikosongkan,
-        situs memakai nilai otomatis yang wajar.
+        <span className="text-white/50">SEO halaman ini sudah terisi otomatis</span> dari judul, deskripsi,
+        dan gambar konten di atas: judul pencarian, cuplikan deskripsi, kata kunci, gambar pratinjau
+        sosial, dan alamat kanonik semuanya diambil dari data itu. Panel ini hanya untuk
+        <span className="text-white/50"> menimpa </span> hasil otomatis bila Anda punya alasan khusus,
+        misalnya ingin judul pencarian yang berbeda dari judul halaman.
       </p>
 
       <div className="space-y-1">
@@ -1903,7 +1964,7 @@ function SeoFields({
           <span className="text-[11px] font-semibold text-white/50">Meta Title</span>
           <CharCount value={metaTitle} ideal={60} />
         </div>
-        <Input value={metaTitle} onChange={onMetaTitle} placeholder="Judul untuk hasil pencarian: SAYBA ARC" />
+        <Input value={metaTitle} onChange={onMetaTitle} placeholder="Kosongkan = pakai judul konten + SAYBA ARC" />
         <p className="text-[10px] text-white/25 leading-relaxed">
           Judul biru yang tampil di Google. Kosongkan untuk memakai {titleFallback} + “SAYBA ARC”.
           Idealnya 50–60 karakter; lebih panjang akan dipotong dengan “…”.
@@ -1915,7 +1976,7 @@ function SeoFields({
           <span className="text-[11px] font-semibold text-white/50">Meta Description</span>
           <CharCount value={metaDescription} ideal={160} />
         </div>
-        <Textarea value={metaDescription} onChange={onMetaDescription} placeholder="Kalimat ajakan singkat yang menjelaskan isi halaman…" />
+        <Textarea value={metaDescription} onChange={onMetaDescription} placeholder="Kosongkan = pakai ringkasan/deskripsi konten" />
         <p className="text-[10px] text-white/25 leading-relaxed">
           Cuplikan abu-abu di bawah judul Google. Kosongkan untuk memakai {descFallback}.
           Idealnya 150–160 karakter; terlalu panjang akan terpotong.
@@ -1924,7 +1985,7 @@ function SeoFields({
 
       <div className="space-y-1">
         <span className="text-[11px] font-semibold text-white/50">Meta Keywords (1 per baris)</span>
-        <Textarea value={metaKeywords} onChange={onMetaKeywords} placeholder={"kata kunci utama\nkata kunci kedua\nlokasi layanan"} />
+        <Textarea value={metaKeywords} onChange={onMetaKeywords} placeholder={"Kosongkan = kata kunci disusun otomatis\ndari kategori, departemen, dan judul"} />
         <p className="text-[10px] text-white/25 leading-relaxed">
           Daftar kata kunci yang relevan, satu per baris. Google tidak lagi memakai ini untuk
           peringkat, tetapi berguna untuk pencarian internal dan konsistensi topik.
@@ -1953,6 +2014,8 @@ function SeoFields({
         <span className="text-white/40"> Kosongkan untuk memakai gambar utama halaman ini.</span> Rasio
         disarankan 1200 × 630 px.
       </p>
+      </div>
+      )}
     </div>
   )
 }
@@ -2819,16 +2882,31 @@ function BeritaModal({ open, initial, kategori, labelKategori, onClose, onSaved,
 
         <Field
           label="Isi Artikel"
-          hint='Markdown ringan: awali baris dengan "## " untuk sub-judul, dan pisahkan paragraf dengan satu baris kosong.'
+          hint='Awali paragraf pembuka dengan "# ", sub-judul dengan "## ", dan pisahkan tiap bagian dengan satu baris kosong. Daftar penanda lengkap ada di bawah kotak ini.'
         >
           <textarea
             value={form.body}
             onChange={e => set("body", e.target.value)}
             rows={14}
-            placeholder={"Paragraf pembuka artikel Anda di sini.\n\n## Sub-judul pertama\n\nIsi paragraf berikutnya.\n\n## Sub-judul kedua\n\nIsi paragraf lagi."}
+            placeholder={"# Paragraf pembuka artikel Anda di sini.\n\n## Sub-judul pertama\n\nIsi paragraf berikutnya, boleh **tebal**, *miring*, atau `kode`.\n\n- Butir daftar pertama\n- Butir daftar kedua\n\n> Kutipan penting\n\n## Sub-judul kedua\n\nIsi paragraf lagi."}
             className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] leading-relaxed text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors resize-y font-mono"
           />
         </Field>
+
+        {/* Daftar penanda penulisan. Ditampilkan di dalam form, bukan hanya di
+            halaman publik, supaya penulis tidak perlu membuka artikelnya dulu
+            untuk tahu penandanya. */}
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Penanda Penulisan</span>
+          <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+            {SINTAKS_TULIS.map(t => (
+              <div key={t.kode} className="flex items-baseline gap-2.5">
+                <code className="text-[10.5px] font-mono font-bold text-powder bg-powder/10 px-1.5 py-0.5 rounded shrink-0 min-w-[6.5rem]">{t.kode}</code>
+                <span className="text-[10.5px] text-white/40 leading-snug">{t.arti}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Penulis"><Input value={form.author} onChange={v => set("author", v)} placeholder="Tim GIS SAYBA ARC" /></Field>

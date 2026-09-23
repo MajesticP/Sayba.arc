@@ -9,6 +9,7 @@ import { getKategori, resolveKategori } from "@/lib/kategori"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import ViewCounter from "@/components/view-counter"
+import IsiArtikel from "@/components/isi-artikel"
 import { generateBreadcrumbSchema } from "@/lib/structured-data"
 import { buildSeoMetadata, gdriveToProxy } from "@/lib/seo"
 import { supabase } from "@/lib/supabase"
@@ -40,20 +41,6 @@ function absoluteUrl(url: string): string {
   return url.startsWith("http") ? url : `${siteConfig.url}${url}`
 }
 
-/**
- * Pecah isi artikel (Markdown ringan dari textarea admin) menjadi blok:
- * baris kosong memisah paragraf, awalan "## " menandai sub-judul.
- * Disimpan lokal karena helper kategori/berita tidak lagi memuatnya.
- */
-function parseArticleBody(body: string | null): string[] {
-  if (!body) return []
-  return body
-    .replace(/\r\n/g, "\n")
-    .split(/\n\s*\n/)
-    .map((b) => b.trim())
-    .filter(Boolean)
-}
-
 async function getArticle(slug: string): Promise<Berita | null> {
   const { data, error } = await supabase
     .from("berita")
@@ -71,10 +58,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const article = await getArticle(slug)
   if (!article) return { title: `Berita: ${siteConfig.name}` }
 
+  // Label kategori ikut dikirim supaya masuk ke keyword otomatis.
+  const kategori = await getKategori("berita")
+  const label = resolveKategori(article.category, kategori).label
+
   return buildSeoMetadata({
     title: article.title,
     metaTitle: article.meta_title,
     excerpt: article.excerpt,
+    description: article.body,
     metaDescription: article.meta_description,
     metaKeywords: article.meta_keywords,
     image: gdriveToProxy(article.og_image) || gdriveToProxy(article.image_url) || "",
@@ -82,6 +74,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     canonicalUrl: article.canonical_url,
     type: "article",
     publishedTime: article.published_at,
+    kategori: label,
   })
 }
 
@@ -95,7 +88,6 @@ export default async function BeritaDetailPage({ params }: PageProps) {
   const color = cat.color
   const catLabel = cat.label
   const heroImg = gdriveToImg(article.image_url)
-  const blocks = parseArticleBody(article.body)
 
   // Artikel lain: kategori sama lebih dulu, lalu sisanya
   const { data: othersData } = await supabase
@@ -217,25 +209,10 @@ export default async function BeritaDetailPage({ params }: PageProps) {
             </figure>
           )}
 
-          <div>
-            {blocks.map((block, i) =>
-              block.startsWith("## ") ? (
-                <h2
-                  key={i}
-                  className="text-[17px] md:text-[22px] font-bold text-navy mt-9 mb-4 pb-2 border-b border-ice-line leading-snug"
-                >
-                  {block.slice(3)}
-                </h2>
-              ) : (
-                <p
-                  key={i}
-                  className="text-[14px] md:text-[16px] text-slate-brand leading-[1.85] my-4 whitespace-pre-line"
-                >
-                  {block}
-                </p>
-              )
-            )}
-          </div>
+          {/* Isi artikel: perender bersama dengan halaman Informasi, jadi
+              aturan penulisannya sama di kedua modul. Panduan penulisan
+              ditampilkan di bawah isi. */}
+          <IsiArtikel body={article.body} warnaTeks="#5a5c62" panduan />
 
           {article.tags && article.tags.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 mt-9 pt-6 border-t border-ice-line">

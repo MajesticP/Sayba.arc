@@ -30,10 +30,9 @@ import { globeMask, isDarat } from "@/lib/globe-mask"
  *   - Berhenti saat globe keluar layar atau tab browser tidak aktif.
  *   - Resolusi dibatasi 2x, lebih dari itu tidak terlihat bedanya.
  *
- * Gerak: bola berputar pelan sendiri, tiga orbit melintas, dan satu titik
- * oranye menandai Pontianak. Tidak ada kendali kursor: bolanya memang latar,
- * bukan alat interaksi. Semua gerak berhenti saat pengguna memilih reduce
- * motion.
+ * Gerak: bola berputar pelan sendiri dan tiga orbit melintas. Tidak ada
+ * penanda lokasi dan tidak ada kendali kursor: bolanya memang latar, bukan
+ * alat interaksi. Semua gerak berhenti saat pengguna memilih reduce motion.
  */
 
 /** Kemiringan tetap bola (radian): melihat dari sedikit atas. */
@@ -117,9 +116,6 @@ function hexA(hex: string, a: number): string {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`
 }
 
-/** Titik lokasi kantor, dipakai untuk penanda di bola. */
-const LOKASI = { lon: 109.33, lat: -0.02 }
-
 export default function Globe({ className = "" }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -154,7 +150,6 @@ export default function Globe({ className = "" }: { className?: string }) {
     // Bola lalu berputar pelan dari titik itu, jadi penanda Pontianak
     // terlihat sejak frame pertama.
     let spin = (-Math.PI / 180) * 109.33
-    let fase = 0
     let jalan = true
     let terlihat = true
     let raf = 0
@@ -244,11 +239,7 @@ export default function Globe({ className = "" }: { className?: string }) {
 
       g.clearRect(0, 0, W, H)
 
-      const diam = tenang.matches
-      if (!diam) {
-        spin += KECEPATAN_PUTAR * (dt / 16.7)
-        fase += 0.0035 * (dt / 16.7)
-      }
+      if (!tenang.matches) spin += KECEPATAN_PUTAR * (dt / 16.7)
 
       const rotY = spin
       const rotX = KEMIRINGAN
@@ -354,21 +345,6 @@ export default function Globe({ className = "" }: { className?: string }) {
       g.arc(0, 0, R * 1.15, 0, Math.PI * 2)
       g.fill()
       g.restore()
-
-      // ── Penanda lokasi ──
-      proy(keBola(LOKASI.lon, LOKASI.lat))
-      if (pz > 0.03) {
-        const denyut = diam ? 1 : 1 + Math.sin(fase * 4) * 0.2
-        g.beginPath()
-        g.arc(px, py, Math.max(3, R * 0.04) * denyut * dpr, 0, Math.PI * 2)
-        g.fillStyle = orange
-        g.fill()
-        g.beginPath()
-        g.arc(px, py, Math.max(6, R * 0.09) * denyut * dpr, 0, Math.PI * 2)
-        g.strokeStyle = hexA(orange, 0.42)
-        g.lineWidth = Math.max(1, dpr)
-        g.stroke()
-      }
 
       raf = window.requestAnimationFrame(gambar)
     }
