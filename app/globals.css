@@ -634,6 +634,46 @@ header { padding-top: env(safe-area-inset-top); }
 /* Hanya bergerak kalau isinya memang melebihi jendela. */
 .services-track[data-gulir="false"] { transition: none; }
 
+/* ════════════════════════════════════════════════════════════════════════
+   Banner promosi (carousel 16:9)
+
+   Deretannya digambar sebagai satu baris selebar layar dan digeser dengan
+   transform. Salinan slide terakhir dan slide pertama diletakkan di ujung
+   deretan, jadi perpindahan ujung <-> ujung tetap punya animasi; setelah
+   animasinya selesai posisinya dipindah diam-diam ke slide aslinya.
+
+   Seret manual memakai Pointer Events: tetikus, jari, dan pena memakai jalur
+   yang sama. Selama diseret, transisinya dimatikan supaya gambarnya persis
+   mengikuti jari, bukan tertinggal di belakang.
+   ════════════════════════════════════════════════════════════════════════ */
+.promo-view {
+  /* Seret mendatar ditangani sendiri; gulir tegak tetap diteruskan ke
+     halaman supaya banner tidak mengunci layar di ponsel. */
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.promo-view[data-seret="true"] { cursor: grab; }
+.promo-view[data-drag="true"] { cursor: grabbing; }
+/* Tanpa gambar yang bisa diklik, tidak ada yang bisa diseret: kursor normal. */
+.promo-view[data-seret="false"] { cursor: default; }
+
+.promo-track {
+  transition: transform 650ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+/* Sesaat saat posisi dilompatkan diam-diam: tanpa animasi, kalau tidak
+   lompatannya terlihat sebagai guliran cepat ke arah sebaliknya. */
+.promo-view[data-lompat="true"] .promo-track { transition: none; }
+/* Saat diseret: gambar harus menempel di jari. */
+.promo-view[data-drag="true"] .promo-track { transition: none; }
+/* Satu slide: tidak ada gunanya beranimasi. */
+.promo-view[data-seret="false"] .promo-track { transition: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-track { transition: none; }
+}
+
 .services-kartu { margin-bottom: var(--kartu-jarak); }
 
 @media (prefers-reduced-motion: reduce) {

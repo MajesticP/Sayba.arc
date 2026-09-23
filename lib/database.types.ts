@@ -253,11 +253,11 @@ export type Database = {
           id: string
           image_url: string
           alt: string
-          eyebrow: string | null
-          title: string | null          // kosongkan bila gambar sudah memuat teksnya
-          subtitle: string | null
-          cta_text: string | null       // kosong = slide tidak bisa diklik
-          cta_href: string | null
+          eyebrow: string | null        // tidak lagi dirender: banner tampil sebagai gambar penuh
+          title: string | null          // tidak lagi dirender: taruh teks di dalam gambar
+          subtitle: string | null       // tidak lagi dirender
+          cta_text: string | null       // tidak lagi dirender: banner tidak punya tombol
+          cta_href: string | null       // tautan seluruh gambar; kosong = gambar tidak bisa diklik
           sort_order: number
           status: "active" | "draft"
           created_at: string

@@ -1,10 +1,10 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { globeMask, isDarat, GLOBE_MASK_W, GLOBE_MASK_H } from "@/lib/globe-mask"
+import { globeMask, isDarat } from "@/lib/globe-mask"
 
 /**
- * Globe: bola dunia dot-matrix yang dikendalikan kursor.
+ * Globe: bola dunia dot-matrix yang berputar sendiri.
  *
  * Diadaptasi dari komponen globe di React Bits (reactbits.dev) lalu
  * disesuaikan dengan tema SAYBA ARC. Titik-titiknya mengikuti mask benua asli
@@ -26,12 +26,21 @@ import { globeMask, isDarat, GLOBE_MASK_W, GLOBE_MASK_H } from "@/lib/globe-mask
  *   - Berhenti saat globe keluar layar atau tab browser tidak aktif.
  *   - Resolusi dibatasi 2x, lebih dari itu tidak terlihat bedanya.
  *
- * Gerak: bola berputar pelan sendiri, kursor menggeser pandangan, tiga orbit
- * melintas, dan satu titik oranye menandai Pontianak. Semua gerak berhenti
- * saat pengguna memilih reduce motion.
+ * Gerak: bola berputar pelan sendiri, tiga orbit melintas, dan satu titik
+ * oranye menandai Pontianak. Tidak ada kendali kursor: bolanya memang latar,
+ * bukan alat interaksi, dan tidak ada satu pun pendengar peristiwa penunjuk
+ * yang perlu dipasang. Semua gerak berhenti saat pengguna memilih reduce
+ * motion.
  */
 
 type Titik = { lon: number; lat: number; darat: boolean }
+
+/** Kemiringan tetap bola, dalam radian. Memberi kesan melihat dari sedikit
+ *  atas, supaya kutub utara tidak sejajar dengan tepi layar. */
+const KEMIRINGAN = -0.12
+/** Kecepatan putar per frame (radian). Sekitar satu putaran per menit:
+ *  cukup terlihat hidup, tidak cukup untuk menarik perhatian dari judul. */
+const KECEPATAN_PUTAR = 0.0016
 
 /**
  * Susun titik di permukaan bola.
@@ -95,7 +104,6 @@ export default function Globe({ className = "" }: { className?: string }) {
     const g: CanvasRenderingContext2D = ctx
 
     const tenang = window.matchMedia("(prefers-reduced-motion: reduce)")
-    const halus = window.matchMedia("(hover: hover) and (pointer: fine)")
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
 
     // Di layar kecil, titiknya dibuat lebih jarang: bolanya juga lebih kecil,
@@ -103,7 +111,6 @@ export default function Globe({ className = "" }: { className?: string }) {
     let langkah = window.innerWidth < 768 ? 5 : 4
     let titik = titikUntuk(langkah)
 
-    let targetX = 0, targetY = 0, kursorX = 0, kursorY = 0, adaKursor = false
     // Mulai dengan Indonesia menghadap pembaca, bukan Samudra Atlantik.
     // Bola lalu berputar pelan dari titik itu, jadi penanda Pontianak
     // terlihat sejak frame pertama.
@@ -112,6 +119,7 @@ export default function Globe({ className = "" }: { className?: string }) {
     let jalan = true
     let terlihat = true
     let raf = 0
+    let sebelumnya = 0
 
     function ukur() {
       const r = box.getBoundingClientRect()
@@ -148,22 +156,6 @@ export default function Globe({ className = "" }: { className?: string }) {
     })
     ro.observe(wrap)
 
-    const onMove = (e: PointerEvent) => {
-      const r = box.getBoundingClientRect()
-      targetX = ((e.clientX - r.left) / r.width - 0.5) * 2
-      targetY = ((e.clientY - r.top) / r.height - 0.5) * 2
-      adaKursor = true
-    }
-    const onLeave = () => {
-      adaKursor = false
-      targetX = 0
-      targetY = 0
-    }
-    if (halus.matches) {
-      window.addEventListener("pointermove", onMove, { passive: true })
-      box.addEventListener("pointerleave", onLeave)
-    }
-
     // Berhenti saat globe keluar layar.
     const io = new IntersectionObserver(([e]) => { terlihat = e.isIntersecting }, { threshold: 0.02 })
     io.observe(wrap)
@@ -180,7 +172,7 @@ export default function Globe({ className = "" }: { className?: string }) {
     }
     document.addEventListener("visibilitychange", onVis)
 
-    function gambar() {
+    function gambar(waktu: number) {
       if (!jalan) return
 
       // Kalau tab tidak aktif atau globe di luar layar, jangan gambar apa pun
@@ -190,6 +182,12 @@ export default function Globe({ className = "" }: { className?: string }) {
         raf = window.requestAnimationFrame(gambar)
         return
       }
+
+      // Putaran dihitung dari selisih waktu, bukan dari jumlah frame. Di layar
+      // 120 Hz bola tidak jadi dua kali lebih cepat daripada di layar 60 Hz,
+      // dan saat frame-nya tersendat bolanya tidak tersentak.
+      const dt = sebelumnya ? Math.min(waktu - sebelumnya, 64) : 16.7
+      sebelumnya = waktu
 
       const W = cv.width
       const H = cv.height
@@ -201,17 +199,14 @@ export default function Globe({ className = "" }: { className?: string }) {
 
       g.clearRect(0, 0, W, H)
 
-      kursorX += (targetX - kursorX) * 0.055
-      kursorY += (targetY - kursorY) * 0.055
-
       const diam = tenang.matches
       if (!diam) {
-        spin += adaKursor ? 0 : 0.0006
-        fase += 0.0035
+        spin += KECEPATAN_PUTAR * (dt / 16.7)
+        fase += 0.0035 * (dt / 16.7)
       }
 
-      const rotY = spin + kursorX * 0.6
-      const rotX = -kursorY * 0.42
+      const rotY = spin
+      const rotX = KEMIRINGAN
       const cosY = Math.cos(rotY), sinY = Math.sin(rotY)
       const cosX = Math.cos(rotX), sinX = Math.sin(rotX)
 
@@ -358,8 +353,6 @@ export default function Globe({ className = "" }: { className?: string }) {
       ro.disconnect()
       io.disconnect()
       document.removeEventListener("visibilitychange", onVis)
-      window.removeEventListener("pointermove", onMove)
-      box.removeEventListener("pointerleave", onLeave)
     }
   }, [])
 

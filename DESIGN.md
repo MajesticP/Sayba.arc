@@ -15,7 +15,7 @@ instansi di Kalimantan Barat, dengan bahasa visual *technical drafting*, presisi
 |---|---|---|
 | **ENERGY** | 2 | Hero tegas, sisanya tenang. Bukan halaman yang berteriak. |
 | **RHYTHM** | 2 | Komposisi konsisten dengan 2-3 jeda yang sengaja dibedakan bentuknya. |
-| **MOTION** | 2 | Reveal saat masuk viewport + transisi hover. Tanpa gerakan berjalan terus. |
+| **MOTION** | 2 | Reveal saat masuk viewport + transisi hover. Dua pengecualian yang disengaja: bola dunia hero berputar pelan sendiri, dan banner promosi bergeser otomatis tiap 4 detik. Keduanya punya tombol/kendali berhenti dan patuh pada `prefers-reduced-motion`. |
 
 ## Palet: Executive Navy
 
@@ -99,9 +99,24 @@ teks, dan tidak ada orb, glow berwarna, atau gambar ilustrasi.
    jadwal disusun per proyek dalam Kerangka Acuan Kerja.
 4. **Tanpa klaim tanpa bukti.** Tidak ada angka statistik, testimoni, atau
    logo klien yang tidak bisa diverifikasi.
+5. **Banner promosi tampil sebagai gambar utuh.** Tidak ada teks, tombol, atau
+   gradient di atas gambar: seluruh pesan banner ada di dalam gambar itu
+   sendiri, dan seluruh gambar jadi satu bidang klik menuju tautan banner.
+   Alasannya, banner dikelola dari admin oleh orang non-teknis, dan satu bidang
+   klik yang utuh tidak mungkin salah susun di layar kecil. Rasio 16:9
+   (1600 x 900) dipakai sama persis di ponsel dan desktop.
 
 ## Larangan
 
 Tidak ada orb, lingkaran berputar, glow berwarna, atau partikel 3D. Tidak ada
-animasi berjalan terus kecuali penanda tahap aktif pada diagram alir. Tidak ada
 teks di bawah 11px. Tidak ada emoji di teks antarmuka.
+
+Animasi berjalan terus hanya diizinkan di tiga tempat, dan ketiganya wajib
+punya kendali berhenti serta mematuhi `prefers-reduced-motion`:
+
+1. Penanda tahap aktif pada diagram alir.
+2. Bola dunia di hero, yang berputar pelan sendiri sebagai latar.
+3. Banner promosi, yang bergeser otomatis tiap 4 detik dan bisa diseret manual.
+
+Di luar ketiganya, gerakan hanya boleh berupa reveal saat masuk viewport atau
+transisi hover.

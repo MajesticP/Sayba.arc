@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ArrowRight, MapPin } from "lucide-react"
 import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
 import Globe from "@/components/globe"
+import HeroCapabilities from "@/components/hero-capabilities"
 
 interface HeroData {
   title: string
@@ -29,12 +30,17 @@ const FACTS = [
  * tetap terlihat di kiri-kanan lembar pertama supaya aturan "semua section
  * mengambang di atas satu meja" terbaca sejak layar pertama.
  *
- * Bola dunia digambar di belakang teks dan mengikuti kursor. Ia diletakkan
+ * Bola dunia digambar di belakang teks dan berputar sendiri. Ia diletakkan
  * sebagai latar, bukan di samping teks, karena judul hero sengaja rata tengah.
  * Warnanya sengaja sangat tipis (alfa 0.05 sampai 0.21) sehingga latar di
  * belakang huruf tetap gelap dan kontras teks tidak turun. Titik oranye di
  * bola menandai Pontianak, jadi bola itu membawa keterangan: dari mana kami
  * bekerja.
+ *
+ * Di bawah tombol ada dua blok data: spesifikasi ringkas (jumlah departemen,
+ * tahun berdiri, berkas sumber) dan daftar isi pekerjaan kedua bidang
+ * (HeroCapabilities). Keduanya menjawab pertanyaan yang sama tanpa perlu
+ * menggulir: apa yang sebenarnya dikerjakan.
  */
 export default function Hero({ data }: { data: HeroData }) {
   return (
@@ -47,7 +53,11 @@ export default function Hero({ data }: { data: HeroData }) {
           Tepinya dipudarkan memakai mask pada bola itu sendiri, bukan dengan
           menumpuk tabir di atas panel. Dengan mask, tidak ada lapisan warna
           tambahan di atas latar, jadi kontras teks tetap persis seperti yang
-          diukur dan tidak ada bidang gelap kedua yang menutupi meja. */}
+          diukur dan tidak ada bidang gelap kedua yang menutupi meja.
+
+          Bola ini tidak menerima peristiwa penunjuk sama sekali: tidak ada
+          lapisan penangkap klik, dan `pointer-events-none` menjaga agar tidak
+          ada yang tertutup di atasnya. */}
       <div
         className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] sm:w-[440px] sm:h-[440px] lg:w-[560px] lg:h-[560px]"
         aria-hidden="true"
@@ -81,7 +91,7 @@ export default function Hero({ data }: { data: HeroData }) {
           {data.subtitle}
         </p>
 
-        <div className="animate-fade-in-up stagger-5 btn-row justify-center max-w-md sm:max-w-none mx-auto mb-12 md:mb-16">
+        <div className="animate-fade-in-up stagger-5 btn-row justify-center max-w-md sm:max-w-none mx-auto mb-12 md:mb-14">
           <Link href={data.primaryButton.href} className="btn-solid">
             {data.primaryButton.text}
             <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -89,6 +99,12 @@ export default function Hero({ data }: { data: HeroData }) {
           <Link href={data.secondaryButton.href} className="btn-quiet">
             {data.secondaryButton.text}
           </Link>
+        </div>
+
+        {/* Isi pekerjaan kedua bidang. Diletakkan sebelum strip fakta supaya
+            pengunjung bertemu "apa" lebih dulu, baru "berapa". */}
+        <div className="max-w-2xl mx-auto mb-10 md:mb-12">
+          <HeroCapabilities />
         </div>
 
         {/* Spesifikasi ringkas, disusun seperti kolom lembar data teknik */}

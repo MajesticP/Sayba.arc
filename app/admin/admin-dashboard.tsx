@@ -661,7 +661,7 @@ export default function AdminDashboard() {
               <PromoTable
                 data={promoData} loading={loadingPm}
                 onEdit={b => { setPmEdit(b); setPmModal(true) }}
-                onDelete={b => { const t = { table: "promo" as Tab, id: b.id, name: b.title || b.alt }; deleteRef.current = t; setDeleteTarget(t) }}
+                onDelete={b => { const t = { table: "promo" as Tab, id: b.id, name: b.alt }; deleteRef.current = t; setDeleteTarget(t) }}
               />
             ) : (
               <TimTable
@@ -2909,7 +2909,7 @@ function PromoTable({ data, loading, onEdit, onDelete }: {
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/[0.05]">
-              {["Urutan", "Gambar", "Judul & Subjudul", "Tombol CTA", "Status", "Aksi"].map(h => (
+              {["Urutan", "Gambar", "Keterangan", "Link Banner", "Status", "Aksi"].map(h => (
                 <th key={h} className="text-left text-[9.5px] font-bold uppercase tracking-widest text-white/20 px-4 py-2.5">{h}</th>
               ))}
             </tr>
@@ -2925,14 +2925,15 @@ function PromoTable({ data, loading, onEdit, onDelete }: {
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  {b.eyebrow && <p className="text-[9.5px] font-bold uppercase tracking-widest text-powder">{b.eyebrow}</p>}
-                  <p className="text-[13px] font-medium text-white truncate max-w-[220px]">{b.title || <span className="text-white/25 italic">Tanpa teks (gambar penuh)</span>}</p>
-                  {b.subtitle && <p className="text-[11px] text-white/30 mt-0.5 max-w-[220px] truncate">{b.subtitle}</p>}
+                  <p className="text-[13px] font-medium text-white truncate max-w-[220px]">
+                    {b.alt || <span className="text-white/25 italic">Tanpa keterangan</span>}
+                  </p>
+                  <p className="text-[10px] text-white/30 mt-0.5">Gambar penuh, tanpa teks di atasnya</p>
                 </td>
                 <td className="px-4 py-3">
-                  {b.cta_text && b.cta_href
-                    ? <><span className="text-[11.5px] text-white/60">{b.cta_text}</span><code className="block text-[10px] text-white/30 mt-0.5">{b.cta_href}</code></>
-                    : <span className="text-[10px] text-white/20 italic">, </span>}
+                  {b.cta_href
+                    ? <code className="block text-[10.5px] text-white/50 max-w-[200px] truncate">{b.cta_href}</code>
+                    : <span className="text-[10.5px] text-white/25 italic">Gambar tidak bisa diklik</span>}
                 </td>
                 <td className="px-4 py-3"><StatusBadge status={b.status} /></td>
                 <td className="px-4 py-3">
@@ -2949,8 +2950,10 @@ function PromoTable({ data, loading, onEdit, onDelete }: {
       <div className="lg:hidden">
         {data.map(b => (
           <CardRow key={b.id} actions={<><button onClick={() => onEdit(b)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-white/80 hover:bg-white/[0.06] transition-all flex-shrink-0"><Pencil size={13} /></button><button onClick={() => onDelete(b)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-white/30 border border-white/[0.07] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex-shrink-0"><Trash2 size={13} /></button></>}>
-            <p className="text-[13px] font-medium text-white truncate">{b.title || "Tanpa teks (gambar penuh)"}</p>
-            {b.subtitle && <p className="text-[11px] text-white/30 mt-0.5 line-clamp-1">{b.subtitle}</p>}
+            <p className="text-[13px] font-medium text-white truncate">{b.alt || "Tanpa keterangan"}</p>
+            <p className="text-[10.5px] text-white/30 mt-0.5 line-clamp-1">
+              {b.cta_href ? `Link: ${b.cta_href}` : "Gambar tidak bisa diklik"}
+            </p>
             <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
               <span className="text-[10px] text-white/40">Urutan {b.sort_order}</span>
               <StatusBadge status={b.status} />
@@ -2968,8 +2971,8 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
   onClose: () => void; onSaved: () => void; onError: (msg: string, t: "error") => void
 }) {
   const blank = {
-    image_url: "", alt: "Banner promosi SAYBA ARC", eyebrow: "", title: "", subtitle: "",
-    cta_text: "", cta_href: "", sort_order: nextOrder, status: "active" as "active" | "draft",
+    image_url: "", alt: "Banner promosi SAYBA ARC", href: "",
+    sort_order: nextOrder, status: "active" as "active" | "draft",
   }
   const [form, setForm] = useState(blank)
   const [saving, setSaving] = useState(false)
@@ -2986,9 +2989,8 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
     replacedUrls.current.clear()
     if (initial) {
       setForm({
-        image_url: initial.image_url, alt: initial.alt, eyebrow: initial.eyebrow ?? "",
-        title: initial.title ?? "", subtitle: initial.subtitle ?? "",
-        cta_text: initial.cta_text ?? "", cta_href: initial.cta_href ?? "",
+        image_url: initial.image_url, alt: initial.alt,
+        href: initial.cta_href ?? "",
         sort_order: initial.sort_order, status: initial.status,
       })
     } else { setForm({ ...blank, sort_order: nextOrder }) }
@@ -3007,12 +3009,19 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
 
   const handleSubmit = async () => {
     if (!form.image_url) { onError("Gambar banner wajib diisi", "error"); return }
-    if (form.cta_text && !form.cta_href) { onError("Isi juga Link Tombol, atau kosongkan Teks Tombol", "error"); return }
+    const href = form.href.trim()
+    if (href && !/^(https?:\/\/|\/)/i.test(href)) {
+      onError("Link harus alamat lengkap (https://...) atau halaman dalam situs (/services)", "error"); return
+    }
     setSaving(true)
+    // Kolom teks (eyebrow, title, subtitle, cta_text) dikosongkan secara
+    // sengaja: bannernya sekarang tampil sebagai gambar penuh tanpa teks dan
+    // tanpa tombol, jadi tidak ada yang dirender dari kolom itu. Nilai lama
+    // dari banner versi sebelumnya ikut dibersihkan di sini.
     const payload = {
       image_url: form.image_url, alt: form.alt || "Banner promosi SAYBA ARC",
-      eyebrow: form.eyebrow || null, title: form.title || null, subtitle: form.subtitle || null,
-      cta_text: form.cta_text || null, cta_href: form.cta_href || null,
+      eyebrow: null, title: null, subtitle: null,
+      cta_text: null, cta_href: href || null,
       sort_order: Number(form.sort_order) || 1, status: form.status,
     }
     const res = initial
@@ -3033,35 +3042,19 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
         <ImageUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="promo" label="Gambar Banner (JPG/PNG/WebP/GIF/SVG)" />
         <p className="text-[10.5px] text-white/30 -mt-1.5 leading-relaxed">
-          Rasio <span className="text-white/50">16 : 9</span> (contoh 1600 × 900 px). Rasio ini dipakai sama persis di ponsel dan desktop, jadi tampilannya tidak berubah. Gambar tampil utuh tanpa lapisan gelap.
+          Rasio <span className="text-white/50">16 : 9</span> (contoh 1600 × 900 px). Rasio ini dipakai sama persis di ponsel dan desktop, jadi tampilannya tidak berubah. Gambar tampil utuh tanpa lapisan gelap, tanpa teks, dan tanpa tombol di atasnya: pastikan teksnya sudah ada di dalam gambar. Unggah gambar yang rasionya memang 16 : 9 supaya tidak terpotong di bagian tepi.
         </p>
 
         <Field label="Teks Alternatif (alt)" hint="Deskripsi gambar untuk pembaca layar dan SEO">
           <Input value={form.alt} onChange={v => set("alt", v)} placeholder="Promo layanan GIS & pemetaan SAYBA ARC" />
         </Field>
 
-        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Teks banner</span>
-          </div>
-          <p className="text-[10.5px] text-white/30 leading-relaxed">
-            Keterangan tampil di baris tipis <span className="text-white/50">di bawah gambar</span>, bukan menimpa gambar. Kosongkan semuanya kalau gambar Anda sudah memuat teksnya sendiri: barisnya otomatis hilang dan bannernya jadi gambar polos.
-          </p>
-          <Field label="Label Kecil (eyebrow)"><Input value={form.eyebrow} onChange={v => set("eyebrow", v)} placeholder="GIS & Pemetaan" /></Field>
-          <Field label="Judul" hint="Judul besar. Kosongkan kalau gambar sudah memuat judulnya sendiri."><Input value={form.title} onChange={v => set("title", v)} placeholder="Pemetaan & Analisis Spasial" /></Field>
-          <Field label="Subjudul" hint="Keterangan singkat di baris bawah gambar. Boleh dikosongkan.">
-            <Textarea value={form.subtitle} onChange={v => set("subtitle", v)} placeholder="Survei, pengolahan data spasial, sampai peta siap cetak, dikerjakan satu tim." />
-          </Field>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Teks Tombol" hint="Kosongkan agar banner tidak bisa diklik">
-            <Input value={form.cta_text} onChange={v => set("cta_text", v)} placeholder="Lihat Layanan" />
-          </Field>
-          <Field label="Link Tombol" hint="Halaman dalam situs (/services) atau alamat luar (https://...)">
-            <Input value={form.cta_href} onChange={v => set("cta_href", v)} placeholder="/services" />
-          </Field>
-        </div>
+        <Field label="Link Banner" hint="Boleh dikosongkan. Halaman dalam situs (/services) atau alamat luar (https://...)">
+          <Input value={form.href} onChange={v => set("href", v)} placeholder="/services" />
+        </Field>
+        <p className="text-[10.5px] text-white/30 -mt-1.5 leading-relaxed">
+          Kalau diisi, <span className="text-white/50">seluruh gambar bisa diklik</span> dan mengarah ke tautan ini. Tautan luar dibuka di tab baru. Kalau dikosongkan, banner tetap tampil sebagai gambar saja.
+        </p>
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Urutan Tampil" hint="Angka kecil tampil lebih dulu">

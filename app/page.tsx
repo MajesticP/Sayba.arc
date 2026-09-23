@@ -109,7 +109,7 @@ export default async function Home() {
           pertama sampai lembar terakhir. Jarak antar lembar dibuat tipis
           supaya terbaca sebagai satu tumpukan, bukan halaman terpisah. */}
       <Hero data={hero} />
-      <PromoCarousel slides={promoBanners} interval={6000} />
+      <PromoCarousel slides={promoBanners} />
       <Services allLayanan={allLayanan} depts={depts} />
       <InformasiHighlight articles={informasiTerbaru} kategori={kategoriInfo} />
       <NewsHighlight articles={beritaTerbaru} kategori={kategoriBeritaList} />
