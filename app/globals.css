@@ -42,8 +42,13 @@
      tinggi kartu, dan kartu di beranda tidak mungkin berbeda dari kartu di
      halaman Layanan. */
   --kartu-h: 92px;
-  /* Jarak antar kartu. Dipakai kartu dan carousel, jadi gulirannya pas. */
-  --kartu-jarak: 12px;
+  /* Jarak antar kartu. Dipakai kartu, daftar layanan, dan carousel, jadi
+     ketiganya selalu sama dan guliran carousel tetap pas.
+
+     Nilainya 16 px di ponsel dan 20 px di layar lebar. Sebelumnya 12 px, dan
+     pada jarak itu dua kartu berbingkai tipis masih terbaca seperti satu blok:
+     yang terlihat hanya garis tepi bertumpuk. */
+  --kartu-jarak: 16px;
   --mat-line: rgba(17, 42, 70, 0.16);   /* garis kisi halus di meja */
   --mat-line-bold: rgba(17, 42, 70, 0.26); /* garis kisi tegas tiap 5 satuan */
 
@@ -313,7 +318,10 @@
   view-timeline-axis: block;
 }
 @media (min-width: 768px) {
-  :root { --kartu-h: 104px; }
+  :root {
+    --kartu-h: 104px;
+    --kartu-jarak: 20px;
+  }
 }
 @media (min-width: 768px) {
   .board-panel { border-radius: 26px; }
@@ -701,12 +709,17 @@ header { padding-top: env(safe-area-inset-top); }
    tanpa alasan. */
 .carousel-gulir:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; border-radius: 12px; }
 
-/* Jarak antar kartu di dalam carousel gulir. */
-.carousel-gulir [data-item] { margin-bottom: 10px; }
-.carousel-gulir [data-item]:last-child { margin-bottom: 0; }
-@media (min-width: 768px) {
-  .carousel-gulir [data-item] { margin-bottom: 12px; }
-}
+/* Jarak antar kartu.
+   Dipasang lewat `.carousel-isi`, bukan `.carousel-gulir`: jendela gulir
+   hanya dipakai kalau isinya memang lebih dari dua item. Dengan dua item atau
+   kurang, komponennya tidak merender jendela gulir sama sekali — dan kalau
+   jaraknya menempel pada kelas jendela, jaraknya ikut hilang dan kartunya
+   saling menempel. `.carousel-isi` selalu ada di kedua keadaan.
+
+   Nilainya dari `--kartu-jarak`, sama dengan yang dipakai daftar layanan,
+   jadi jarak antar kartu seragam di seluruh situs. */
+.carousel-isi [data-item] { margin-bottom: var(--kartu-jarak); }
+.carousel-isi [data-item]:last-child { margin-bottom: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   .carousel-gulir { scroll-behavior: auto; }

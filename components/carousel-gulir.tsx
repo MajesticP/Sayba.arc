@@ -381,8 +381,14 @@ export default function CarouselGulir({
 
   // Kalau isinya tidak melebihi jendela, semuanya tampil tanpa pembungkus
   // gulir: tidak ada scrollbar, tidak ada kendali, tidak ada guliran.
+  //
+  // Kelas `carousel-isi` tetap dipasang. Kelas itulah yang mengatur jarak
+  // antar kartu, dan sebelumnya hanya terpasang di cabang yang bisa digulir.
+  // Akibatnya, begitu isinya dua item atau kurang (tidak perlu gulir), jarak
+  // antar kartunya hilang sama sekali dan kartu-kartunya saling menempel —
+  // hanya terpisah oleh garis tepinya sendiri.
   if (!perluGulir) {
-    return <div className={className}>{children}</div>
+    return <div className={`carousel-isi ${className}`}>{children}</div>
   }
 
   return (
@@ -408,7 +414,7 @@ export default function CarouselGulir({
           onKeyDown={onKeyDown}
           onWheel={tahanSementara}
           onTouchStart={tahanSementara}
-          className={`carousel-gulir cursor-grab ${className}`}
+          className={`carousel-gulir carousel-isi cursor-grab ${className}`}
           style={tinggi ? { height: `${tinggi}px` } : undefined}
         >
           {children}

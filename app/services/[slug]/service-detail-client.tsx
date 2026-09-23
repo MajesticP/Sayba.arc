@@ -243,7 +243,9 @@ export default function ServiceDetailClient({ service, deptLabel, categoryLabel,
               <h2 className="text-[18px] md:text-2xl font-bold text-navy mb-5">
                 Layanan Lain di {deptLabel}
               </h2>
-              <div className="space-y-3">
+              {/* Jaraknya disamakan dengan daftar kartu lain di situs (16 px),
+                  supaya kartu-kartunya tidak terlihat menempel. */}
+              <div className="space-y-4">
                 {others.map((o) => {
                   const img = gdriveToImg(o.image_url)
                   return (
