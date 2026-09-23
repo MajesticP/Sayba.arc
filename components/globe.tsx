@@ -4,73 +4,109 @@ import { useEffect, useRef } from "react"
 import { globeMask, isDarat } from "@/lib/globe-mask"
 
 /**
- * Globe: bola dunia dot-matrix yang berputar sendiri.
+ * Globe: bola dunia GARIS yang berputar sendiri.
  *
- * Diadaptasi dari komponen globe di React Bits (reactbits.dev) lalu
- * disesuaikan dengan tema SAYBA ARC. Titik-titiknya mengikuti mask benua asli
- * (Natural Earth, lihat lib/globe-mask.ts), jadi yang terlihat memang bentuk
- * benua, bukan pola acak. Masknya 2,7 KB dan ikut bundel: tidak ada permintaan
- * jaringan sama sekali, dan tidak ada pustaka 3D yang perlu diunduh.
+ * Digambar sebagai rangka garis, bukan kumpulan titik. Graticule (garis
+ * lintang & bujur) membentuk bola, dan benua digambar sebagai potongan garis
+ * lintang tepat di atas daratan. Hasilnya bentuk bola dan benua jauh lebih
+ * tegas dibaca, dan tidak lagi berupa kabut titik.
  *
- * Digambar di canvas 2D, bukan three.js. Satu bola rangka kawat tidak sepadan
- * dengan ratusan KB yang harus diunduh setiap pengunjung di setiap halaman.
+ * Titik mask benua (Natural Earth, lihat lib/globe-mask.ts) dipakai apa
+ * adanya, jadi yang tergambar memang bentuk benua, bukan pola acak. Masknya
+ * 2,7 KB dan ikut bundel: tidak ada permintaan jaringan sama sekali, dan tidak
+ * ada pustaka 3D yang perlu diunduh.
+ *
+ * Digambar di canvas 2D, bukan three.js. Satu bola garis tidak sepadan dengan
+ * ratusan KB yang harus diunduh setiap pengunjung di setiap halaman.
  *
  * Warna diambil dari token CSS (--ice, --orange) supaya globe ikut berubah
  * sendiri kalau paletnya disesuaikan, tidak ada warna kedua yang harus dijaga.
  *
  * Performa:
- *   - Titik disusun sekali, disimpan di cache tingkat modul.
- *   - Titik digambar sebagai SATU jalur per warna, bukan satu per satu.
- *     Menggambar 2.500 titik satu per satu memakan sekitar 2.500 panggilan
- *     gambar per frame; dengan satu jalur jadi dua panggilan saja.
+ *   - Titik pada bola satuan (unit sphere) dihitung SEKALI, disimpan di cache
+ *     tingkat modul. Tiap frame hanya memutar titik itu, tanpa trigonometri
+ *     baru dan tanpa membaca mask lagi.
+ *   - Satu jalur (path) per garis, bukan satu panggilan gambar per titik.
  *   - Berhenti saat globe keluar layar atau tab browser tidak aktif.
  *   - Resolusi dibatasi 2x, lebih dari itu tidak terlihat bedanya.
  *
  * Gerak: bola berputar pelan sendiri, tiga orbit melintas, dan satu titik
  * oranye menandai Pontianak. Tidak ada kendali kursor: bolanya memang latar,
- * bukan alat interaksi, dan tidak ada satu pun pendengar peristiwa penunjuk
- * yang perlu dipasang. Semua gerak berhenti saat pengguna memilih reduce
+ * bukan alat interaksi. Semua gerak berhenti saat pengguna memilih reduce
  * motion.
  */
 
-type Titik = { lon: number; lat: number; darat: boolean }
-
-/** Kemiringan tetap bola, dalam radian. Memberi kesan melihat dari sedikit
- *  atas, supaya kutub utara tidak sejajar dengan tepi layar. */
+/** Kemiringan tetap bola (radian): melihat dari sedikit atas. */
 const KEMIRINGAN = -0.12
-/** Kecepatan putar per frame (radian). Sekitar satu putaran per menit:
- *  cukup terlihat hidup, tidak cukup untuk menarik perhatian dari judul. */
+/** Kecepatan putar per frame (radian). Sekitar satu putaran per menit. */
 const KECEPATAN_PUTAR = 0.0016
 
-/**
- * Susun titik di permukaan bola.
- *
- * Di dekat kutub, lingkaran garis lintangnya mengecil, jadi jumlah titik di
- * sana dikurangi supaya kerapatannya tetap merata di seluruh permukaan.
- * Tanpa ini, kutubnya jadi gumpalan titik yang padat.
- */
-function susunTitik(langkah: number): Titik[] {
-  const mask = globeMask()
-  const titik: Titik[] = []
-  for (let lat = -88; lat <= 88; lat += langkah) {
-    const kosinus = Math.cos((lat * Math.PI) / 180)
-    const jumlahLon = Math.max(1, Math.round((360 / langkah) * kosinus))
-    for (let i = 0; i < jumlahLon; i++) {
-      const lon = (i / jumlahLon) * 360 - 180
-      titik.push({ lon, lat, darat: isDarat(lon, lat, mask) })
-    }
-  }
-  return titik
+/** Titik pada bola satuan (unit sphere). Dihitung sekali, bukan tiap frame. */
+type Titik3 = { x: number; y: number; z: number }
+/** Satu garis: deretan titik pada bola satuan. */
+type Garis = Titik3[]
+
+/** Ubah koordinat geografis menjadi titik pada bola satuan. */
+function keBola(lon: number, lat: number): Titik3 {
+  const latR = (lat * Math.PI) / 180
+  const lonR = (lon * Math.PI) / 180
+  const c = Math.cos(latR)
+  return { x: c * Math.sin(lonR), y: Math.sin(latR), z: c * Math.cos(lonR) }
 }
 
-const cacheTitik = new Map<number, Titik[]>()
-function titikUntuk(langkah: number): Titik[] {
-  let t = cacheTitik.get(langkah)
-  if (!t) {
-    t = susunTitik(langkah)
-    cacheTitik.set(langkah, t)
+/**
+ * Benua: untuk tiap baris lintang, ambil bagian bujur yang berupa daratan dan
+ * jadikan satu garis. Hasilnya deretan garis lintang yang membentuk siluet
+ * benua. Dihitung sekali dari mask, lalu dipakai tiap frame.
+ *
+ * Di dekat kutub lingkaran lintangnya mengecil; karena itu batasnya
+ * dihentikan di 84 derajat, sama seperti batas masknya.
+ */
+const cacheBenua = new Map<number, Garis[]>()
+function garisBenua(langkahLat: number): Garis[] {
+  const tersimpan = cacheBenua.get(langkahLat)
+  if (tersimpan) return tersimpan
+  const mask = globeMask()
+  const hasil: Garis[] = []
+  for (let lat = -84; lat <= 84; lat += langkahLat) {
+    let garis: Garis | null = null
+    for (let lon = -180; lon <= 180; lon += 2) {
+      if (isDarat(lon, lat, mask)) {
+        if (!garis) {
+          garis = []
+          hasil.push(garis)
+        }
+        garis.push(keBola(lon, lat))
+      } else {
+        garis = null
+      }
+    }
   }
-  return t
+  cacheBenua.set(langkahLat, hasil)
+  return hasil
+}
+
+/**
+ * Graticule: garis lintang dan garis bujur yang membentuk bola.
+ * Dihitung sekali juga.
+ */
+const cacheGraticule = new Map<number, Garis[]>()
+function garisGraticule(langkah: number): Garis[] {
+  const tersimpan = cacheGraticule.get(langkah)
+  if (tersimpan) return tersimpan
+  const hasil: Garis[] = []
+  for (let lat = -80; lat <= 80; lat += langkah) {
+    const g: Garis = []
+    for (let lon = -180; lon <= 180; lon += 4) g.push(keBola(lon, lat))
+    hasil.push(g)
+  }
+  for (let lon = -180; lon < 180; lon += langkah) {
+    const g: Garis = []
+    for (let lat = -90; lat <= 90; lat += 4) g.push(keBola(lon, lat))
+    hasil.push(g)
+  }
+  cacheGraticule.set(langkah, hasil)
+  return hasil
 }
 
 /** Tambahkan alpha ke warna hex (#rrggbb -> rgba). */
@@ -106,15 +142,18 @@ export default function Globe({ className = "" }: { className?: string }) {
     const tenang = window.matchMedia("(prefers-reduced-motion: reduce)")
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
 
-    // Di layar kecil, titiknya dibuat lebih jarang: bolanya juga lebih kecil,
+    // Di layar kecil, garisnya dibuat lebih jarang: bolanya juga lebih kecil,
     // jadi kerapatan lebih rendah tidak terlihat bedanya.
-    let langkah = window.innerWidth < 768 ? 5 : 4
-    let titik = titikUntuk(langkah)
+    const kecil = window.innerWidth < 768
+    let langkahBenua = kecil ? 4 : 3
+    let langkahGraticule = kecil ? 30 : 20
+    let benua = garisBenua(langkahBenua)
+    let graticule = garisGraticule(langkahGraticule)
 
     // Mulai dengan Indonesia menghadap pembaca, bukan Samudra Atlantik.
     // Bola lalu berputar pelan dari titik itu, jadi penanda Pontianak
     // terlihat sejak frame pertama.
-    let spin = -Math.PI / 180 * 109.33
+    let spin = (-Math.PI / 180) * 109.33
     let fase = 0
     let jalan = true
     let terlihat = true
@@ -136,7 +175,7 @@ export default function Globe({ className = "" }: { className?: string }) {
     // browser menghitung ulang seluruh gaya halaman; memanggilnya 60 kali
     // per detik membuat globe ini jadi beban terberat di halaman, padahal
     // nilainya tidak berubah.
-    let WARNA = bacaWarna()
+    const WARNA = bacaWarna()
     function bacaWarna() {
       const gaya = getComputedStyle(document.documentElement)
       return {
@@ -148,10 +187,16 @@ export default function Globe({ className = "" }: { className?: string }) {
 
     const ro = new ResizeObserver(() => {
       ukur()
-      const baru = window.innerWidth < 768 ? 5 : 4
-      if (baru !== langkah) {
-        langkah = baru
-        titik = titikUntuk(baru)
+      const k = window.innerWidth < 768
+      const lb = k ? 4 : 3
+      if (lb !== langkahBenua) {
+        langkahBenua = lb
+        benua = garisBenua(lb)
+      }
+      const lg = k ? 30 : 20
+      if (lg !== langkahGraticule) {
+        langkahGraticule = lg
+        graticule = garisGraticule(lg)
       }
     })
     ro.observe(wrap)
@@ -210,25 +255,42 @@ export default function Globe({ className = "" }: { className?: string }) {
       const cosY = Math.cos(rotY), sinY = Math.sin(rotY)
       const cosX = Math.cos(rotX), sinX = Math.sin(rotX)
 
-      // Proyeksi ortografis: titik di belahan jauh (z kecil) dibuang.
-      const proy: { x: number; y: number; z: number; darat: boolean }[] = []
-      for (let i = 0; i < titik.length; i++) {
-        const t = titik[i]
-        const latR = (t.lat * Math.PI) / 180
-        const lonR = (t.lon * Math.PI) / 180
-        const x = Math.cos(latR) * Math.sin(lonR)
-        const y = Math.sin(latR)
-        const z = Math.cos(latR) * Math.cos(lonR)
-        const x1 = x * cosY + z * sinY
-        const z1 = -x * sinY + z * cosY
-        const y2 = y * cosX - z1 * sinX
-        const z2 = y * sinX + z1 * cosX
-        if (z2 > 0.03) proy.push({ x: x1, y: y2, z: z2, darat: t.darat })
+      // Proyeksi ortografis satu titik: putar lalu buang belahan jauh.
+      // Dihitung inline (tanpa objek per titik) supaya tidak ada sampah
+      // alokasi ribuan objek per frame.
+      let px = 0, py = 0, pz = 0
+      const proy = (p: Titik3) => {
+        const x1 = p.x * cosY + p.z * sinY
+        const z1 = -p.x * sinY + p.z * cosY
+        const y2 = p.y * cosX - z1 * sinX
+        pz = p.y * sinX + z1 * cosX
+        px = cx + x1 * R
+        py = cy + y2 * R
+      }
+
+      // Gambar satu garis, diputus di titik yang berada di belakang bola.
+      const lukis = (garis: Garis) => {
+        g.beginPath()
+        let mulai = false
+        for (let i = 0; i < garis.length; i++) {
+          proy(garis[i])
+          if (pz <= 0.02) {
+            mulai = false
+            continue
+          }
+          if (!mulai) {
+            g.moveTo(px, py)
+            mulai = true
+          } else {
+            g.lineTo(px, py)
+          }
+        }
+        g.stroke()
       }
 
       // ── Orbit ──
-      // Digambar lebih dulu supaya titik bola tampak berada di depannya.
-      g.lineWidth = Math.max(1, dpr)
+      // Digambar lebih dulu supaya garis bola tampak berada di depannya.
+      g.lineWidth = Math.max(1.5, 1.6 * dpr)
       const orbit = [
         { rx: 1.3, ry: 0.32, miring: -0.42 },
         { rx: 1.18, ry: 0.46, miring: 0.55 },
@@ -241,74 +303,51 @@ export default function Globe({ className = "" }: { className?: string }) {
           const a = (i / N) * Math.PI * 2
           const ex = Math.cos(a) * R * o.rx
           const ey = Math.sin(a) * R * o.ry
-          const px = ex * Math.cos(o.miring) - ey * Math.sin(o.miring)
-          const py = ex * Math.sin(o.miring) + ey * Math.cos(o.miring)
-          const px2 = px * (1 + cosY * 0.26)
-          if (i === 0) g.moveTo(cx + px2, cy + py)
-          else g.lineTo(cx + px2, cy + py)
+          const ox = ex * Math.cos(o.miring) - ey * Math.sin(o.miring)
+          const oy = ex * Math.sin(o.miring) + ey * Math.cos(o.miring)
+          const ox2 = ox * (1 + cosY * 0.26)
+          if (i === 0) g.moveTo(cx + ox2, cy + oy)
+          else g.lineTo(cx + ox2, cy + oy)
         }
-        g.strokeStyle = hexA(orange, 0.2)
+        g.strokeStyle = hexA(orange, 0.42)
         g.stroke()
       }
 
-      // ── Titik bola ──
-      // Dua jalur saja untuk ribuan titik: satu untuk daratan, satu untuk
-      // lautan. Titik laut digambar sebagai kotak karena ukurannya di bawah
-      // 1,5 px sehingga bentuknya tidak terlihat bedanya, dan kotak jauh
-      // lebih ringan daripada busur.
-      //
-      // Titik daratan jauh lebih terang DAN lebih besar dari titik lautan;
-      // keduanya yang membuat bentuk benua terbaca. Judul hero berada tepat
-      // di atas bola, jadi kontrasnya diamankan oleh tabir elips di bawah ini,
-      // bukan dengan meredupkan titiknya. Jangan naikkan alpha di sini tanpa
-      // menghitung ulang kontras teks hero: angkanya sudah dihitung.
-      const rDarat = Math.max(1.8, R * 0.016) * dpr
-      const rLaut = Math.max(0.9, R * 0.0085) * dpr
-
-      // Laut: satu jalur, satu kali gambar.
+      // ── Tepi bola ──
+      // Satu lingkaran tipis: menegaskan bentuk bola, terutama di sisi yang
+      // tidak ditempati benua.
       g.beginPath()
-      for (let i = 0; i < proy.length; i++) {
-        const p = proy[i]
-        if (p.darat) continue
-        const tepi = 1 - p.z * 0.5
-        const s = rLaut * tepi
-        g.rect(cx + p.x * R - s, cy + p.y * R - s, s * 2, s * 2)
-      }
-      g.fillStyle = hexA(ice, 0.10)
-      g.fill()
+      g.arc(cx, cy, R, 0, Math.PI * 2)
+      g.strokeStyle = hexA(ice, 0.16)
+      g.lineWidth = Math.max(1, dpr)
+      g.stroke()
 
-      // Darat: satu jalur, satu kali gambar. Titiknya lebih besar dan lebih
-      // terang, dan itulah yang membuat bentuk benua terbaca.
-      g.beginPath()
-      for (let i = 0; i < proy.length; i++) {
-        const p = proy[i]
-        if (!p.darat) continue
-        const tepi = 1 - p.z * 0.45
-        const s = rDarat * tepi
-        const x = cx + p.x * R
-        const y = cy + p.y * R
-        g.moveTo(x + s, y)
-        g.arc(x, y, s, 0, Math.PI * 2)
-      }
-      g.fillStyle = hexA(ice, 0.58)
-      g.fill()
+      // ── Graticule ──
+      // Garis lintang & bujur: rangka bola. Dibuat tipis supaya benua tetap
+      // yang paling terbaca.
+      g.strokeStyle = hexA(ice, 0.13)
+      g.lineWidth = Math.max(1, dpr)
+      for (let i = 0; i < graticule.length; i++) lukis(graticule[i])
+
+      // ── Benua ──
+      // Satu jalur per garis daratan. Lebih tebal dan lebih terang dari
+      // graticule: inilah yang membuat bentuk benua terbaca.
+      g.strokeStyle = hexA(ice, 0.5)
+      g.lineWidth = Math.max(1.4, R * 0.011) * dpr
+      for (let i = 0; i < benua.length; i++) lukis(benua[i])
 
       // ── Tabir elips di area teks ──
-      // Judul hero berada tepat di atas bola, jadi titik-titik di area itu
-      // harus diredam supaya teksnya tetap lolos kontras. Tabirnya ELIPS dan
-      // hanya menutupi bagian tengah tempat teks berada, bukan seluruh bola:
-      // bagian atas, bawah, dan tepi bola tetap memperlihatkan titik penuh,
+      // Judul hero berada tepat di atas bola, jadi garis di area itu harus
+      // diredam supaya teksnya tetap lolos kontras. Tabirnya ELIPS dan hanya
+      // menutupi bagian tengah tempat teks berada, bukan seluruh bola:
+      // bagian atas, bawah, dan tepi bola tetap memperlihatkan garis penuh,
       // dan di situlah bentuk benua paling terlihat.
-      //
-      // Bentuk elips dipilih karena area teks di hero memang melebar ke
-      // samping, bukan bulat. Tabir bulat akan meredam lebih banyak bola
-      // daripada yang perlu.
       g.save()
       g.translate(cx, cy)
       g.scale(1, 0.62)
       const tabir = g.createRadialGradient(0, 0, 0, 0, 0, R * 1.15)
-      tabir.addColorStop(0, hexA(navy, 0.78))
-      tabir.addColorStop(0.55, hexA(navy, 0.66))
+      tabir.addColorStop(0, hexA(navy, 0.72))
+      tabir.addColorStop(0.55, hexA(navy, 0.58))
       tabir.addColorStop(1, hexA(navy, 0))
       g.fillStyle = tabir
       g.beginPath()
@@ -317,19 +356,8 @@ export default function Globe({ className = "" }: { className?: string }) {
       g.restore()
 
       // ── Penanda lokasi ──
-      const latR = (LOKASI.lat * Math.PI) / 180
-      const lonR = (LOKASI.lon * Math.PI) / 180
-      const lx = Math.cos(latR) * Math.sin(lonR)
-      const ly = Math.sin(latR)
-      const lz = Math.cos(latR) * Math.cos(lonR)
-      const lx1 = lx * cosY + lz * sinY
-      const lz1 = -lx * sinY + lz * cosY
-      const ly2 = ly * cosX - lz1 * sinX
-      const lz2 = ly * sinX + lz1 * cosX
-
-      if (lz2 > 0.03) {
-        const px = cx + lx1 * R
-        const py = cy + ly2 * R
+      proy(keBola(LOKASI.lon, LOKASI.lat))
+      if (pz > 0.03) {
         const denyut = diam ? 1 : 1 + Math.sin(fase * 4) * 0.2
         g.beginPath()
         g.arc(px, py, Math.max(3, R * 0.04) * denyut * dpr, 0, Math.PI * 2)

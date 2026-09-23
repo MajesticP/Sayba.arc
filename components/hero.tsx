@@ -2,7 +2,6 @@ import Link from "next/link"
 import { ArrowRight, MapPin } from "lucide-react"
 import CuttingBoardBackground, { BoardSection } from "@/components/cutting-board-bg"
 import Globe from "@/components/globe"
-import HeroCapabilities from "@/components/hero-capabilities"
 
 interface HeroData {
   title: string
@@ -37,10 +36,12 @@ const FACTS = [
  * bola menandai Pontianak, jadi bola itu membawa keterangan: dari mana kami
  * bekerja.
  *
- * Di bawah tombol ada dua blok data: spesifikasi ringkas (jumlah departemen,
- * tahun berdiri, berkas sumber) dan daftar isi pekerjaan kedua bidang
- * (HeroCapabilities). Keduanya menjawab pertanyaan yang sama tanpa perlu
- * menggulir: apa yang sebenarnya dikerjakan.
+ * Di bawah tombol hanya ada satu blok data: spesifikasi ringkas (jumlah
+ * departemen, tahun berdiri, berkas sumber). Daftar rincian bidang kerja
+ * sengaja TIDAK ditaruh di sini: hero sudah memuat badge, judul, keterangan,
+ * dua tombol, dan strip fakta, dan menambah satu daftar lagi membuat layar
+ * pertama penuh. Rincian pekerjaan tiap bidang ada di section Layanan, tempat
+ * pembaca memang datang untuk membacanya.
  */
 export default function Hero({ data }: { data: HeroData }) {
   return (
@@ -99,12 +100,6 @@ export default function Hero({ data }: { data: HeroData }) {
           <Link href={data.secondaryButton.href} className="btn-quiet">
             {data.secondaryButton.text}
           </Link>
-        </div>
-
-        {/* Isi pekerjaan kedua bidang. Diletakkan sebelum strip fakta supaya
-            pengunjung bertemu "apa" lebih dulu, baru "berapa". */}
-        <div className="max-w-2xl mx-auto mb-10 md:mb-12">
-          <HeroCapabilities />
         </div>
 
         {/* Spesifikasi ringkas, disusun seperti kolom lembar data teknik */}

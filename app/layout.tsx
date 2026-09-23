@@ -4,7 +4,6 @@ import { Geist } from "next/font/google"
 import { headers } from "next/headers"
 import { ogImage } from "@/lib/data"
 import CuttingBoardBackground from "@/components/cutting-board-bg"
-import MatCursorGrid from "@/components/mat-cursor-grid"
 import KartuSorot from "@/components/kartu-sorot"
 import "./globals.css"
 
@@ -93,9 +92,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             belakang konten, jadi terlihat konsisten dari atas sampai bawah
             halaman, termasuk di sela-sela section yang mengambang di atasnya. */}
         <CuttingBoardBackground variant="page" />
-        {/* Lapisan kursor-reaktif di atas meja potong. Di belakang konten,
-            tidak menangkap klik, dan mati sendiri di perangkat sentuh. */}
-        <MatCursorGrid />
         <div className="relative z-10">{children}</div>
       </body>
     </html>
