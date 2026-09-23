@@ -197,7 +197,7 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
             <PageTransition>
               <Link
                 href={`/informasi/${featured.slug}`}
-                className="group block bg-navy rounded-2xl md:rounded-3xl overflow-hidden mb-10 md:mb-14 p-6 md:p-9 hover:shadow-2xl transition-all duration-200"
+                className="kartu-angkat-gelap group block bg-navy rounded-2xl md:rounded-3xl overflow-hidden mb-10 md:mb-14 p-6 md:p-9 transition-all duration-200"
               >
                 <p className="text-[11px] font-bold uppercase tracking-wider text-orange-soft mb-3">
                   Sorotan
@@ -465,7 +465,7 @@ function DocumentCard({ article, cat }: { article: Informasi; cat: KategoriItem 
     <TiltCard max={4} lift={3} className="h-full">
     <Link
       href={`/informasi/${article.slug}`}
-      className="kartu-sorot group flex flex-col h-full bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-lg transition-all duration-200"
+      className="kartu-sorot kartu-angkat group flex flex-col h-full bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange transition-all duration-200"
     >
       <span className="block h-1 w-full" style={{ backgroundColor: cat.color }} aria-hidden="true" />
 

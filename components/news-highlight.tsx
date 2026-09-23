@@ -111,7 +111,7 @@ export default function NewsHighlight({
               >
                 <Link
                   href={`/berita/${article.slug}`}
-                  className={`kartu-sorot group flex flex-col items-stretch justify-start h-full rounded-2xl overflow-hidden border border-ice-line bg-white transition-all duration-700 hover:shadow-xl hover:border-orange ${
+                  className={`kartu-sorot kartu-angkat group flex flex-col items-stretch justify-start h-full rounded-2xl overflow-hidden border border-ice-line bg-white transition-all duration-700 hover:border-orange ${
                     cards.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
                   }`}
                   style={{ transitionDelay: `${i * 100}ms` }}

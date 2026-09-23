@@ -52,6 +52,66 @@
   --mat-line: rgba(17, 42, 70, 0.16);   /* garis kisi halus di meja */
   --mat-line-bold: rgba(17, 42, 70, 0.26); /* garis kisi tegas tiap 5 satuan */
 
+  /* ══ Sistem cahaya & bayangan (SATU sumber) ══════════════════════════
+     Arah cahaya ditetapkan SEKALI: lampu meja di atas-depan, sedikit dari
+     kiri atas. Semua bayangan di situs mengikuti arah yang sama, jadi
+     bendanya terasa berada di satu ruangan — bukan tiap komponen punya
+     sumber cahayanya sendiri.
+
+     Bayangannya diwarnai navy, bukan hitam. Bayangan hitam di atas meja
+     kebiruan terbaca abu mati; navy menjaga seluruh halaman senada.
+
+     Tangganya empat tingkat, dan tiap tingkat punya MAKNA (jarak benda dari
+     meja), bukan sekadar angka berbeda:
+
+       --bayang-1  bidang menempel    : input, chip, kartu datar
+       --bayang-2  benda terangkat    : kartu yang bisa disorot
+       --bayang-3  lembar kerja       : panel section yang mengambang
+       --bayang-4  benda melayang     : header kapsul, menu, dialog
+
+     Tiap tingkat menumpuk 3 lapis: kontak (rapat, tegas), badan (lembut),
+     dan sebar (lebar, sangat tipis). Satu lapis bayangan selalu terlihat
+     seperti garis abu; tiga lapis terbaca sebagai benda yang punya tinggi. */
+  --bayang-1:
+    0 1px 1px rgba(17, 42, 70, 0.05),
+    0 1px 3px -1px rgba(17, 42, 70, 0.06);
+  --bayang-2:
+    0 1px 1px rgba(17, 42, 70, 0.05),
+    0 4px 10px -3px rgba(17, 42, 70, 0.09),
+    0 12px 24px -14px rgba(17, 42, 70, 0.10);
+  --bayang-3:
+    0 1px 2px rgba(17, 42, 70, 0.05),
+    0 10px 28px -18px var(--panel-shadow),
+    0 28px 56px -34px rgba(17, 42, 70, 0.14);
+  --bayang-4:
+    0 2px 4px rgba(17, 42, 70, 0.06),
+    0 12px 32px -12px rgba(17, 42, 70, 0.18),
+    0 32px 64px -28px rgba(17, 42, 70, 0.22);
+
+  /* ── Garis cahaya tepi atas ──
+     Ini yang membuat benda terbaca punya KETEBALAN: tepi atasnya menangkap
+     lampu, lalu tepat di bawahnya ada bayangan tipis yang dilempar tepi itu.
+
+     Kenapa bukan cuma garis putih: pada permukaan putih (panel dan kartu
+     situs ini), garis putih di atas putih TIDAK terlihat sama sekali — sudah
+     diukur, tidak ada bedanya. Yang membuat tepinya terbaca justru pasangan
+     dua lapis: garis putih 1px di paling atas, lalu bidang tipis yang sedikit
+     LEBIH GELAP dari isi bendanya. Mata membacanya sebagai tepi yang
+     melengkung ke bawah, dan benda itu langsung terasa punya tinggi.
+
+     Kadarnya kecil sekali (alpha 0.05). Kalau dinaikkan, ia berubah jadi
+     garis abu yang terlihat seperti kesalahan render, bukan seperti cahaya. */
+  --cahaya-atas:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 2px 0 -1px rgba(17, 42, 70, 0.045);
+  /* Di permukaan gelap, arahnya terbalik: navy memantulkan sangat sedikit,
+     jadi yang terlihat justru garis putih redup di tepi atasnya. Tidak ada
+     lapisan gelap, karena navy sudah gelap — menambah gelap tidak terbaca. */
+  --cahaya-atas-gelap: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  /* Catatan: untuk PANEL, kedua token ini tidak dipakai — panel punya lapisan
+     bilah judul sendiri (z-index 5) yang menutupi bayangan ke dalam. Garis
+     cahaya panel dipasang di `.board-panel::before`. */
+
   /* ── Warna pendukung (diturunkan dari palet inti, hue dipertahankan) ── */
   --slate: #5a5c62;       /* teks sekunder di latar terang, 6.17:1 di ice */
   --orange-text: #b45610; /* orange sbg TEKS di latar terang, 4.53:1 di ice */
@@ -208,7 +268,12 @@
   /* Tautan teks inline tidak boleh jadi block */
   p a, li a, span a, nav a, label, footer a { min-height: unset; display: revert; }
 
-  /* Fokus terlihat (WCAG 2.4.7) */
+  /* Fokus terlihat (WCAG 2.4.7)
+     Garis orange ditambah cincin tipis di luarnya. Cincinnya bukan hiasan:
+     di atas latar yang ramai (kartu bergambar, banner), garis orange saja
+     bisa tenggelam karena warnanya mirip unsur di sekitarnya. Cincin navy
+     tipis memisahkan garis itu dari latarnya, jadi fokusnya tetap terbaca
+     di mana pun ia berada. */
   :focus-visible {
     outline: 2px solid var(--orange);
     outline-offset: 2px;
@@ -283,6 +348,54 @@
     140px 140px, 140px 140px;
 }
 
+/* ── Pencahayaan meja ──
+   Meja potong ini diterangi satu lampu dari atas-depan. Cahayanya jatuh
+   sebagai bidang terang di bagian tengah-atas layar, lalu meredup ke tepi.
+
+   Kenapa begini, bukan glow berwarna: yang ditambahkan bukan warna baru,
+   melainkan SELISIH terang. Bagian tengah meja sedikit lebih terang dari
+   tepinya, persis seperti meja sungguhan di bawah lampu. Karena tidak ada
+   hue baru, tidak ada yang bertabrakan dengan palet, dan teks tetap terbaca
+   karena kontras teks datang dari panel putih, bukan dari latar meja.
+
+   Dua lapis, keduanya sangat tipis:
+     1. kolam cahaya  — putih lembut di tengah-atas, tempat lampu mengarah
+     2. bayangan tepi — sudut dan tepi layar sedikit menggelap, jadi matanya
+                        dibawa ke tengah, dan meja terasa punya luas
+
+   Dipasang di `.board-page` yang sudah `position: fixed` dan
+   `pointer-events: none`, jadi tidak menambah elemen, tidak menangkap klik,
+   dan tidak ikut bergulir (cahayanya menetap di ruangan, bukan menempel di
+   halaman — kalau ikut bergulir, ia terbaca sebagai gambar, bukan cahaya). */
+.board-page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    /* 1. Terang dari lampu di atas. Bentuknya VERTIKAL, bukan lingkaran lebar:
+          meja diterangi dari atas, jadi terangnya menurun ke bawah. Ini juga
+          yang membuatnya terlihat — area meja yang benar-benar tampak cuma
+          celah tipis di kiri-kanan panel, dan celah itu memanjang tegak, jadi
+          gradien tegaklah yang terbaca di sana. */
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.46),
+      rgba(255, 255, 255, 0.20) 26%,
+      rgba(255, 255, 255, 0.05) 52%,
+      transparent 70%
+    ),
+    /* 2. Sudut meja menggelap. Meja bukan bidang tak berujung: tepinya jauh
+          dari lampu, jadi sudutnya sedikit lebih gelap. Ini yang membuat
+          matanya dibawa ke tengah dan meja terasa punya luas. */
+    radial-gradient(
+      96% 82% at 50% 34%,
+      transparent 46%,
+      rgba(17, 42, 70, 0.05) 78%,
+      rgba(17, 42, 70, 0.115) 100%
+    );
+}
+
 /* Garis ukur tepi meja: garis putus-putus tipis di kiri dan kanan layar.
    Menegaskan bahwa lembar kerja mengambang di atas permukaan meja, bukan
    menempel di dinding. Statis, tanpa gerakan, tidak pernah menutupi teks. */
@@ -308,9 +421,11 @@
   background-color: var(--panel);
   border: 1px solid var(--panel-line);
   border-radius: 18px;
-  box-shadow:
-    0 1px 2px rgba(17, 42, 70, 0.04),
-    0 10px 28px -18px var(--panel-shadow);
+  /* Bayangan tingkat 3 (lembar kerja mengambang) + garis cahaya di tepi atas.
+     Garis cahayanya yang membuat panel terbaca sebagai lembar yang punya
+     ketebalan dan kena lampu dari atas — tanpa itu, panel putih di atas meja
+     terang hanya terbaca sebagai bidang warna. */
+  box-shadow: var(--bayang-3);
   overflow: hidden;
   /* Timeline gulir: dipakai anak-anaknya untuk animasi yang bergerak
      mengikuti posisi gulir, bukan animasi berjalan terus. */
@@ -331,9 +446,15 @@
 .board-panel-dark {
   background-color: var(--navy);
   border-color: var(--navy-600);
+  /* Panel gelap: bayangannya lebih dalam (benda gelap menyerap lebih banyak
+     cahaya, jadi kontras tepinya harus lebih tegas) dan garis cahaya atasnya
+     jauh lebih redup — permukaan navy memantulkan jauh lebih sedikit daripada
+     putih. Kalau garisnya disamakan, tepi atas panel gelap terlihat seperti
+     garis putih yang ditempel. */
   box-shadow:
     0 1px 2px rgba(17, 42, 70, 0.10),
-    0 14px 34px -20px rgba(17, 42, 70, 0.55);
+    0 14px 34px -20px rgba(17, 42, 70, 0.55),
+    0 36px 68px -40px rgba(17, 42, 70, 0.42);
 }
 
 /* Jarak atas area meja. Header adalah kapsul yang mengambang di atas
@@ -378,14 +499,38 @@
   height: 40px;
   z-index: 5;
   pointer-events: none;
-  background: linear-gradient(to bottom, rgba(17, 42, 70, 0.035), rgba(17, 42, 70, 0.012));
+  /* Dua lapis, dan urutannya penting:
+       1. garis cahaya 1px di paling atas — tepi lembar yang menangkap lampu
+       2. bilah judul yang menggelap sedikit di bawahnya
+
+     Kenapa garis cahayanya di sini, bukan sebagai `inset box-shadow` pada
+     panelnya: lapisan ini duduk di z-index 5, di atas panel. Apa pun yang
+     digambar panel (termasuk bayangan ke dalam) akan tertutup olehnya.
+     Sudah diukur: dengan cara lama, baris pertama panel terbaca 246 sedangkan
+     isinya 249 — garis "putihnya" justru lebih GELAP dari isi panel, karena
+     yang terlihat cuma bilah judulnya. */
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.95) 0,
+      rgba(255, 255, 255, 0.95) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, rgba(17, 42, 70, 0.035), rgba(17, 42, 70, 0.012));
   border-bottom: 1px solid rgba(17, 42, 70, 0.06);
 }
 @media (min-width: 768px) {
   .board-panel::before { height: 50px; }
 }
 .board-panel-dark::before {
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.11) 0,
+      rgba(255, 255, 255, 0.11) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
   border-bottom-color: rgba(255, 255, 255, 0.08);
 }
 
@@ -596,10 +741,45 @@
 }
 
 p, h1, h2, h3, h4, h5 { overflow-wrap: break-word; word-break: break-word; }
+
+/* Warna seleksi teks. Bawaannya biru sistem, yang di atas palet ini terlihat
+   seperti warna dari situs lain. Dipakai orange dengan teks navy: itu pasangan
+   yang sudah lolos kontras (5.21:1), jadi teks yang tersorot tetap terbaca. */
+::selection {
+  background-color: rgba(240, 122, 38, 0.30);
+  color: var(--navy);
+}
 /* Aturan `img` dan judul dipindahkan ke dalam @layer base di atas. Di luar
    layer, aturan itu mengalahkan utility Tailwind (mis. h-full pada gambar
    banner), sehingga gambar tidak bisa dipaksa mengisi kontainernya. */
 .card-img-fill { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Gambar di dalam kartu: garis cahaya tipis di tepi atas supaya gambar
+   menyatu dengan kartu yang mengangkatnya, bukan terlihat seperti ditempel.
+
+   Garisnya dipasang pada PEMBUNGKUS gambar, bukan pada <img>-nya: bayangan
+   ke dalam (inset) pada elemen gambar tidak akan terlihat sama sekali, karena
+   isi gambarnya sendiri menutupi seluruh kotaknya. */
+.kartu-angkat > .relative,
+.kartu-angkat-gelap > .relative {
+  position: relative;
+}
+.kartu-angkat > .relative::after,
+.kartu-angkat-gelap > .relative::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.55) 22%,
+    rgba(255, 255, 255, 0.55) 78%,
+    transparent
+  );
+  z-index: 2;
+}
 
 .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
 header { padding-top: env(safe-area-inset-top); }
@@ -723,6 +903,93 @@ header { padding-top: env(safe-area-inset-top); }
 
 @media (prefers-reduced-motion: reduce) {
   .carousel-gulir { scroll-behavior: auto; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Kartu terangkat
+
+   Satu perilaku untuk SEMUA kartu di situs: saat disorot, kartunya terangkat
+   sedikit dari meja dan bayangannya ikut memanjang. Sebelumnya tiap kartu
+   memakai utility Tailwind sendiri-sendiri (hover:shadow-md, hover:shadow-lg,
+   hover:shadow-xl) dan hasilnya berbeda-beda: ada yang bayangannya cuma satu
+   lapis abu, ada yang tidak berubah sama sekali saat disorot.
+
+   Sekarang semuanya membaca token --bayang-2 dan --bayang-4, jadi naiknya
+   sama di mana pun, dan bayangannya berlapis seperti benda sungguhan.
+
+   Angkatnya cuma 2px. Lebih dari itu terasa gelisah, dan di daftar yang
+   panjang (puluhan kartu) gerakannya jadi melelahkan dilihat.
+
+   Dipasang hanya di perangkat berpenunjuk: di layar sentuh tidak ada hover,
+   jadi tidak ada gunanya, dan tap-highlight sudah menangani umpan baliknya. */
+/* Saat DIAM, kartu sudah membawa bayangan kontak + garis cahaya tepinya.
+   Tanpa garis cahaya di keadaan diam, kartunya baru "jadi benda" saat
+   disentuh kursor — dan di layar sentuh tidak ada kursor, jadi tidak pernah. */
+.kartu-angkat {
+  box-shadow: var(--bayang-1), var(--cahaya-atas);
+  transition:
+    box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 200ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .kartu-angkat:hover {
+    box-shadow: var(--bayang-2), var(--cahaya-atas);
+    transform: translateY(-2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kartu-angkat,
+  .kartu-angkat:hover { transition: none; transform: none; }
+}
+
+/* Cincin fokus pada kartu.
+   `box-shadow` cuma satu properti, jadi cincin fokus dan bayangan kartu tidak
+   bisa ditulis di dua tempat berbeda — yang satu akan menghapus yang lain.
+   Karena itu keduanya digabung dalam satu aturan di sini: bayangannya tetap
+   (kartunya tidak "kehilangan tinggi" saat difokus) dan cincinnya muncul
+   sebagai lapisan terluar.
+
+   Ini juga sebabnya aturan ini ditulis DI LUAR @layer base: aturan di dalam
+   layer selalu kalah dari aturan di luar layer, jadi cincin fokus yang ditulis
+   di dalam layer akan dihapus oleh bayangan kartu — tepat di elemen yang
+   paling butuh fokus terlihat. */
+.kartu-angkat:focus-visible {
+  box-shadow: var(--bayang-2), var(--cahaya-atas), 0 0 0 4px rgba(17, 42, 70, 0.16);
+}
+.kartu-angkat-gelap:focus-visible {
+  box-shadow:
+    0 1px 2px rgba(17, 42, 70, 0.12),
+    0 10px 26px -16px rgba(17, 42, 70, 0.40),
+    0 0 0 4px rgba(17, 42, 70, 0.16);
+}
+
+/* Kartu gelap: sama seperti .kartu-angkat, tapi permukaan navy memantulkan
+   jauh lebih sedikit cahaya, jadi garis cahaya tepinya diredam. Kalau
+   disamakan dengan kartu putih, tepi atasnya terlihat seperti garis putih
+   yang ditempel, bukan seperti pantulan lampu. */
+.kartu-angkat-gelap {
+  box-shadow:
+    0 1px 2px rgba(17, 42, 70, 0.12),
+    0 10px 26px -16px rgba(17, 42, 70, 0.40),
+    var(--cahaya-atas-gelap);
+  transition:
+    box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .kartu-angkat-gelap:hover {
+    box-shadow:
+      0 2px 4px rgba(17, 42, 70, 0.14),
+      0 16px 38px -18px rgba(17, 42, 70, 0.52),
+      0 32px 60px -34px rgba(17, 42, 70, 0.40),
+      var(--cahaya-atas-gelap);
+    transform: translateY(-2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kartu-angkat-gelap,
+  .kartu-angkat-gelap:hover { transition: none; transform: none; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -856,7 +1123,12 @@ header { padding-top: env(safe-area-inset-top); }
   line-height: 1.2;
   text-align: center;
   white-space: nowrap;
-  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 @media (min-width: 768px) {
   .btn-solid, .btn-outline, .btn-quiet { min-height: 50px; padding: 0.8rem 1.6rem; font-size: 0.9375rem; }
@@ -875,22 +1147,63 @@ header { padding-top: env(safe-area-inset-top); }
   .btn-row > .btn-quiet { width: auto; }
 }
 
-/* Tombol utama: aksen orange. Teks navy, 5.21:1 di atas orange. */
+/* Tombol utama: aksen orange. Teks navy, 5.21:1 di atas orange.
+
+   Bayangannya memakai aksen orange yang sangat tipis (bukan navy) supaya
+   tombolnya terlihat sedikit MENYALA, bukan sekadar mengambang. Ini satu-satunya
+   tempat warna aksen dipakai sebagai cahaya, dan kadarnya kecil: 22% pada
+   lapisan terdekat, lalu memudar. Tombol adalah titik aksi, jadi wajar kalau
+   ia yang paling "hidup" di halaman.
+
+   Saat ditekan, tombolnya turun 1px dan bayangannya menutup — persis seperti
+   tombol fisik yang ditekan. Tanpa ini, menekan tombol tidak memberi umpan
+   balik apa pun selain perubahan warna. */
 .btn-solid {
   background-color: var(--orange);
   color: var(--navy);
+  box-shadow:
+    0 1px 1px rgba(17, 42, 70, 0.06),
+    0 4px 10px -4px rgba(240, 122, 38, 0.42),
+    0 8px 20px -12px rgba(240, 122, 38, 0.30);
 }
-.btn-solid:hover { background-color: var(--orange-soft); transform: translateY(-1px); }
-.btn-solid:active { transform: translateY(0); }
+.btn-solid:hover {
+  background-color: var(--orange-soft);
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 1px rgba(17, 42, 70, 0.06),
+    0 6px 14px -4px rgba(240, 122, 38, 0.50),
+    0 12px 26px -14px rgba(240, 122, 38, 0.36);
+}
+.btn-solid:active {
+  transform: translateY(1px);
+  box-shadow:
+    0 1px 2px rgba(17, 42, 70, 0.10),
+    0 1px 3px -1px rgba(240, 122, 38, 0.34);
+}
 
-/* Tombol kedua: bidang navy. Teks ice, 13.44:1. */
+/* Tombol kedua: bidang navy. Teks ice, 13.44:1.
+   Navy di atas latar terang sudah punya kontras bentuk yang kuat, jadi
+   bayangannya cukup netral navy tanpa cahaya berwarna. */
 .btn-outline {
   background-color: var(--navy);
   color: var(--ice);
   border: 1px solid var(--navy);
+  box-shadow:
+    0 1px 2px rgba(17, 42, 70, 0.10),
+    0 6px 16px -10px rgba(17, 42, 70, 0.34);
 }
-.btn-outline:hover { background-color: var(--navy-700); border-color: var(--navy-700); transform: translateY(-1px); }
-.btn-outline:active { transform: translateY(0); }
+.btn-outline:hover {
+  background-color: var(--navy-700);
+  border-color: var(--navy-700);
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 2px rgba(17, 42, 70, 0.12),
+    0 10px 22px -12px rgba(17, 42, 70, 0.40);
+}
+.btn-outline:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(17, 42, 70, 0.14);
+}
 
 /* Tombol tenang: hanya garis. Untuk tindakan sekunder di latar terang. */
 .btn-quiet {
@@ -899,6 +1212,7 @@ header { padding-top: env(safe-area-inset-top); }
   border: 1px solid var(--ice-line);
 }
 .btn-quiet:hover { background-color: var(--ice-dim); border-color: var(--slate); }
+.btn-quiet:active { transform: translateY(1px); }
 
 /* Di atas permukaan gelap, tombol tenang memakai garis terang. */
 .board-panel-dark .btn-quiet,

@@ -215,7 +215,7 @@ export default function NewsList({
                   return (
                     <Link
                       href={`/berita/${utama.slug}`}
-                      className="group block bg-navy rounded-2xl md:rounded-3xl overflow-hidden mb-3.5 hover:shadow-2xl transition-all duration-200"
+                      className="kartu-angkat-gelap group block bg-navy rounded-2xl md:rounded-3xl overflow-hidden mb-3.5 transition-all duration-200"
                     >
                       <div className="grid grid-cols-1 md:grid-cols-[1.15fr_1fr]">
                         {img && (
@@ -268,7 +268,7 @@ export default function NewsList({
                         <Link
                           key={item.id}
                           href={`/berita/${item.slug}`}
-                          className="kartu-sorot group flex gap-3.5 bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-lg transition-all duration-200 p-3"
+                          className="kartu-sorot kartu-angkat group flex gap-3.5 bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange transition-all duration-200 p-3"
                         >
                           {img ? (
                             <span className="relative w-24 sm:w-28 aspect-square rounded-xl overflow-hidden bg-ice-dim shrink-0">
@@ -358,7 +358,7 @@ export default function NewsList({
                     <TiltCard max={4} lift={3}>
                     <Link
                       href={`/berita/${article.slug}`}
-                      className="kartu-sorot group flex flex-col sm:flex-row gap-4 md:gap-5 bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-lg transition-all duration-200 p-3 sm:p-4"
+                      className="kartu-sorot kartu-angkat group flex flex-col sm:flex-row gap-4 md:gap-5 bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange transition-all duration-200 p-3 sm:p-4"
                     >
                       {/* Foto 4:3 di kiri pada layar lebar */}
                       {img && (

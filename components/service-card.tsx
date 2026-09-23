@@ -64,7 +64,7 @@ export default function ServiceCard({
     <TiltCard max={4} lift={3}>
       <Link
         href={`/services/${item.slug}`}
-        className="kartu-sorot group flex flex-row items-stretch bg-white rounded-xl md:rounded-2xl border border-ice-line overflow-hidden hover:border-orange hover:shadow-md transition-all duration-200"
+        className="kartu-sorot kartu-angkat group flex flex-row items-stretch bg-white rounded-xl md:rounded-2xl border border-ice-line overflow-hidden hover:border-orange transition-all duration-200"
         style={{ height: "var(--kartu-h)" }}
       >
         {/* Garis aksen departemen di tepi kiri. Tipis saja: penanda, bukan hiasan. */}

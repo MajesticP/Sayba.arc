@@ -89,6 +89,62 @@ tumpukan section yang masing-masing punya gaya sendiri.
 Batasnya: opasitas garis di bawah 0.09 supaya tidak pernah bersaing dengan
 teks, dan tidak ada orb, glow berwarna, atau gambar ilustrasi.
 
+## Cahaya & Bayangan
+
+Satu arah cahaya untuk seluruh situs: **lampu meja di atas-depan**, sedikit
+dari kiri atas. Semua bayangan mengikuti arah itu, jadi seluruh halaman
+terasa berada di satu ruangan.
+
+Bayangannya **diwarnai navy, bukan hitam**. Di atas meja kebiruan, bayangan
+hitam terbaca abu mati dan memutus kesinambungan warna halaman.
+
+### Tangga bayangan
+
+Empat tingkat, dan tiap tingkat punya **makna** (jarak benda dari meja), bukan
+sekadar angka yang berbeda:
+
+| Token | Arti | Dipakai di |
+|---|---|---|
+| `--bayang-1` | bidang menempel | kartu saat diam, input, chip |
+| `--bayang-2` | benda terangkat | kartu saat disorot |
+| `--bayang-3` | lembar kerja | panel section |
+| `--bayang-4` | benda melayang | header kapsul, menu, dialog |
+
+Tiap tingkat menumpuk **3 lapis**: kontak (rapat, tegas), badan (lembut), dan
+sebar (lebar, sangat tipis). Satu lapis selalu terbaca seperti garis abu; tiga
+lapis terbaca sebagai benda yang punya tinggi.
+
+### Garis cahaya tepi
+
+Benda terbaca punya ketebalan karena **tepi atasnya menangkap lampu**, lalu
+tepat di bawahnya ada bayangan tipis yang dilempar tepi itu.
+
+Aturan pentingnya: **garis putih saja tidak cukup di atas permukaan putih.**
+Di panel dan kartu situs ini (keduanya putih), garis putih di atas putih tidak
+terlihat sama sekali — sudah diukur, tidak ada bedanya. Yang bekerja adalah
+pasangan dua lapis: garis putih 1px, lalu bidang tipis yang sedikit **lebih
+gelap** dari isi bendanya (alpha 0.045).
+
+### Aturan teknis
+
+1. **Garis cahaya pada panel harus dipasang di `.board-panel::before`**, bukan
+   sebagai `inset box-shadow` pada panelnya. Lapisan bilah judul panel duduk di
+   `z-index: 5`, di atas panel — bayangan ke dalam apa pun akan tertutup
+   olehnya. Terukur: dengan cara salah, baris pertama panel terbaca 246
+   sedangkan isinya 249 (garis "putihnya" justru lebih gelap).
+2. **Cincin fokus pada kartu harus digabung dengan bayangannya** dalam satu
+   aturan `box-shadow`. `box-shadow` cuma satu properti: kalau cincin fokus
+   ditulis terpisah, ia berebut dengan bayangan kartu dan bisa hilang tepat di
+   elemen yang paling butuh fokus terlihat.
+3. **Gradien pencahayaan meja harus dominan vertikal**, bukan radial lebar.
+   Area meja yang benar-benar terlihat cuma celah tipis di kiri-kanan panel,
+   dan celah itu memanjang tegak. Radial 120% menyebar terlalu jauh sehingga
+   alpha di celah tepi tinggal 0.145 — tidak terbaca (terukur: selisih 3 poin).
+   Setelah diganti gradien tegak, selisihnya 18 poin dan terlihat.
+4. **Kartu terangkat naik 2px saja.** Lebih dari itu terasa gelisah, dan di
+   daftar yang panjang gerakannya melelahkan dilihat.
+5. **Semua bayangan & gerakan mati saat `prefers-reduced-motion`.**
+
 ## Prinsip komposisi
 
 1. **Satu fokus per layar.** Hero punya satu tombol utama, sisanya mendukung.
@@ -108,8 +164,15 @@ teks, dan tidak ada orb, glow berwarna, atau gambar ilustrasi.
 
 ## Larangan
 
-Tidak ada orb, lingkaran berputar, glow berwarna, atau partikel 3D. Tidak ada
-teks di bawah 11px. Tidak ada emoji di teks antarmuka.
+Tidak ada orb, lingkaran berputar, atau partikel 3D. Tidak ada teks di bawah
+11px. Tidak ada emoji di teks antarmuka.
+
+**Glow berwarna:** satu pengecualian, dan hanya satu — tombol utama. Bayangan
+tombol memakai aksen orange pada alpha rendah (22% lalu memudar), supaya
+tombolnya terbaca sedikit menyala sebagai titik aksi. Di tempat lain, cahaya
+selalu berupa **selisih terang** (putih/navy transparan), bukan warna baru.
+Alasannya: cahaya berwarna di banyak tempat bertabrakan dengan palet dan
+membuat halaman terlihat seperti neon, bukan seperti meja kerja yang tenang.
 
 Animasi berjalan terus hanya diizinkan di tiga tempat, dan ketiganya wajib
 punya kendali berhenti serta mematuhi `prefers-reduced-motion`:

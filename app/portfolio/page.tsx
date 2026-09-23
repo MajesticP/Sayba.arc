@@ -146,7 +146,7 @@ function PortfolioCard({ item, thumbnail, dept, hexToRgba }: {
     <TiltCard max={4} lift={3} className="w-full">
       <Link
         href={`/portfolio/${item.slug}`}
-        className="portfolio-card kartu-sorot group transition-all duration-300 overflow-hidden rounded-2xl border border-ice-line bg-white w-full flex flex-col"
+        className="portfolio-card kartu-sorot kartu-angkat group transition-all duration-300 overflow-hidden rounded-2xl border border-ice-line bg-white w-full flex flex-col"
         style={{
           "--dept-color": color,
           "--dept-color-30": hexToRgba(color, 0.3),
