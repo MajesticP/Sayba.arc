@@ -20,6 +20,7 @@
 //   ---               → garis pemisah
 //   ![alt](url)       → gambar di tengah
 //   | a | b |         → tabel (baris pertama jadi kepala)
+//   | --- | --- |     → baris pemisah tabel (WAJIB ada, penanda tabel)
 //
 // Prinsipnya: SATU tempat untuk aturan penulisan. Halaman
 // Informasi dan Berita memanggil perender yang sama, jadi
@@ -36,6 +37,7 @@ export type Blok =
   | { jenis: "kutipan"; teks: string }
   | { jenis: "garis" }
   | { jenis: "gambar"; alt: string; url: string }
+  | { jenis: "tabel"; kepala: string[]; baris: string[][] }
 
 /**
  * Pecah isi artikel menjadi blok-blok.
@@ -105,6 +107,48 @@ export function parseIsi(body: string | null | undefined): Blok[] {
       buangBuffer()
       blok.push({ jenis: "paragraf", teks: pembuka[1].trim(), pembuka: true })
       continue
+    }
+
+    // ── Tabel: | a | b | ──
+    //
+    // Bentuk yang dikenali:
+    //     | Kepala 1 | Kepala 2 |
+    //     | --- | --- |
+    //     | isi | isi |
+    //
+    // Baris pemisah (---) WAJIB ada. Tanpa itu, baris berpipa diperlakukan
+    // sebagai paragraf biasa — supaya tanda pipa yang kebetulan dipakai di
+    // tengah kalimat tidak tiba-tiba berubah jadi tabel.
+    if (t.startsWith("|") && t.endsWith("|") && t.length > 1) {
+      const pisah = (baris: string) =>
+        baris
+          .replace(/^\|/, "")
+          .replace(/\|$/, "")
+          .split("|")
+          .map((sel) => sel.trim())
+
+      const barisPemisah = i + 1 < baris.length ? baris[i + 1].trim() : ""
+      const pemisahSah =
+        barisPemisah.startsWith("|") &&
+        barisPemisah.endsWith("|") &&
+        /^\|[\s:|-]+\|$/.test(barisPemisah) &&
+        barisPemisah.includes("-")
+
+      if (pemisahSah) {
+        buangBuffer()
+        const kepala = pisah(t)
+        const isiTabel: string[][] = []
+        i += 2 // lewati baris kepala dan baris pemisah
+        while (i < baris.length) {
+          const lanjut = baris[i].trim()
+          if (!lanjut.startsWith("|") || !lanjut.endsWith("|")) break
+          isiTabel.push(pisah(lanjut))
+          i++
+        }
+        i-- // mundur satu langkah: loop utama akan menaikkannya lagi
+        blok.push({ jenis: "tabel", kepala, baris: isiTabel })
+        continue
+      }
     }
 
     // ── Kutipan: > ──
@@ -233,5 +277,6 @@ export const PANDUAN_TULIS: Array<{ sintaks: string; arti: string }> = [
   { sintaks: "1. butir", arti: "Daftar bernomor" },
   { sintaks: "> kutipan", arti: "Kutipan" },
   { sintaks: "![alt](url)", arti: "Gambar di tengah isi" },
+  { sintaks: "| a | b |", arti: "Tabel (baris pemisah | --- | wajib)" },
   { sintaks: "---", arti: "Garis pemisah" },
 ]

@@ -172,6 +172,56 @@ export default function IsiArtikel({
           )
         }
 
+        // ── Tabel ──
+        // Dibungkus wadah yang bisa digulir mendatar: tabel dengan empat kolom
+        // atau lebih tidak muat di layar ponsel, dan tanpa wadah ini seluruh
+        // halaman ikut melebar sehingga tata letaknya rusak.
+        if (b.jenis === "tabel") {
+          return (
+            <div key={i} className="my-6">
+              {/* Petunjuk geser: hanya di ponsel, karena di layar lebar tabel
+                  muat seluruhnya. Tanpa petunjuk ini, kolom yang terpotong di
+                  tepi kanan terbaca seperti tabel yang rusak, bukan seperti
+                  tabel yang bisa digeser. */}
+              <p className="sm:hidden text-[11px] mb-2" style={{ color: "#8a8d94" }}>
+                Geser tabel ke samping untuk melihat semua kolom →
+              </p>
+              <div className="-mx-1 px-1 overflow-x-auto">
+                <table className="w-full min-w-[420px] border-collapse text-left">
+                <thead>
+                  <tr>
+                    {b.kepala.map((sel, j) => (
+                      <th
+                        key={j}
+                        className="text-[12.5px] md:text-[13.5px] font-bold uppercase tracking-wide pb-2.5 px-3 first:pl-0 border-b-2"
+                        style={{ borderColor: aksen, color: warnaTebal ?? "#112a46" }}
+                      >
+                        {renderSebaris(sel, warnaTebal)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {b.baris.map((row, j) => (
+                    <tr key={j} className="align-top">
+                      {row.map((sel, k) => (
+                        <td
+                          key={k}
+                          className="text-[13.5px] md:text-[14.5px] py-2.5 px-3 first:pl-0 border-b leading-relaxed"
+                          style={{ borderColor: "#e4eaf1", color: warnaTeks }}
+                        >
+                          {renderSebaris(sel, warnaTebal)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )
+        }
+
         return null
       })}
     </div>
