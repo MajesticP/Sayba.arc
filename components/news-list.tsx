@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { isGambarContoh } from "@/lib/image-path"
+import { gambarAman } from "@/lib/gambar"
 import Link from "next/link"
 import { ArrowRight, Clock, Eye, Search, X } from "lucide-react"
 import PageTransition from "@/components/page-transition"
@@ -22,13 +23,7 @@ import { formatNewsDate } from "@/lib/news-data"
 function gdriveToImg(url: string | null): string | null {
   // Path gambar contoh dari versi lama diperlakukan sebagai "belum ada gambar".
   if (url && isGambarContoh(url)) return null
-  if (!url) return null
-  if (url.startsWith("/api/gdrive-img")) return url
-  const fileMatch = url.match(/\/d\/([\w-]+)/)
-  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
-  const idMatch = url.match(/[?&]id=([\w-]+)/)
-  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
-  return url
+  return gambarAman(url)
 }
 
 export default function NewsList({

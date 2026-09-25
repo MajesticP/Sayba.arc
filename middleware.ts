@@ -17,6 +17,9 @@ function buildCsp(nonce: string): string {
     `script-src 'self' 'unsafe-inline' 'nonce-${nonce}' https://va.vercel-scripts.com${isDev ? " 'unsafe-eval'" : ""}`,
     // supabaseUrl covers Supabase Storage image URLs (portfolio image_url field)
     // /api/gdrive-img proxy serves Drive images as same-origin: no external img-src needed beyond lh3
+    // /api/img does the same for images pasted from any other site, so the
+    // allowlist above can stay narrow instead of growing with every source
+    // editors happen to use.
     `img-src 'self' data: ${supabaseUrl}/storage/v1/object/public/ https://lh3.googleusercontent.com https://drive.google.com https://storage.googleapis.com`,
     `connect-src 'self' ${supabaseUrl} https://docs.google.com https://va.vercel-scripts.com`,
     "frame-ancestors 'none'",

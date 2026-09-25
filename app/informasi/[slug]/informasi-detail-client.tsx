@@ -139,22 +139,24 @@ export default function InformasiDetailClient({ article, related, heroImg, categ
         />
       </div>
 
-      {/* ══ HERO: pita terang, beda dari banner halaman lain ══ */}
-      <BoardSection id="kepala-informasi" panelClassName="relative overflow-hidden">
-        {/* Kisi meja potong, sama seperti hero beranda dan halaman lain.
-            Sebelumnya kepala halaman ini memakai kisi ad-hoc berjarak 48px
-            yang membuatnya terlihat berbeda dari halaman lain. */}
-        <CuttingBoardBackground tone="light" />
+      {/* ══ HERO: pita gelap, SERAGAM dengan halaman lain ══
+          Sebelumnya kepala halaman ini bernada terang, dan itu membuatnya
+          terlihat sebagai halaman yang berbeda: kapsul navigasi navy di
+          atasnya jatuh di atas bidang terang, dan kisi mejanya jadi nyaris
+          tak terlihat. Sekarang memakai nada gelap yang sama dengan berita,
+          layanan, dan halaman lain, jadi seluruh situs terbaca satu kesatuan. */}
+      <BoardSection dark id="kepala-informasi" panelClassName="relative overflow-hidden">
+        <CuttingBoardBackground tone="dark" />
 
         <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 lg:px-10 pt-20 pb-9 md:pt-28 md:pb-14">
           <PageTransition>
             {/* Breadcrumb */}
-            <nav className="flex items-center gap-1.5 text-[11.5px] mb-5 flex-wrap" style={{ color: SLATE }} aria-label="Breadcrumb">
-              <Link href="/" className="hover:text-navy transition-colors">Beranda</Link>
+            <nav className="flex items-center gap-1.5 text-[11.5px] mb-5 flex-wrap" style={{ color: "rgba(244,246,249,0.65)" }} aria-label="Breadcrumb">
+              <Link href="/" className="hover:text-ice transition-colors">Beranda</Link>
               <ChevronRight className="w-3 h-3 opacity-50" aria-hidden="true" />
-              <Link href="/informasi" className="hover:text-navy transition-colors">Informasi</Link>
+              <Link href="/informasi" className="hover:text-ice transition-colors">Informasi</Link>
               <ChevronRight className="w-3 h-3 opacity-50" aria-hidden="true" />
-              <span className="truncate max-w-[260px] font-medium" style={{ color: NAVY }}>{article.title}</span>
+              <span className="truncate max-w-[260px] font-medium" style={{ color: ICE }}>{article.title}</span>
             </nav>
 
             <div className="flex items-center flex-wrap gap-2.5 mb-4">
@@ -162,40 +164,40 @@ export default function InformasiDetailClient({ article, related, heroImg, categ
                   WCAG AA apa pun warna yang dipilih admin di database. */}
               <span
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold uppercase tracking-wider"
-                style={{ backgroundColor: `${catColor}1f`, color: NAVY }}
+                style={{ backgroundColor: "rgba(244,246,249,0.10)", color: ICE, border: "1px solid rgba(244,246,249,0.18)" }}
               >
                 <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: catColor }} aria-hidden="true" />
                 {catLabel}
               </span>
-              <span className="inline-flex items-center gap-1.5 text-[11.5px]" style={{ color: SLATE }}>
+              <span className="inline-flex items-center gap-1.5 text-[11.5px]" style={{ color: "rgba(244,246,249,0.65)" }}>
                 <Clock className="w-3 h-3" aria-hidden="true" />
                 {article.read_minutes} menit baca
               </span>
-              <span aria-hidden="true" style={{ color: SLATE }} className="opacity-50">·</span>
-              <span className="text-[11.5px]" style={{ color: SLATE }}>{formatInformasiDate(article.published_at)}</span>
+              <span aria-hidden="true" style={{ color: "rgba(244,246,249,0.65)" }} className="opacity-50">·</span>
+              <span className="text-[11.5px]" style={{ color: "rgba(244,246,249,0.65)" }}>{formatInformasiDate(article.published_at)}</span>
             </div>
 
-            <h1 className="text-[24px] md:text-[38px] font-bold text-ice leading-tight mb-4" style={{ color: NAVY }}>
+            <h1 className="text-[24px] md:text-[38px] font-bold leading-tight mb-4" style={{ color: ICE }}>
               {article.title}
             </h1>
 
             {article.excerpt && (
-              <p className="text-[14px] md:text-[16px] leading-[1.75] mb-6 max-w-[68ch]" style={{ color: SLATE }}>
+              <p className="text-[14px] md:text-[16px] leading-[1.75] mb-6 max-w-[68ch]" style={{ color: "rgba(244,246,249,0.78)" }}>
                 {article.excerpt}
               </p>
             )}
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-5 border-t" style={{ borderColor: ICE_LINE }}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-5 border-t" style={{ borderColor: "rgba(244,246,249,0.18)" }}>
               <div className="flex items-center gap-3">
                 <div
                   className="w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-black shrink-0"
-                  style={{ backgroundColor: NAVY, color: ICE }}
+                  style={{ backgroundColor: "rgba(244,246,249,0.14)", color: ICE }}
                 >
                   {article.author.charAt(0)}
                 </div>
                 <div>
-                  <div className="text-[13px] font-bold leading-tight" style={{ color: NAVY }}>{article.author}</div>
-                  <div className="text-[11px] inline-flex items-center gap-1.5 mt-0.5" style={{ color: SLATE }}>
+                  <div className="text-[13px] font-bold leading-tight" style={{ color: ICE }}>{article.author}</div>
+                  <div className="text-[11px] inline-flex items-center gap-1.5 mt-0.5" style={{ color: "rgba(244,246,249,0.65)" }}>
                     <Eye className="w-3 h-3" aria-hidden="true" />
                     {article.views.toLocaleString("id-ID")} kali dibaca
                   </div>
@@ -206,8 +208,8 @@ export default function InformasiDetailClient({ article, related, heroImg, categ
                 <button
                   type="button"
                   onClick={copyLink}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border text-[12px] font-semibold transition-colors hover:border-orange hover:text-orange-text"
-                  style={{ borderColor: ICE_LINE, color: SLATE }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[12px] font-semibold transition-colors hover:border-orange-soft hover:text-orange-soft"
+                  style={{ borderColor: "rgba(244,246,249,0.25)", color: ICE, backgroundColor: "rgba(244,246,249,0.06)" }}
                 >
                   {copied ? (
                     <>
@@ -223,8 +225,8 @@ export default function InformasiDetailClient({ article, related, heroImg, categ
                 </button>
                 <Link
                   href="/informasi"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-ice text-[12px] font-semibold transition-colors hover:bg-navy-700"
-                  style={{ backgroundColor: NAVY }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[12px] font-semibold transition-colors"
+                  style={{ backgroundColor: ORANGE, color: NAVY }}
                 >
                   <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Semua Informasi</span>

@@ -659,6 +659,14 @@
 @keyframes loaderIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes loaderBar { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
 
+/* Isi tahap proses kerja masuk sedikit dari kanan saat tahap berganti.
+   Dipakai ProcessFlow: penjelasan tahap bergantian, dan gerakan kecil ini yang
+   membuat pergantiannya terasa, bukan sekadar bertukar teks. */
+@keyframes masuk {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
 .animate-fade-in-up   { animation: fadeInUp 0.55s cubic-bezier(.22,1,.36,1) both; }
 .animate-fade-in      { animation: fadeIn 0.45s ease-out both; }
 .animate-blur-in      { animation: blurIn 0.6s cubic-bezier(.22,1,.36,1) both; }
@@ -667,6 +675,7 @@
 .animate-draw-line-y  { animation: drawLineY 0.9s cubic-bezier(.22,1,.36,1) both; transform-origin: top; }
 .animate-pulse-mark   { animation: pulseMark 2.4s ease-in-out infinite; }
 .animate-sweep        { animation: sweepAcross 3.2s ease-in-out infinite; }
+.animate-masuk        { animation: masuk 0.35s ease-out both; }
 
 .stagger-1 { animation-delay: 70ms; }
 .stagger-2 { animation-delay: 140ms; }

@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { isGambarContoh } from "@/lib/image-path"
+import { gambarAmanAtau } from "@/lib/gambar"
 import { ArrowRight } from "lucide-react"
 import { useInView } from "@/hooks/use-in-view"
 import { BoardSection } from "@/components/cutting-board-bg"
@@ -24,12 +25,7 @@ const FALLBACK_IMG = ""
 /** Link Google Drive → proxy gambar lokal */
 function gdriveToImg(url: string | null): string {
   if (!url || isGambarContoh(url)) return FALLBACK_IMG
-  if (url.startsWith("/api/gdrive-img")) return url
-  const fileMatch = url.match(/\/d\/([\w-]+)/)
-  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
-  const idMatch = url.match(/[?&]id=([\w-]+)/)
-  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
-  return url
+  return gambarAmanAtau(url, FALLBACK_IMG)
 }
 
 /**

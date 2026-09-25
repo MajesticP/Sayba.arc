@@ -84,6 +84,32 @@ export function parseIsi(body: string | null | undefined): Blok[] {
       continue
     }
 
+    // ── Gambar dari URL mentah ──
+    //
+    // Orang hampir selalu menempelkan alamat gambar apa adanya, bukan menulis
+    // penanda `![alt](url)`. Sebelum ini, alamat yang ditempel tampil sebagai
+    // teks panjang yang tidak bisa diklik, padahal maksudnya jelas: tampilkan
+    // gambarnya. Sekarang baris yang isinya HANYA sebuah alamat gambar langsung
+    // dibaca sebagai gambar.
+    //
+    // Syaratnya ketat supaya tidak salah baca: satu baris, satu alamat, tanpa
+    // spasi di dalamnya, dan alamatnya berakhiran ekstensi gambar ATAU berasal
+    // dari layanan gambar yang dikenal. Alamat yang ada di tengah kalimat
+    // ("lihat https://… untuk detail") tetap dibiarkan sebagai teks.
+    if (/^https?:\/\/\S+$/.test(t)) {
+      const urlBersih = t.replace(/[),.;]+$/, "")
+      const ekstensiGambar = /\.(png|jpe?g|gif|webp|avif|svg|bmp)(\?[^\s]*)?$/i
+      const layananGambar =
+        /^https?:\/\/([a-z0-9-]+\.)*(media\.sketchfab\.com|i\.imgur\.com|images\.unsplash\.com|cdn\.pixabay\.com|upload\.wikimedia\.org|live\.staticflickr\.com|pbs\.twimg\.com|cdn\.discordapp\.com|media\.tenor\.com|media\.giphy\.com)\//i
+
+      if (ekstensiGambar.test(urlBersih) || layananGambar.test(urlBersih)) {
+        buangBuffer()
+        // Alt dikosongkan: tidak ada keterangan yang bisa ditebak dari URL.
+        blok.push({ jenis: "gambar", alt: "", url: urlBersih })
+        continue
+      }
+    }
+
     // ── Sub-judul: ## dan ### ──
     // Ditulis sebelum "#" supaya "##" tidak keburu dibaca sebagai paragraf.
     const sub3 = t.match(/^###\s+(.+)$/)

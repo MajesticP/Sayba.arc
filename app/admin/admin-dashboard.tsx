@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import EditorIsi from "./editor-isi"
 import BagianLipat from "./bagian-lipat"
 import { ringkasDariIsi } from "@/lib/ringkasan"
+import { gambarAmanAtau } from "@/lib/gambar"
 /**
  * Slug dari judul: huruf kecil, tanda baca dibuang, spasi jadi tanda hubung.
  * Dulu ada di lib/news-data; dipindah ke sini karena hanya admin yang memakainya.
@@ -59,17 +60,10 @@ interface TimMember {
   created_at: string
 }
 
-function gdriveToImg(url: string): string {
-  if (!url) return url
-  // Already a proxied URL: use as-is
-  if (url.startsWith("/api/gdrive-img")) return url
-  // Extract file ID from any Drive share link format
-  const fileMatch = url.match(/\/d\/([\w-]+)/)
-  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
-  const idMatch = url.match(/[?&]id=([\w-]+)/)
-  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
-  return url
-}
+// Tautan gambar dirapikan lewat satu modul bersama (lib/gambar): tautan Drive
+// maupun tautan luar sama-sama diarahkan ke proksi situs ini, supaya gambar
+// tidak diblokir kebijakan keamanan dan langsung terlihat di pratinjau.
+const gdriveToImg = gambarAmanAtau
 
 // Format gambar yang boleh diunggah. Pemeriksaan di klien ini hanya untuk
 // umpan balik cepat; server tetap memvalidasi format sebenarnya dari isi

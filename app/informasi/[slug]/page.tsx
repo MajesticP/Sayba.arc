@@ -6,6 +6,7 @@ import Footer from "@/components/footer"
 import ViewCounter from "@/components/view-counter"
 import { generateBreadcrumbSchema } from "@/lib/structured-data"
 import { buildSeoMetadata, gdriveToProxy } from "@/lib/seo"
+import { gambarAman } from "@/lib/gambar"
 import { supabase } from "@/lib/supabase"
 import type { Informasi } from "@/lib/database.types"
 import { getKategori, resolveKategori } from "@/lib/kategori"
@@ -17,9 +18,15 @@ interface PageProps {
 
 export const revalidate = 60
 
-/** Link Google Drive → proxy gambar lokal */
+/**
+ * Gambar utama → URL yang pasti bisa ditampilkan.
+ *
+ * Lewat gambarAman(): tautan Drive maupun tautan dari situs lain diarahkan ke
+ * proksi situs ini. Tanpa itu, gambar dari domain luar diblokir kebijakan
+ * keamanan dan yang terlihat hanya bidang kosong.
+ */
 function gdriveToImg(url: string | null): string | null {
-  return gdriveToProxy(url)
+  return gambarAman(url)
 }
 
 async function getArticle(slug: string): Promise<Informasi | null> {
@@ -111,8 +118,11 @@ export default async function InformasiDetailPage({ params }: PageProps) {
     { name: article.title, url: `${siteConfig.url}/informasi/${article.slug}` },
   ])
 
+  // Tanpa bg-ice: latar halaman ini harus meja potong dari layout, sama seperti
+  // halaman lain. Dengan bg-ice, permukaan meja tertutup bidang putih sehingga
+  // halaman ini terbaca berbeda dari yang lain.
   return (
-    <main className="board-area min-h-screen flex flex-col bg-ice">
+    <main className="board-area min-h-screen flex flex-col">
       {/* Penghitung tampilan: naik saat halaman dibuka atau di-refresh */}
       <ViewCounter table="informasi" slug={article.slug} />
 

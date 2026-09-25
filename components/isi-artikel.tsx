@@ -1,7 +1,8 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { parseIsi, renderSebaris } from "@/lib/markdown"
+import { gambarAman } from "@/lib/gambar"
 
 /**
  * IsiArtikel: perender isi artikel untuk halaman Informasi dan Berita.
@@ -27,6 +28,59 @@ interface Props {
   warnaTeks?: string
   /** Warna aksen (butir daftar, garis kutipan, titik panduan). */
   aksen?: string
+}
+
+/**
+ * GambarIsi: gambar di tengah isi artikel, dengan penanganan bila gagal dimuat.
+ *
+ * Sebagian situs menolak gambarnya ditampilkan di situs lain (hotlink), dan
+ * sebagian tautan gambar kedaluwarsa. Tanpa penanganan, yang terlihat hanya
+ * kotak kosong tanpa penjelasan — pembaca mengira halamannya rusak.
+ * Di sini, bila gambar gagal dimuat, ditampilkan keterangan singkat beserta
+ * tautan aslinya supaya pembaca tetap bisa membukanya.
+ */
+function GambarIsi({ url, alt }: { url: string; alt: string }) {
+  const [gagal, setGagal] = useState(false)
+  const sumber = gambarAman(url) ?? url
+
+  if (gagal) {
+    return (
+      <div
+        className="w-full rounded-2xl border border-dashed px-4 py-6 text-center"
+        style={{ borderColor: "#d8e0ea", backgroundColor: "#f7f9fc" }}
+      >
+        <p className="text-[13px] mb-1.5" style={{ color: "#5a5c62" }}>
+          Gambar ini tidak bisa ditampilkan — sumbernya menolak ditampilkan di situs lain.
+        </p>
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[13px] font-semibold underline break-all"
+          style={{ color: "#f07a26" }}
+        >
+          Buka gambar di situs asalnya
+        </a>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {/* Lewat gambarAman(): tautan luar diubah ke proksi situs ini, karena CSP
+          memblokir gambar dari domain yang tidak dikenal dan yang terlihat
+          hanya bidang kosong tanpa pesan. */}
+      <img
+        src={sumber}
+        alt={alt}
+        loading="lazy"
+        onError={() => setGagal(true)}
+        className="w-full rounded-2xl border"
+        style={{ borderColor: "#d8e0ea" }}
+      />
+    </>
+  )
 }
 
 export default function IsiArtikel({
@@ -155,14 +209,7 @@ export default function IsiArtikel({
         if (b.jenis === "gambar") {
           return (
             <figure key={i} className="my-7">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={b.url}
-                alt={b.alt}
-                loading="lazy"
-                className="w-full rounded-2xl border"
-                style={{ borderColor: "#d8e0ea" }}
-              />
+              <GambarIsi url={b.url} alt={b.alt} />
               {b.alt && (
                 <figcaption className="text-[12px] mt-2 text-center" style={{ color: "#5a5c62" }}>
                   {b.alt}

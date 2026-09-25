@@ -44,6 +44,9 @@ export default function EditorIsi({ value, onChange, onUsulWaktuBaca }: Props) {
   const ref = useRef<HTMLTextAreaElement>(null)
   const [mode, setMode] = useState<"tulis" | "pratinjau">("tulis")
   const [dialogTabel, setDialogTabel] = useState(false)
+  const [dialogGambar, setDialogGambar] = useState(false)
+  const [tautanGambar, setTautanGambar] = useState("")
+  const [keteranganGambar, setKeteranganGambar] = useState("")
   const [kolomTabel, setKolomTabel] = useState(3)
   const [barisTabel, setBarisTabel] = useState(3)
   const [panduanBuka, setPanduanBuka] = useState(false)
@@ -117,19 +120,25 @@ export default function EditorIsi({ value, onChange, onUsulWaktuBaca }: Props) {
       : { awal: mulai + 1, akhir: mulai + 1 + teksTautan.length }
   }
 
+  // Menempel tautan gambar: penulis membuka kotak kecil, menempelkan alamat,
+  // lalu gambar langsung tersisip. Ini menggantikan cara lama yang meminta
+  // penulis menulis penanda ![alt](url) sendiri — dan itu sebabnya tautan yang
+  // ditempel apa adanya dulu tampil sebagai teks panjang, bukan gambar.
   const sisipGambar = () => {
+    const tautan = tautanGambar.trim()
+    if (!tautan) return
     const el = ref.current
-    if (!el) return
-    const mulai = el.selectionStart ?? 0
-    const akhir = el.selectionEnd ?? 0
+    const mulai = el?.selectionStart ?? value.length
     const teks = value
-    const terpilih = teks.slice(mulai, akhir)
-    const keterangan = terpilih || "Keterangan gambar"
+    const perluBarisBaru = mulai > 0 && teks[mulai - 1] !== "\n"
+    const alt = keteranganGambar.trim()
+    const sisipan = `${perluBarisBaru ? "\n\n" : ""}![${alt}](${tautan})\n\n`
 
-    onChange(teks.slice(0, mulai) + `![${keterangan}](https://)` + teks.slice(akhir))
-    posisiRef.current = terpilih
-      ? { awal: mulai + keterangan.length + 4, akhir: mulai + keterangan.length + 4 + 8 }
-      : { awal: mulai + 2, akhir: mulai + 2 + keterangan.length }
+    onChange(teks.slice(0, mulai) + sisipan + teks.slice(mulai))
+    posisiRef.current = { awal: mulai + sisipan.length, akhir: mulai + sisipan.length }
+    setDialogGambar(false)
+    setTautanGambar("")
+    setKeteranganGambar("")
   }
 
   const sisipGaris = () => {
@@ -266,7 +275,11 @@ export default function EditorIsi({ value, onChange, onUsulWaktuBaca }: Props) {
             label="Tabel"
             onClick={() => setDialogTabel((v) => !v)}
           />
-          <TombolAlat ikon={<ImagePlus size={13} />} label="Gambar" onClick={sisipGambar} />
+          <TombolAlat
+            ikon={<ImagePlus size={13} />}
+            label="Gambar"
+            onClick={() => setDialogGambar((v) => !v)}
+          />
           <TombolAlat ikon={<Minus size={13} />} label="Garis" onClick={sisipGaris} />
         </div>
       )}
@@ -306,6 +319,47 @@ export default function EditorIsi({ value, onChange, onUsulWaktuBaca }: Props) {
           <span className="text-[10.5px] text-white/30 w-full">
             Kerangka tabel disisipkan siap diisi. Ganti tulisan &quot;Kolom 1&quot; dan &quot;Isi&quot; dengan isi sebenarnya.
           </span>
+        </div>
+      )}
+
+      {/* ── Dialog gambar: tempel tautan, langsung tersisip ── */}
+      {mode === "tulis" && dialogGambar && (
+        <div className="px-3 py-2.5 border-b border-white/[0.07] bg-powder/[0.06] space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-semibold text-powder">Sisipkan gambar</span>
+            <input
+              type="url"
+              value={tautanGambar}
+              onChange={(e) => setTautanGambar(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); sisipGambar() } }}
+              placeholder="Tempel tautan gambar di sini, lalu tekan Enter"
+              autoFocus
+              className="flex-1 min-w-[200px] bg-black/25 border border-white/[0.08] rounded-md px-2 py-1 text-[11.5px] text-white placeholder:text-white/25 outline-none focus:border-powder/40"
+            />
+            <input
+              type="text"
+              value={keteranganGambar}
+              onChange={(e) => setKeteranganGambar(e.target.value)}
+              placeholder="Keterangan (opsional)"
+              className="w-[170px] bg-black/25 border border-white/[0.08] rounded-md px-2 py-1 text-[11.5px] text-white placeholder:text-white/25 outline-none focus:border-powder/40"
+            />
+            <button
+              type="button" onClick={sisipGambar} disabled={!tautanGambar.trim()}
+              className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-powder text-carbon hover:bg-powder/90 transition-colors disabled:opacity-40"
+            >
+              Sisipkan
+            </button>
+            <button
+              type="button" onClick={() => { setDialogGambar(false); setTautanGambar(""); setKeteranganGambar("") }}
+              className="px-2 py-1 rounded-md text-[11px] text-white/40 hover:text-white/70 transition-colors"
+            >
+              Batal
+            </button>
+          </div>
+          <p className="text-[10.5px] text-white/30">
+            Tautan dari mana pun bisa dipakai (Google Drive, galeri, atau tautan gambar lain). Gambarnya
+            otomatis disajikan lewat situs ini, jadi tidak akan diblokir kebijakan keamanan.
+          </p>
         </div>
       )}
 
