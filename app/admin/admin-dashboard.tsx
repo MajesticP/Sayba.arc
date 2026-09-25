@@ -3,8 +3,11 @@
 import { useEffect, useState, useCallback, useRef, useId } from "react"
 import type { Portfolio, PortfolioInsert, Layanan, Informasi, Berita, PromoBanner, ContentBlock, LayananFAQ, ProcessStep, KategoriScope } from "@/lib/database.types"
 import { LAYANAN_DEPTS as DEFAULT_DEPTS, type LayananDept } from "@/lib/layanan-config"
-import { LayoutGrid, Layers, Settings, Plus, Pencil, Trash2, RefreshCw, Search, X, Save, ChevronDown, ChevronUp, ExternalLink, Map, CheckCircle, AlertCircle, Loader2, Tag, Users, ImageIcon, Menu, Newspaper, GalleryHorizontalEnd, ListOrdered, Heading, AlignLeft, ImagePlus, Info, AlertTriangle, Star } from "lucide-react"
+import { LayoutGrid, Layers, Settings, Plus, Pencil, Trash2, RefreshCw, Search, X, Save, ChevronDown, ChevronUp, ExternalLink, Map, CheckCircle, AlertCircle, Loader2, Tag, Users, ImageIcon, Menu, Newspaper, GalleryHorizontalEnd, ListOrdered, Heading, AlignLeft, ImagePlus, Info, AlertTriangle, Star, Wand2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import EditorIsi from "./editor-isi"
+import BagianLipat from "./bagian-lipat"
+import { ringkasDariIsi } from "@/lib/ringkasan"
 /**
  * Slug dari judul: huruf kecil, tanda baca dibuang, spasi jadi tanda hubung.
  * Dulu ada di lib/news-data; dipindah ke sini karena hanya admin yang memakainya.
@@ -1000,13 +1003,27 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
           <Field label="Slug" required><Input value={form.slug} onChange={v => { setSlugManual(true); set("slug", v) }} placeholder="sistem-pemetaan" /></Field>
           <Field label="Departemen" required><Select value={form.dept} onChange={v => set("dept", v)} options={depts.map(d => ({ value: d.value, label: d.label }))} /></Field>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Kategori"><Input value={form.category ?? ""} onChange={v => set("category", v)} placeholder="Web GIS…" /></Field>
-          <Field label="Status"><Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
-        </div>
         <Field label="Deskripsi"><Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi singkat proyek…" /></Field>
 
-        <ImageUploadField value={form.image_url ?? ""} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="portfolio" label="Gambar Utama" />
+        {/* Bagian yang jarang diubah dikelompokkan supaya form tetap ringkas. */}
+        <BagianLipat
+          label="Tampilan & Hasil"
+          ringkas={`${form.category || "tanpa kategori"} · ${form.status}${form.result_url ? " · ada tautan hasil" : ""}`}
+        >
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Kategori" hint="Teks bebas untuk pengelompokan internal."><Input value={form.category ?? ""} onChange={v => set("category", v)} placeholder="Web GIS…" /></Field>
+            <Field label="Status" hint="Draft disembunyikan dari publik."><Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} /></Field>
+          </div>
+
+          <Field label="URL Hasil Proyek" hint="Tautan ke hasil atau demo proyek (opsional)."><Input value={form.result_url ?? ""} onChange={v => set("result_url", v)} placeholder="https://link-hasil.com" /></Field>
+
+          <ImageUploadField value={form.image_url ?? ""} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="portfolio" label="Gambar Utama" />
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Fitur (1 per baris)" hint="Poin-poin fitur utama proyek."><Textarea value={form.features} onChange={v => set("features", v)} placeholder={"Login\nDashboard\nExport PDF"} /></Field>
+            <Field label="Tech Stack (1 per baris)" hint="Teknologi yang dipakai."><Textarea value={form.tech_stack} onChange={v => set("tech_stack", v)} placeholder={"Next.js\nPrisma\nPostgreSQL"} /></Field>
+          </div>
+        </BagianLipat>
 
         <SeoFields
           metaTitle={form.meta_title ?? ""} onMetaTitle={v => set("meta_title", v)}
@@ -1021,11 +1038,6 @@ function PortfolioModal({ open, initial, onClose, onSaved, onError, depts }: {
           slugPlaceholder="https://sayba.id/portfolio/slug-lain"
         />
 
-        <Field label="URL Hasil Proyek" hint="Tautan ke hasil atau demo proyek (opsional)."><Input value={form.result_url ?? ""} onChange={v => set("result_url", v)} placeholder="https://link-hasil.com" /></Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Fitur (1 per baris)" hint="Poin-poin fitur utama proyek."><Textarea value={form.features} onChange={v => set("features", v)} placeholder={"Login\nDashboard\nExport PDF"} /></Field>
-          <Field label="Tech Stack (1 per baris)" hint="Teknologi yang dipakai."><Textarea value={form.tech_stack} onChange={v => set("tech_stack", v)} placeholder={"Next.js\nPrisma\nPostgreSQL"} /></Field>
-        </div>
       </div>
       <ModalFooter>
         <button onClick={handleClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
@@ -1336,19 +1348,45 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
             <Select value={form.dept} onChange={v => set("dept", v)} options={depts.map(d => ({ value: d.value, label: d.label }))} />
           </Field>
         </div>
-        <Field label="Sub-Kategori" hint="Teks bebas untuk pengelompokan internal, mis. “Web GIS” atau “Gambar Teknik”. Boleh dikosongkan.">
-          <Input value={form.category} onChange={v => set("category", v)} placeholder="Contoh: Web GIS…" />
-        </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Icon (Lucide)" hint="Nama ikon dari lucide.dev, mis. map, globe, code."><Input value={form.icon ?? ""} onChange={v => set("icon", v)} placeholder="map, globe, code…" /></Field>
-          <Field label="Status" hint="Draft disembunyikan dari publik."><Select value={form.status} onChange={v => set("status", v as Status)} options={[{ value: "active", label: "Active: tampil" }, { value: "draft", label: "Draft: tersembunyi" }, { value: "archived", label: "Archived: arsip" }]} /></Field>
-        </div>
 
-        <ImageUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="layanan" label="Gambar Utama" />
-        <p className="text-[10px] text-white/25 leading-relaxed -mt-1.5">
-          Gambar utama halaman layanan. Bila kolom gambar pratinjau sosial (og:image) di bagian SEO dikosongkan,
-          gambar inilah yang dipakai saat tautan dibagikan.
-        </p>
+        <Field label="Deskripsi" hint="Ringkasan singkat layanan. Dipakai di kartu daftar dan sebagai Meta Description bila kolom SEO dikosongkan.">
+          <Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi layanan…" />
+        </Field>
+
+        {/* Kolom tampilan dikelompokkan supaya form ringkas. Isian yang hampir
+            selalu dibiarkan apa adanya tidak ikut memakan tempat. */}
+        <BagianLipat
+          label="Tampilan & Media"
+          ringkas={`${form.icon ? `ikon: ${form.icon}` : "tanpa ikon"} · ${form.status}${form.category ? ` · ${form.category}` : ""}`}
+        >
+          <Field label="Icon (Lucide)" hint="Klik salah satu untuk mengisi, atau tulis sendiri nama ikon dari lucide.dev.">
+            <Input value={form.icon ?? ""} onChange={v => set("icon", v)} placeholder="map, globe, code…" />
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {iconOptions.map(ic => (
+                <button key={ic} type="button" onClick={() => set("icon", ic)}
+                  className={cn("px-2 py-0.5 rounded-lg text-[10.5px] font-mono border transition-all",
+                    form.icon === ic ? "bg-powder/10 text-powder border-powder/30" : "bg-[#2d3733] text-white/30 border-white/[0.06] hover:text-white/60")}>
+                  {ic}
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Sub-Kategori" hint="Teks bebas untuk pengelompokan internal, mis. “Web GIS”. Boleh dikosongkan.">
+              <Input value={form.category} onChange={v => set("category", v)} placeholder="Contoh: Web GIS…" />
+            </Field>
+            <Field label="Status" hint="Draft disembunyikan dari publik.">
+              <Select value={form.status} onChange={v => set("status", v as Status)} options={[{ value: "active", label: "Active: tampil" }, { value: "draft", label: "Draft: tersembunyi" }, { value: "archived", label: "Archived: arsip" }]} />
+            </Field>
+          </div>
+
+          <ImageUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="layanan" label="Gambar Utama" />
+          <p className="text-[10px] text-white/25 leading-relaxed -mt-1.5">
+            Bila kolom gambar pratinjau sosial (og:image) di bagian SEO dikosongkan, gambar inilah yang dipakai
+            saat tautan dibagikan.
+          </p>
+        </BagianLipat>
 
         <SeoFields
           metaTitle={form.meta_title} onMetaTitle={v => set("meta_title", v)}
@@ -1419,25 +1457,28 @@ function LayananModal({ open, initial, onClose, onSaved, onError, depts, allLaya
             </>
           )}
         </div>
-        <Field label="Pilih Cepat Icon" hint="Klik untuk mengisi kolom Icon di atas.">
-          <div className="flex flex-wrap gap-1.5 mt-1">
-            {iconOptions.map(ic => (
-              <button key={ic} type="button" onClick={() => set("icon", ic)}
-                className={cn("px-2 py-0.5 rounded-lg text-[10.5px] font-mono border transition-all",
-                  form.icon === ic ? "bg-powder/10 text-powder border-powder/30" : "bg-[#2d3733] text-white/30 border-white/[0.06] hover:text-white/60")}>
-                {ic}
-              </button>
-            ))}
-          </div>
-        </Field>
-        <Field label="Deskripsi" hint="Ringkasan singkat layanan. Dipakai di kartu daftar dan sebagai Meta Description bila kolom SEO dikosongkan.">
-          <Textarea value={form.description ?? ""} onChange={v => set("description", v)} placeholder="Deskripsi layanan…" />
-        </Field>
-
-        <GalleryEditor items={form.gallery} onChange={v => set("gallery", v)} onTrackChange={trackImageChange} />
-        <ContentBlocksEditor blocks={form.content_blocks} onChange={v => set("content_blocks", v)} onTrackChange={trackImageChange} />
-        <FaqEditor items={form.faqs} onChange={v => set("faqs", v)} />
-        <ProcessStepsEditor steps={form.process_steps} onChange={v => set("process_steps", v)} />
+        {/* Empat editor isi halaman dikelompokkan dalam satu bagian. Layanan
+            baru membuka form dalam keadaan ringkas; bagian ini terbuka sendiri
+            kalau layanan yang sedang diedit memang sudah punya isinya. */}
+        <BagianLipat
+          label="Isi Halaman Lanjutan"
+          ringkas={`${form.gallery.length} foto · ${form.content_blocks.length} blok isi · ${form.faqs.length} FAQ · ${form.process_steps.length} tahap`}
+          /* Dihitung dari `initial` (data yang sedang diedit), BUKAN dari
+             `form`. Saat modal baru dibuka, `form` masih berisi data lama
+             karena diisi lewat useEffect; kalau dibaca dari `form`, bagian
+             ini bisa terbuka atau tertutup salah untuk item berikutnya. */
+          awalBuka={!!initial && (
+            (initial.gallery?.length ?? 0) > 0 ||
+            (initial.content_blocks?.length ?? 0) > 0 ||
+            (initial.faqs?.length ?? 0) > 0 ||
+            (initial.process_steps?.length ?? 0) > 0
+          )}
+        >
+          <GalleryEditor items={form.gallery} onChange={v => set("gallery", v)} onTrackChange={trackImageChange} />
+          <ContentBlocksEditor blocks={form.content_blocks} onChange={v => set("content_blocks", v)} onTrackChange={trackImageChange} />
+          <FaqEditor items={form.faqs} onChange={v => set("faqs", v)} />
+          <ProcessStepsEditor steps={form.process_steps} onChange={v => set("process_steps", v)} />
+        </BagianLipat>
       </div>
       <ModalFooter>
         <button onClick={handleClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
@@ -1630,63 +1671,62 @@ function InformasiModal({ open, initial, kategori, onClose, onSaved, onError }: 
 
         <Field label="Ringkasan" hint="Tampil di kartu daftar informasi dan otomatis dipakai sebagai Meta Description bila kolom itu dikosongkan.">
           <Textarea value={form.excerpt} onChange={v => set("excerpt", v)} placeholder="Bagaimana data lapangan yang dikumpulkan bersama warga desa diubah menjadi basis data spasial…" />
+          {form.body.trim() && (
+            <button
+              type="button"
+              onClick={() => set("excerpt", ringkasDariIsi(form.body))}
+              className="mt-1.5 inline-flex items-center gap-1 text-[10.5px] font-medium text-powder/70 hover:text-powder transition-colors"
+            >
+              <Wand2 size={11} />
+              Ambil dari isi artikel
+            </button>
+          )}
         </Field>
 
         <ImageUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="informasi" label="Gambar Artikel (JPG/PNG/WebP/GIF/SVG)" />
 
         <Field
           label="Isi Artikel"
-          hint='Awali paragraf pembuka dengan "# ", sub-judul dengan "## ", dan pisahkan tiap bagian dengan satu baris kosong. Daftar penanda lengkap ada di bawah kotak ini.'
+          hint='Pakai tombol di atas kotak tulis untuk mengatur bentuk tulisan. Tidak perlu menulis penanda apa pun secara manual. Tab "Pratinjau" menampilkan hasilnya persis seperti yang dilihat pembaca.'
         >
-          <textarea
+          <EditorIsi
             value={form.body}
-            onChange={e => set("body", e.target.value)}
-            rows={14}
-            placeholder={"# Paragraf pembuka artikel Anda di sini.\n\n## Sub-judul pertama\n\nIsi paragraf berikutnya, boleh **tebal**, *miring*, atau `kode`.\n\n- Butir daftar pertama\n- Butir daftar kedua\n\n> Kutipan penting\n\n## Sub-judul kedua\n\nIsi paragraf lagi."}
-            className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] leading-relaxed text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors resize-y font-mono"
+            onChange={v => set("body", v)}
+            onUsulWaktuBaca={m => set("read_minutes", String(m))}
           />
         </Field>
 
-        {/* Daftar penanda penulisan. Ditampilkan di dalam form, bukan hanya di
-            halaman publik, supaya penulis tidak perlu membuka artikelnya dulu
-            untuk tahu penandanya. */}
-        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Penanda Penulisan</span>
-          <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
-            {SINTAKS_TULIS.map(t => (
-              <div key={t.kode} className="flex items-baseline gap-2.5">
-                <code className="text-[10.5px] font-mono font-bold text-powder bg-powder/10 px-1.5 py-0.5 rounded shrink-0 min-w-[6.5rem]">{t.kode}</code>
-                <span className="text-[10.5px] text-white/40 leading-snug">{t.arti}</span>
-              </div>
-            ))}
+        {/* Kolom yang jarang diubah dikelompokkan supaya form tetap ringkas. */}
+        <BagianLipat
+          label="Detail & Publikasi"
+          ringkas={`${form.author || "tanpa penulis"} · ${form.published_at} · ${form.status}${form.tags.trim() ? " · ada tag" : ""}`}
+        >
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Penulis" hint="Nama yang tampil sebagai penulis artikel."><Input value={form.author} onChange={v => set("author", v)} placeholder="Tim GIS SAYBA ARC" /></Field>
+            <Field label="Tanggal Terbit" hint="Tanggal resmi artikel dipublikasikan.">
+              <input type="date" value={form.published_at} onChange={e => set("published_at", e.target.value)}
+                className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
+            </Field>
           </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Penulis" hint="Nama yang tampil sebagai penulis artikel."><Input value={form.author} onChange={v => set("author", v)} placeholder="Tim GIS SAYBA ARC" /></Field>
-          <Field label="Tanggal Terbit" hint="Tanggal resmi artikel dipublikasikan.">
-            <input type="date" value={form.published_at} onChange={e => set("published_at", e.target.value)}
-              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
-          </Field>
-        </div>
+          <div className="grid grid-cols-3 gap-3">
+            <Field label="Waktu Baca (mnt)" hint="Tombol di editor isi mengisi ini otomatis.">
+              <input type="number" min={1} value={form.read_minutes} onChange={e => set("read_minutes", e.target.value)}
+                className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
+            </Field>
+            <Field label="Jumlah Dibaca" hint="Hitungan tampilan awal.">
+              <input type="number" min={0} value={form.views} onChange={e => set("views", e.target.value)}
+                className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
+            </Field>
+            <Field label="Status" hint="Draft disembunyikan dari publik.">
+              <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active: tampil" }, { value: "draft", label: "Draft: tersembunyi" }, { value: "archived", label: "Archived: arsip" }]} />
+            </Field>
+          </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <Field label="Waktu Baca (mnt)" hint="Perkiraan lama membaca.">
-            <input type="number" min={1} value={form.read_minutes} onChange={e => set("read_minutes", e.target.value)}
-              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
+          <Field label="Tag (1 per baris)" hint="Kata kunci internal untuk pengelompokan dan pencarian.">
+            <Textarea value={form.tags} onChange={v => set("tags", v)} placeholder={"ArcGIS\nSurvei Lapangan\nTata Ruang"} />
           </Field>
-          <Field label="Jumlah Dibaca" hint="Hitungan tampilan awal.">
-            <input type="number" min={0} value={form.views} onChange={e => set("views", e.target.value)}
-              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
-          </Field>
-          <Field label="Status" hint="Draft disembunyikan dari publik.">
-            <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active: tampil" }, { value: "draft", label: "Draft: tersembunyi" }, { value: "archived", label: "Archived: arsip" }]} />
-          </Field>
-        </div>
-
-        <Field label="Tag (1 per baris)" hint="Kata kunci internal untuk pengelompokan dan pencarian.">
-          <Textarea value={form.tags} onChange={v => set("tags", v)} placeholder={"ArcGIS\nSurvei Lapangan\nTata Ruang"} />
-        </Field>
+        </BagianLipat>
 
         <button
           type="button"
@@ -1884,28 +1924,6 @@ function CharCount({ value, ideal }: { value: string; ideal: number }) {
   )
 }
 
-/**
- * Daftar penanda penulisan isi artikel.
- *
- * Ditulis di sini sebagai daftar teks (bukan diimpor dari lib/markdown.tsx,
- * yang berisi komponen React untuk halaman publik) supaya dashboard tidak
- * ikut memuat perendernya. Bila sintaksnya berubah, ubah di KEDUA tempat:
- * konstanta ini dan PANDUAN_TULIS di lib/markdown.tsx.
- */
-const SINTAKS_TULIS: Array<{ kode: string; arti: string }> = [
-  { kode: "# Paragraf", arti: "Paragraf pembuka, huruf lebih besar" },
-  { kode: "## Sub-judul", arti: "Judul bagian, masuk Daftar Isi" },
-  { kode: "### Sub-sub", arti: "Judul bagian tingkat tiga" },
-  { kode: "**tebal**", arti: "Huruf tebal" },
-  { kode: "*miring*", arti: "Huruf miring" },
-  { kode: "`kode`", arti: "Kode sebaris" },
-  { kode: "[teks](url)", arti: "Tautan, luar atau dalam situs" },
-  { kode: "- butir", arti: "Daftar berbutir" },
-  { kode: "1. butir", arti: "Daftar bernomor" },
-  { kode: "> kutipan", arti: "Kutipan" },
-  { kode: "![alt](url)", arti: "Gambar di tengah isi" },
-  { kode: "---", arti: "Garis pemisah" },
-]
 
 function SeoFields({
   metaTitle, onMetaTitle, metaDescription, onMetaDescription,
@@ -2662,23 +2680,32 @@ function TimModal({ open, initial, onClose, onSaved, onError }: {
           <Textarea value={form.bio} onChange={v => set("bio", v)} placeholder="Menangani pengembangan web dan mobile…" />
         </Field>
 
-        <ImageUploadField value={form.photo_url} onChange={v => set("photo_url", v)} onTrackChange={trackImageChange} folder="tim" label="Foto Profil (JPG/PNG/WebP/GIF/SVG)" />
+        {/* Foto, tautan sosial, dan pengaturan tampil dikelompokkan supaya
+            form tetap ringkas. Yang hampir selalu diisi hanya nama, jabatan,
+            dan bio. */}
+        <BagianLipat
+          label="Foto, Sosial & Tampilan"
+          ringkas={`${form.photo_url ? "ada foto" : "tanpa foto"}${form.github_url || form.linkedin_url || form.instagram_url ? " · ada tautan sosial" : ""} · ${form.status} · urutan ${form.order_num}`}
+        >
+          <ImageUploadField value={form.photo_url} onChange={v => set("photo_url", v)} onTrackChange={trackImageChange} folder="tim" label="Foto Profil (JPG/PNG/WebP/GIF/SVG)" />
 
-        <div className="space-y-2.5">
-          <p className="text-[9.5px] font-bold uppercase tracking-widest text-white/25">Social Links (opsional)</p>
-          <Field label="GitHub URL"><Input value={form.github_url} onChange={v => set("github_url", v)} placeholder="https://github.com/username" /></Field>
-          <Field label="LinkedIn URL"><Input value={form.linkedin_url} onChange={v => set("linkedin_url", v)} placeholder="https://linkedin.com/in/username" /></Field>
-          <Field label="Instagram URL"><Input value={form.instagram_url} onChange={v => set("instagram_url", v)} placeholder="https://instagram.com/username" /></Field>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Hierarki / Urutan Tampil" hint="Angka 1 = posisi teratas (pemimpin), angka lebih besar di bawahnya">
-            <input type="number" value={form.order_num} onChange={e => set("order_num", Number(e.target.value))}
-              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
-          </Field>
-          <Field label="Status">
-            <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active: tampil" }, { value: "draft", label: "Draft: tersembunyi" }]} />
-          </Field>
-        </div>
+          <div className="space-y-3">
+            <p className="text-[9.5px] font-bold uppercase tracking-widest text-white/25">Tautan Sosial (opsional)</p>
+            <Field label="GitHub URL"><Input value={form.github_url} onChange={v => set("github_url", v)} placeholder="https://github.com/username" /></Field>
+            <Field label="LinkedIn URL"><Input value={form.linkedin_url} onChange={v => set("linkedin_url", v)} placeholder="https://linkedin.com/in/username" /></Field>
+            <Field label="Instagram URL"><Input value={form.instagram_url} onChange={v => set("instagram_url", v)} placeholder="https://instagram.com/username" /></Field>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Hierarki / Urutan Tampil" hint="Angka 1 = posisi teratas (pemimpin), angka lebih besar di bawahnya">
+              <input type="number" value={form.order_num} onChange={e => set("order_num", Number(e.target.value))}
+                className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
+            </Field>
+            <Field label="Status" hint="Draft disembunyikan dari halaman tim.">
+              <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active: tampil" }, { value: "draft", label: "Draft: tersembunyi" }]} />
+            </Field>
+          </div>
+        </BagianLipat>
       </div>
       <ModalFooter>
         <button onClick={handleClose} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-white/40 border border-white/[0.08] hover:text-white/70 hover:border-white/20 transition-all disabled:opacity-50">Batal</button>
@@ -2883,63 +2910,63 @@ function BeritaModal({ open, initial, kategori, labelKategori, allBerita, onClos
 
         <Field label="Ringkasan" hint="Tampil di kartu daftar berita dan dipakai sebagai meta description bila kosong">
           <Textarea value={form.excerpt} onChange={v => set("excerpt", v)} placeholder="Bagaimana data lapangan yang dikumpulkan bersama warga desa diubah menjadi basis data spasial…" />
+          {form.body.trim() && (
+            <button
+              type="button"
+              onClick={() => set("excerpt", ringkasDariIsi(form.body))}
+              className="mt-1.5 inline-flex items-center gap-1 text-[10.5px] font-medium text-powder/70 hover:text-powder transition-colors"
+            >
+              <Wand2 size={11} />
+              Ambil dari isi artikel
+            </button>
+          )}
         </Field>
 
         <ImageUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="berita" label="Gambar Artikel (JPG/PNG/WebP/GIF/SVG)" />
 
         <Field
           label="Isi Artikel"
-          hint='Awali paragraf pembuka dengan "# ", sub-judul dengan "## ", dan pisahkan tiap bagian dengan satu baris kosong. Daftar penanda lengkap ada di bawah kotak ini.'
+          hint='Pakai tombol di atas kotak tulis untuk mengatur bentuk tulisan. Tidak perlu menulis penanda apa pun secara manual. Tab "Pratinjau" menampilkan hasilnya persis seperti yang dilihat pembaca.'
         >
-          <textarea
+          <EditorIsi
             value={form.body}
-            onChange={e => set("body", e.target.value)}
-            rows={14}
-            placeholder={"# Paragraf pembuka artikel Anda di sini.\n\n## Sub-judul pertama\n\nIsi paragraf berikutnya, boleh **tebal**, *miring*, atau `kode`.\n\n- Butir daftar pertama\n- Butir daftar kedua\n\n> Kutipan penting\n\n## Sub-judul kedua\n\nIsi paragraf lagi."}
-            className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] leading-relaxed text-white placeholder:text-white/20 outline-none focus:border-powder/40 transition-colors resize-y font-mono"
+            onChange={v => set("body", v)}
+            onUsulWaktuBaca={m => set("read_minutes", String(m))}
           />
         </Field>
 
-        {/* Daftar penanda penulisan. Ditampilkan di dalam form, bukan hanya di
-            halaman publik, supaya penulis tidak perlu membuka artikelnya dulu
-            untuk tahu penandanya. */}
-        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Penanda Penulisan</span>
-          <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
-            {SINTAKS_TULIS.map(t => (
-              <div key={t.kode} className="flex items-baseline gap-2.5">
-                <code className="text-[10.5px] font-mono font-bold text-powder bg-powder/10 px-1.5 py-0.5 rounded shrink-0 min-w-[6.5rem]">{t.kode}</code>
-                <span className="text-[10.5px] text-white/40 leading-snug">{t.arti}</span>
-              </div>
-            ))}
+        {/* Kolom yang jarang diubah dikelompokkan supaya form tetap ringkas.
+            Waktu baca bisa diisi sekali klik dari tombol di editor isi. */}
+        <BagianLipat
+          label="Detail & Publikasi"
+          ringkas={`${form.author || "tanpa penulis"} · ${form.published_at} · ${form.status}${form.tags.trim() ? " · ada tag" : ""}`}
+        >
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Penulis"><Input value={form.author} onChange={v => set("author", v)} placeholder="Tim GIS SAYBA ARC" /></Field>
+            <Field label="Tanggal Terbit">
+              <input type="date" value={form.published_at} onChange={e => set("published_at", e.target.value)}
+                className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
+            </Field>
           </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Penulis"><Input value={form.author} onChange={v => set("author", v)} placeholder="Tim GIS SAYBA ARC" /></Field>
-          <Field label="Tanggal Terbit">
-            <input type="date" value={form.published_at} onChange={e => set("published_at", e.target.value)}
-              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
-          </Field>
-        </div>
+          <div className="grid grid-cols-3 gap-3">
+            <Field label="Waktu Baca (mnt)" hint="Tombol di editor isi mengisi ini otomatis.">
+              <input type="number" min={1} value={form.read_minutes} onChange={e => set("read_minutes", e.target.value)}
+                className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
+            </Field>
+            <Field label="Jumlah Dibaca">
+              <input type="number" min={0} value={form.views} onChange={e => set("views", e.target.value)}
+                className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
+            </Field>
+            <Field label="Status" hint="Draft disembunyikan dari publik.">
+              <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} />
+            </Field>
+          </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <Field label="Waktu Baca (mnt)">
-            <input type="number" min={1} value={form.read_minutes} onChange={e => set("read_minutes", e.target.value)}
-              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
+          <Field label="Tag (1 per baris)" hint="Kata kunci internal untuk pengelompokan dan pencarian.">
+            <Textarea value={form.tags} onChange={v => set("tags", v)} placeholder={"ArcGIS\nSurvei Lapangan\nTata Ruang"} />
           </Field>
-          <Field label="Jumlah Dibaca">
-            <input type="number" min={0} value={form.views} onChange={e => set("views", e.target.value)}
-              className="w-full bg-[#2d3733] border border-white/[0.07] rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-powder/40 transition-colors" />
-          </Field>
-          <Field label="Status">
-            <Select value={form.status} onChange={v => set("status", v)} options={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "archived", label: "Archived" }]} />
-          </Field>
-        </div>
-
-        <Field label="Tag (1 per baris)">
-          <Textarea value={form.tags} onChange={v => set("tags", v)} placeholder={"ArcGIS\nSurvei Lapangan\nTata Ruang"} />
-        </Field>
+        </BagianLipat>
 
         {/* ── Sorotan Berita (nomor 1, 2, 3) ──
             Nomor 1 tampil sebagai kartu besar paling atas di halaman /berita
@@ -3170,7 +3197,7 @@ function PromoModal({ open, initial, nextOrder, onClose, onSaved, onError }: {
       <div className="px-4 py-4 space-y-3.5 overflow-y-auto max-h-[75vh]">
         <ImageUploadField value={form.image_url} onChange={v => set("image_url", v)} onTrackChange={trackImageChange} folder="promo" label="Gambar Banner (JPG/PNG/WebP/GIF/SVG)" />
         <p className="text-[10.5px] text-white/30 -mt-1.5 leading-relaxed">
-          Rasio <span className="text-white/50">16 : 9</span> (contoh 1600 × 900 px). Rasio ini dipakai sama persis di ponsel dan desktop, jadi tampilannya tidak berubah. Gambar tampil utuh tanpa lapisan gelap, tanpa teks, dan tanpa tombol di atasnya: pastikan teksnya sudah ada di dalam gambar. Unggah gambar yang rasionya memang 16 : 9 supaya tidak terpotong di bagian tepi.
+          Rasio <span className="text-white/50">3 : 1</span> (contoh 2400 × 800 px). Rasio ini dipakai sama persis di ponsel dan desktop, jadi tampilannya tidak berubah. Gambar tampil utuh tanpa lapisan gelap, tanpa teks, dan tanpa tombol di atasnya: pastikan teksnya sudah ada di dalam gambar. Unggah gambar yang rasionya memang 3 : 1 supaya tidak terpotong di bagian tepi.
         </p>
 
         <Field label="Teks Alternatif (alt)" hint="Deskripsi gambar untuk pembaca layar dan SEO">
