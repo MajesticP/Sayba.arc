@@ -96,7 +96,7 @@ export default async function PortfolioSlugPage({ params }: Props) {
       <div className="flex-1">
         {/* Breadcrumb: panel tipis tersendiri, jadi ia juga bagian dari
             tumpukan lembar, bukan bilah yang menempel di tepi layar. */}
-        <BoardSection id="breadcrumb" className="pb-0" panelClassName="py-3">
+        <BoardSection id="breadcrumb" className="pb-0" panelClassName="py-3 panel-tanpa-bilah" dots={false}>
           <div className="panel-pad pt-0">
             <nav className="flex items-center gap-1.5 text-[12.5px] text-slate-brand flex-wrap" aria-label="Breadcrumb">
               <Link href="/" className="hover:text-navy transition-colors">Beranda</Link>

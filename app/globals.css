@@ -511,9 +511,15 @@
   .board-slot { padding-left: 72px; padding-right: 72px; }
 }
 
-/* Bilah judul panel: strip tipis di bagian atas, tempat titik jendela
-   berada. Fungsinya memisahkan kepala panel dari isinya, seperti bilah
-   judul jendela. Warnanya sangat tipis supaya tidak menjadi bidang kedua. */
+/* Bilah judul panel: strip di bagian atas, tempat titik jendela berada.
+   Fungsinya memisahkan kepala panel dari isinya, seperti bilah judul jendela.
+
+   Warnanya sengaja diturunkan satu tingkat dari isi panel (bukan cuma garis
+   tipis): pada latar putih, strip yang hampir sewarna dengan isinya tidak
+   terbaca sama sekali, sehingga kepala panel menyatu dengan isinya dan titik
+   jendelanya terlihat melayang tanpa tempat berpijak. Yang dipakai tetap
+   selisih terang — bukan garis berwarna — supaya sesuai prinsip pencahayaan
+   di situs ini. */
 .board-panel::before {
   content: "";
   position: absolute;
@@ -538,11 +544,18 @@
       rgba(255, 255, 255, 0.95) 1px,
       transparent 1px
     ),
-    linear-gradient(to bottom, rgba(17, 42, 70, 0.035), rgba(17, 42, 70, 0.012));
-  border-bottom: 1px solid rgba(17, 42, 70, 0.06);
+    linear-gradient(to bottom, rgba(17, 42, 70, 0.06), rgba(17, 42, 70, 0.028));
+  border-bottom: 1px solid rgba(17, 42, 70, 0.10);
+  /* Tingginya mengikuti tinggi panel. Pada panel pendek (bilah breadcrumb,
+     tinggi hanya ~90px), bilah setinggi 50px menutupi lebih dari separuh
+     panel dan terbaca sebagai kepala yang terlalu berat. Batas 42% menjaga
+     proporsinya, sedangkan batas bawahnya (30px) menjamin titik jendela
+     (berakhir di 24px) tidak keluar dari bilah. */
+  height: clamp(30px, 42%, 40px);
 }
 @media (min-width: 768px) {
-  .board-panel::before { height: 50px; }
+  /* Batas bawah 34px karena di layar lebar titik jendela berakhir di 29px. */
+  .board-panel::before { height: clamp(34px, 42%, 50px); }
 }
 .board-panel-dark::before {
   background:
@@ -555,6 +568,14 @@
     linear-gradient(to bottom, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
   border-bottom-color: rgba(255, 255, 255, 0.08);
 }
+
+/* Panel rapat tanpa bilah judul: untuk bilah bantu setinggi satu baris
+   (breadcrumb) yang isinya memang mulai dari tepi atas. Panel seperti ini
+   tidak punya "kepala" yang perlu dipisahkan dari isinya, jadi bilahnya
+   justru menimpa teksnya — sudah diukur: teks mulai di y=13px sedangkan
+   bilahnya setinggi 38px. Titik jendelanya ikut dimatikan lewat prop
+   `dots={false}`, karena titik itu menandai lembar kerja, bukan bilah bantu. */
+.panel-tanpa-bilah::before { display: none; }
 
 /* Titik jendela di pojok panel. Menandai panel sebagai lembar kerja yang
    bisa dipindah di atas meja: satu titik memakai warna aksen supaya panel
