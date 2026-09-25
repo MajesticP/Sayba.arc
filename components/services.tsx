@@ -41,12 +41,11 @@ export default function Services({
   const items = unggulan.length > 0 ? unggulan : allLayanan
 
   return (
-    <BoardSection id="layanan" labelledBy="layanan-heading">
-      {/* Pita kepala: label, judul, dan keterangan bagian. Latarnya satu tingkat
-          lebih gelap dari panel supaya terbaca sebagai kepala bagian, bukan
-          menyatu dengan daftar layanan di bawahnya. */}
-      <div className="kepala-bagian">
-        <p className="text-[12px] font-bold text-orange-text mb-2">Layanan</p>
+    <BoardSection id="layanan" labelledBy="layanan-heading" panelClassName="panel-top-pad">
+      <div className="panel-pad">
+
+        <div className="mb-6 md:mb-9">
+          <p className="text-[12px] font-bold text-orange-text mb-2">Layanan</p>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
               <h2 id="layanan-heading" className="text-[22px] leading-tight md:text-[34px] font-bold text-navy">
@@ -65,9 +64,8 @@ export default function Services({
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
             </Link>
           </div>
-      </div>
+        </div>
 
-      <div className="panel-pad pt-6 md:pt-8">
         <CarouselLayanan items={items} depts={depts} />
 
         <div className="mt-7 md:mt-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-ice-line">

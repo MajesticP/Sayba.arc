@@ -57,14 +57,12 @@ export default function NewsHighlight({
     kategori.find((k) => k.slug.toLowerCase() === slug.toLowerCase())
 
   return (
-    <BoardSection id="berita" aria-labelledby="berita-heading">
-      {/* Pita kepala: label, judul, dan keterangan bagian. Latarnya satu tingkat
-          lebih gelap dari panel supaya terbaca sebagai kepala bagian, bukan
-          menyatu dengan daftar berita di bawahnya. */}
-      <div className="kepala-bagian">
+    <BoardSection id="berita" aria-labelledby="berita-heading" panelClassName="panel-top-pad">
+      <div className="panel-pad">
+
         <div
           ref={header.ref}
-          className={`transition-all duration-700 ease-out ${
+          className={`mb-6 md:mb-10 transition-all duration-700 ease-out ${
             header.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
@@ -87,9 +85,7 @@ export default function NewsHighlight({
             </Link>
           </div>
         </div>
-      </div>
 
-      <div className="panel-pad pt-6 md:pt-8">
         {/* Di ponsel kartu digulir mendatar dengan lebar 84% supaya kartu
             berikutnya tetap mengintip, jadi jelas masih ada lanjutannya. */}
         <div

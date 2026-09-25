@@ -461,31 +461,6 @@
     0 36px 68px -40px rgba(17, 42, 70, 0.42);
 }
 
-/* ── Kepala bagian di dalam panel ──
-   Label kecil + judul + keterangan yang mengetuai satu bagian. Latarnya
-   diturunkan satu tingkat dari panel supaya kepala bagian terbaca sebagai
-   bidang tersendiri, bukan menyatu dengan isi di bawahnya — tanpa pemisah
-   ini, judul bagian dan daftar isinya terlihat sebagai satu hamparan putih
-   yang sama, dan mata tidak menemukan tempat berhenti. */
-.kepala-bagian {
-  background-color: var(--ice-dim);
-  border-bottom: 1px solid #c3cfe0;
-  /* Padding atas sengaja sebesar panel-top-pad: pita kepala ini menyerap
-     ruang titik jendela, sehingga membentang sampai tepi atas panel. Kalau
-     tidak, akan ada celah putih di atas pita dan kepalanya terlihat melayang,
-     bukan mengetuai panelnya. */
-  padding: 52px 20px 20px;
-}
-@media (min-width: 640px) {
-  .kepala-bagian { padding-left: 28px; padding-right: 28px; }
-}
-@media (min-width: 768px) {
-  .kepala-bagian { padding-top: 68px; padding-bottom: 26px; }
-}
-@media (min-width: 1024px) {
-  .kepala-bagian { padding-left: 40px; padding-right: 40px; }
-}
-
 /* ── Kartu di dalam panel ──
    Kartu berlatar putih di atas panel yang juga putih hampir tidak terlihat
    batasnya: yang tersisa hanya garis tepi tipis, dan pada layar biasa garis
