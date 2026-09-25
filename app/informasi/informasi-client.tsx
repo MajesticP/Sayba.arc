@@ -306,7 +306,7 @@ export default function InformasiClient({ initialArticles, kategori }: Props) {
                 <PageTransition key={article.id} delay={Math.min(i, 8) * 40}>
                   <Link
                     href={`/informasi/${article.slug}`}
-                    className="group flex items-start gap-4 p-4 md:p-5 bg-white hover:bg-ice-dim/60 transition-colors"
+                    className="group flex items-start gap-4 p-4 md:p-5 bg-ice-dim/40 hover:bg-ice-dim/70 transition-colors"
                   >
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-2.5 flex-wrap mb-1">
@@ -465,7 +465,7 @@ function DocumentCard({ article, cat }: { article: Informasi; cat: KategoriItem 
     <TiltCard max={4} lift={3} className="h-full">
     <Link
       href={`/informasi/${article.slug}`}
-      className="kartu-sorot kartu-angkat group flex flex-col h-full bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange transition-all duration-200"
+      className="kartu-sorot kartu-angkat kartu-putih group flex flex-col h-full overflow-hidden hover:border-orange transition-all duration-200"
     >
       <span className="block h-1 w-full" style={{ backgroundColor: cat.color }} aria-hidden="true" />
 

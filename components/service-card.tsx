@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ArrowRight, ImageIcon } from "lucide-react"
 import TiltCard from "@/components/tilt-card"
 import { isGambarContoh } from "@/lib/image-path"
+import { gambarAman } from "@/lib/gambar"
 import type { Layanan } from "@/lib/database.types"
 
 /**
@@ -30,17 +31,11 @@ import type { Layanan } from "@/lib/database.types"
  * semua item dan jendela carousel tetap pas berisi dua kartu.
  */
 
-/** Link Google Drive → proxy gambar lokal, sama seperti berita/informasi */
+/** Gambar kartu → URL yang pasti bisa ditampilkan, lewat modul bersama. */
 export function gdriveToImg(url: string | null): string | null {
   // Path gambar contoh dari versi lama diperlakukan sebagai "belum ada gambar".
   if (url && isGambarContoh(url)) return null
-  if (!url) return null
-  if (url.startsWith("/api/gdrive-img")) return url
-  const fileMatch = url.match(/\/d\/([\w-]+)/)
-  if (fileMatch) return `/api/gdrive-img?id=${fileMatch[1]}`
-  const idMatch = url.match(/[?&]id=([\w-]+)/)
-  if (idMatch) return `/api/gdrive-img?id=${idMatch[1]}`
-  return url
+  return gambarAman(url)
 }
 
 export default function ServiceCard({
@@ -64,7 +59,7 @@ export default function ServiceCard({
     <TiltCard max={4} lift={3}>
       <Link
         href={`/services/${item.slug}`}
-        className="kartu-sorot kartu-angkat group flex flex-row items-stretch bg-white rounded-xl md:rounded-2xl border border-ice-line overflow-hidden hover:border-orange transition-all duration-200"
+        className="kartu-sorot kartu-angkat kartu-putih group flex flex-row items-stretch overflow-hidden hover:border-orange transition-all duration-200"
         style={{ height: "var(--kartu-h)" }}
       >
         {/* Garis aksen departemen di tepi kiri. Tipis saja: penanda, bukan hiasan. */}

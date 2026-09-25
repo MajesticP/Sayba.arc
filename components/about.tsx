@@ -85,7 +85,7 @@ export default function About({ data }: { data: AboutData }) {
             className={`transition-all duration-700 ease-out ${right.inView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"}`}
             style={{ transitionDelay: "150ms" }}
           >
-            <div className="bg-white rounded-2xl border border-ice-line p-5 md:p-8 h-full flex flex-col">
+            <div className="kartu-putih p-5 md:p-8 h-full flex flex-col">
               <div>
                 <span className="inline-block text-[11px] font-bold text-orange-text uppercase tracking-widest mb-2">Tentang Kami</span>
                 <h2 id="about-heading" className="text-[21px] md:text-[30px] font-bold text-navy leading-tight">{data.title}</h2>

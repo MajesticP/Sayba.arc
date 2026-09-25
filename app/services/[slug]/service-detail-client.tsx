@@ -247,7 +247,7 @@ export default function ServiceDetailClient({ service, deptLabel, categoryLabel,
                     <Link
                       key={o.id}
                       href={`/services/${o.slug}`}
-                      className="group flex items-center gap-4 bg-white rounded-xl border border-ice-line p-4 hover:border-orange transition-colors"
+                      className="kartu-putih group flex items-center gap-4 p-4 hover:border-orange transition-colors"
                     >
                       <span className="relative w-14 h-14 rounded-lg overflow-hidden bg-ice-dim shrink-0">
                         {img ? (

@@ -263,7 +263,7 @@ export default function NewsList({
                         <Link
                           key={item.id}
                           href={`/berita/${item.slug}`}
-                          className="kartu-sorot kartu-angkat group flex gap-3.5 bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange transition-all duration-200 p-3"
+                          className="kartu-sorot kartu-angkat kartu-putih group flex gap-3.5 overflow-hidden hover:border-orange transition-all duration-200 p-3"
                         >
                           {img ? (
                             <span className="relative w-24 sm:w-28 aspect-square rounded-xl overflow-hidden bg-ice-dim shrink-0">
@@ -353,7 +353,7 @@ export default function NewsList({
                     <TiltCard max={4} lift={3}>
                     <Link
                       href={`/berita/${article.slug}`}
-                      className="kartu-sorot kartu-angkat group flex flex-col sm:flex-row gap-4 md:gap-5 bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange transition-all duration-200 p-3 sm:p-4"
+                      className="kartu-sorot kartu-angkat kartu-putih group flex flex-col sm:flex-row gap-4 md:gap-5 overflow-hidden hover:border-orange transition-all duration-200 p-3 sm:p-4"
                     >
                       {/* Foto 4:3 di kiri pada layar lebar */}
                       {img && (

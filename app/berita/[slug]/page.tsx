@@ -271,7 +271,7 @@ export default async function BeritaDetailPage({ params }: PageProps) {
                 <Link
                   key={item.id}
                   href={`/berita/${item.slug}`}
-                  className="group flex flex-col bg-white rounded-2xl border border-ice-line overflow-hidden hover:border-orange transition-all duration-200"
+                  className="kartu-putih group flex flex-col overflow-hidden hover:border-orange transition-all duration-200"
                 >
                   <div className="relative w-full aspect-[16/10] overflow-hidden bg-ice-dim">
                     {/* eslint-disable-next-line @next/next/no-img-element */}

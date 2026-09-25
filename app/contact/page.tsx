@@ -48,7 +48,7 @@ export default function ContactPage() {
                     <a href={item.href}
                       target={item.href.startsWith("http") ? "_blank" : undefined}
                       rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                      className="kartu-sorot flex items-center justify-start gap-3.5 p-4 md:p-5 bg-white rounded-2xl border border-ice-line hover:border-orange/45 transition-all duration-300 group">
+                      className="kartu-sorot kartu-putih flex items-center justify-start gap-3.5 p-4 md:p-5 hover:border-orange/45 transition-all duration-300 group">
                       <div className="w-8 h-8 md:w-11 md:h-11 rounded-lg md:rounded-xl bg-ice-dim flex items-center justify-center flex-shrink-0 group-hover:bg-orange/20 transition-colors">
                         <DynamicIcon name={item.icon} color="#f07a26" size={16} />
                       </div>

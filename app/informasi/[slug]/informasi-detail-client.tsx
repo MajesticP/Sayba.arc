@@ -148,7 +148,7 @@ export default function InformasiDetailClient({ article, related, heroImg, categ
       <BoardSection dark id="kepala-informasi" panelClassName="relative overflow-hidden">
         <CuttingBoardBackground tone="dark" />
 
-        <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 lg:px-10 pt-20 pb-9 md:pt-28 md:pb-14">
+        <div className="relative z-10 max-w-3xl mx-auto px-5 sm:px-8 lg:px-10 pt-20 pb-10 md:pt-28 md:pb-14">
           <PageTransition>
             {/* Breadcrumb */}
             <nav className="flex items-center gap-1.5 text-[11.5px] mb-5 flex-wrap" style={{ color: "rgba(244,246,249,0.65)" }} aria-label="Breadcrumb">
@@ -162,11 +162,13 @@ export default function InformasiDetailClient({ article, related, heroImg, categ
             <div className="flex items-center flex-wrap gap-2.5 mb-4">
               {/* Chip kategori: tint warna kategori + teks navy supaya selalu lolos
                   WCAG AA apa pun warna yang dipilih admin di database. */}
+              {/* Bentuk dan ukurannya disamakan dengan badge kategori di halaman
+                  Berita: keduanya menandai hal yang sama, jadi tidak ada alasan
+                  terlihat berbeda. */}
               <span
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold uppercase tracking-wider"
-                style={{ backgroundColor: "rgba(244,246,249,0.10)", color: ICE, border: "1px solid rgba(244,246,249,0.18)" }}
+                className="inline-block px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider text-ice"
+                style={{ boxShadow: `inset 0 0 0 1.5px ${catColor}` }}
               >
-                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: catColor }} aria-hidden="true" />
                 {catLabel}
               </span>
               <span className="inline-flex items-center gap-1.5 text-[11.5px]" style={{ color: "rgba(244,246,249,0.65)" }}>

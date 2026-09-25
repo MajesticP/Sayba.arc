@@ -25,6 +25,9 @@
   /* ── Turunan ice: latar pembeda & garis ── */
   --ice-dim: #ebeff5;   /* section pembeda (sedikit lebih gelap) */
   --ice-line: #d8e0ea;  /* garis pemisah di latar terang */
+  /* Area menjorok di dalam panel putih. Dipakai untuk bidang yang harus
+     terbaca sebagai bagian terpisah, bukan menyatu dengan panelnya. */
+  --ice-sunken: #e1e8f2;
 
   /* ── Permukaan panel melayang ──
      Meja dan lembar kerja sengaja dibedakan nada: meja lebih gelap, panel
@@ -230,6 +233,7 @@
   --color-ice: var(--ice);
   --color-ice-dim: var(--ice-dim);
   --color-ice-line: var(--ice-line);
+  --color-ice-sunken: var(--ice-sunken);
   --color-slate-brand: var(--slate);
 
   /* ── Alias lama: menjaga 18 komponen tetap bekerja saat migrasi ──
@@ -455,6 +459,24 @@
     0 1px 2px rgba(17, 42, 70, 0.10),
     0 14px 34px -20px rgba(17, 42, 70, 0.55),
     0 36px 68px -40px rgba(17, 42, 70, 0.42);
+}
+
+/* ── Kartu di dalam panel ──
+   Kartu berlatar putih di atas panel yang juga putih hampir tidak terlihat
+   batasnya: yang tersisa hanya garis tepi tipis, dan pada layar biasa garis
+   itu hilang. Latarnya diturunkan satu tingkat ke ice-dim supaya kartunya
+   terbaca sebagai bidang terpisah, sementara elemen putih DI DALAM kartu
+   (gambar, tombol, kolom input) justru jadi lebih menonjol. */
+.kartu-putih {
+  background-color: var(--ice-dim);
+  /* Garis tepi dibuat lebih tegas dari --ice-line biasa. Pada latar yang sudah
+     diturunkan, garis tipis warnanya nyaris sama dengan latarnya sehingga
+     tepinya menghilang di layar yang kecerahannya rendah. */
+  border: 1px solid #c3cfe0;
+  border-radius: 16px;
+}
+@media (min-width: 768px) {
+  .kartu-putih { border-radius: 20px; }
 }
 
 /* Jarak atas area meja. Header adalah kapsul yang mengambang di atas

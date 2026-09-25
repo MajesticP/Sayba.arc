@@ -59,7 +59,7 @@ export default async function AboutPage() {
       <BoardSection id="misi-visi" panelClassName="panel-top-pad">
         <div className="panel-pad">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            <div className="bg-white rounded-2xl p-5 md:p-8 border border-ice-line">
+            <div className="kartu-putih p-5 md:p-8">
               <div className="w-9 h-9 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-ice-dim flex items-center justify-center mb-3 md:mb-5">
                 <svg className="w-4 h-4 md:w-6 md:h-6 text-slate-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

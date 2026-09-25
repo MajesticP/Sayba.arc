@@ -1,27 +1,27 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { ArrowLeft, ArrowRight } from "lucide-react"
+import { ArrowLeft, ArrowRight, Check } from "lucide-react"
 import type { ProcessStep } from "@/lib/database.types"
 
 /**
- * ProcessFlow: alur proses kerja layanan, dengan satu tahap aktif pada satu waktu.
+ * ProcessFlow: alur proses kerja layanan, satu tahap aktif pada satu waktu.
  *
- * Cara kerjanya:
- *  - Lingkaran nomor 1–6 bisa diklik. Yang aktif membesar dan berwarna penuh;
- *    yang sudah dilewati berwarna oranye muda. Nomornya selalu terlihat, supaya
- *    pembaca tahu ia sedang di tahap keberapa — bukan hanya "sudah lewat".
- *  - Tombol kiri/kanan (dan tombol panah di papan tunjuk) memindahkan tahap
- *    aktif. Bisa juga digeser mendatar di layar sentuh.
- *  - Penjelasan tahap aktif ditampilkan bergantian dengan animasi halus, jadi
- *    pembaca fokus pada satu tahap, bukan membaca enam blok sekaligus.
- *  - Garis penghubung ikut terisi mengikuti kemajuan, sehingga arah alurnya
- *    terbaca sekilas.
+ * Bentuknya mengikuti stepper standar: lingkaran yang sudah dilewati berisi
+ * centang, yang sedang aktif berisi titik, dan yang belum berisi nomornya.
+ * Ketiganya SAMA BESAR — ukuran yang berbeda membuat deretannya terlihat
+ * goyah, dan mata membaca "lingkaran besar" sebagai hal lain, bukan sebagai
+ * tahap yang sedang berjalan.
+ *
+ * Cara memakainya:
+ *  - Lingkaran bisa diklik; tombol kiri/kanan dan geser mendatar juga jalan.
+ *  - Penjelasan tahap aktif berganti dengan animasi halus, jadi pembaca fokus
+ *    pada satu tahap, bukan membaca enam blok sekaligus.
+ *  - Garis penghubung terisi mengikuti kemajuan.
  *
  * Alur berjalan sendiri setelah masuk layar, lalu BERHENTI di tahap terakhir.
- * Tidak mengulang: alur kerja bukan iklan berputar, dan mengulangnya terus
- * justru mengganggu. Menekan tombol mana pun menghentikan gerak sendiri,
- * supaya pembaca yang sedang membaca tidak digeser paksa.
+ * Tidak mengulang: alur kerja bukan iklan berputar. Menekan tombol mana pun
+ * menghentikan gerak sendiri, supaya pembaca tidak digeser paksa.
  *
  * Bila admin belum mengisi `process_steps`, dipakai 6 tahap bawaan.
  *
@@ -117,7 +117,6 @@ export default function ProcessFlow({ steps }: { steps?: ProcessStep[] }) {
   const maju = aktif < items.length - 1
   const durasi = kurangiGerak ? "duration-0" : "duration-500"
   const durasiIsi = kurangiGerak ? "duration-0" : "duration-300"
-  const langkah = items.length > 1 ? aktif / (items.length - 1) : 1
 
   return (
     <section
@@ -145,7 +144,7 @@ export default function ProcessFlow({ steps }: { steps?: ProcessStep[] }) {
 
       <div
         ref={ref}
-        className="relative rounded-2xl border border-ice-line bg-white p-5 md:p-8 overflow-hidden"
+        className="relative rounded-2xl border border-ice-line bg-ice-dim p-5 md:p-8 overflow-hidden"
         onTouchStart={awalSentuh}
         onTouchEnd={akhirSentuh}
       >
@@ -153,49 +152,78 @@ export default function ProcessFlow({ steps }: { steps?: ProcessStep[] }) {
         <div className="cutting-grid absolute inset-0 pointer-events-none" aria-hidden="true" />
 
         <div className="relative">
-          {/* ── Deretan nomor ── */}
+          {/* ── Deretan lingkaran ── */}
           <div className="relative">
-            {/* Garis dasar: selalu ada, tipis */}
-            <span
-              aria-hidden="true"
-              className="absolute left-[22px] right-[22px] top-[22px] h-px bg-ice-line hidden sm:block"
-            />
-            {/* Garis kemajuan: mengisi mengikuti tahap aktif */}
-            <span
-              aria-hidden="true"
-              className={`absolute left-[22px] top-[21px] h-[2px] bg-orange transition-all ease-out ${durasi} hidden sm:block`}
-              style={{ width: `calc((100% - 44px) * ${langkah})` }}
-            />
-
             <ol
               className="relative grid list-none p-0 m-0 gap-3 sm:gap-2"
-              style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
+              style={{
+                gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))`,
+                // Jarak antar kolom dipakai dua kali: sebagai celah grid, dan
+                // oleh garis penghubung untuk menghitung panjangnya. Nilainya
+                // harus sama dengan `sm:gap-2` di kelas, kalau tidak garisnya
+                // berhenti sebelum pusat lingkaran berikutnya.
+                ...({ "--celah": "8px" } as React.CSSProperties),
+              }}
             >
               {items.map((step, i) => {
                 const ini = i === aktif
                 const lewat = i < aktif
                 return (
-                  <li key={i} className="flex flex-col items-center text-center min-w-0">
+                  <li key={i} className="relative flex flex-col items-center text-center min-w-0">
+                    {/* Garis ke lingkaran berikutnya, digambar OLEH lingkaran ini.
+                        Cara ini membuat garis selalu mulai dan berakhir tepat di
+                        pusat lingkaran, berapa pun jumlah tahap dan selebar apa
+                        pun celah antar kolomnya. Perhitungan persen terhadap
+                        wadah sebelumnya meleset beberapa piksel karena celah
+                        grid tidak ikut terhitung — dan melesetnya terbaca
+                        sebagai deretan yang tidak simetris. */}
+                    {i < items.length - 1 && (
+                      <>
+                        <span
+                          aria-hidden="true"
+                          className="absolute h-px bg-ice-line hidden sm:block"
+                          style={{ top: 21, left: "50%", right: "calc(-50% - var(--celah))" }}
+                        />
+                        <span
+                          aria-hidden="true"
+                          className={`absolute h-[2px] bg-orange origin-left transition-transform ease-out ${durasi} hidden sm:block`}
+                          style={{
+                            top: 20,
+                            left: "50%",
+                            right: "calc(-50% - var(--celah))",
+                            transform: `scaleX(${i < aktif ? 1 : 0})`,
+                          }}
+                        />
+                      </>
+                    )}
+
                     <button
                       type="button"
                       onClick={() => pindah(i)}
                       aria-label={`Tahap ${i + 1}: ${step.title}`}
                       aria-current={ini ? "step" : undefined}
                       className={`relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 text-[13px] font-bold tabular-nums transition-all ease-out ${durasi} ${
-                        ini
-                          ? "border-orange bg-orange text-white scale-110 shadow-[0_4px_14px_rgba(240,122,38,0.35)]"
-                          : lewat
-                            ? "border-orange/40 bg-orange/15 text-orange-text font-bold"
-                            : "border-ice-line bg-white text-slate-brand hover:border-orange/50 hover:text-orange-text"
+                        ini || lewat
+                          ? "border-orange bg-orange text-white"
+                          : "border-ice-line bg-white text-slate-brand hover:border-orange/50 hover:text-orange-text"
                       }`}
                     >
-                      {i + 1}
+                      {/* Isi lingkaran mengikuti keadaan: centang (sudah lewat),
+                          titik (sedang aktif), angka (belum sampai). Lingkaran
+                          ketiganya sama besar, jadi deretannya tetap rata. */}
+                      {lewat ? (
+                        <Check className="w-4 h-4" aria-hidden="true" />
+                      ) : ini ? (
+                        <span className="block h-2.5 w-2.5 rounded-full bg-white" aria-hidden="true" />
+                      ) : (
+                        i + 1
+                      )}
                     </button>
 
                     {/* Judul tahap di bawah nomor: hanya di layar lebar. Di layar
                         sempit, enam judul berdesakan dan saling menempel; judul
                         tahap aktif sudah tampil di kotak penjelasan di bawahnya,
-                        jadi di sini cukup nomornya saja. */}
+                        jadi di sini cukup lingkarannya saja. */}
                     <span
                       className={`mt-2.5 hidden sm:block text-[12.5px] leading-snug transition-colors ${durasiIsi} ${
                         ini ? "font-bold text-navy" : "font-medium text-slate-brand"
@@ -209,9 +237,12 @@ export default function ProcessFlow({ steps }: { steps?: ProcessStep[] }) {
             </ol>
           </div>
 
-          {/* ── Penjelasan tahap aktif ── */}
-          <div className="mt-6 md:mt-7 rounded-xl border border-ice-line bg-ice-dim/60 overflow-hidden">
-            <div className="flex items-center gap-3 px-4 md:px-5 py-2.5 border-b border-ice-line bg-white/70">
+          {/* ── Penjelasan tahap aktif ──
+              Latarnya sengaja lebih gelap dari panel putih. Sebagai bidang yang
+              sama-sama terang, kotak ini dulu menyatu dengan panelnya sehingga
+              batasnya tidak terbaca. */}
+          <div className="mt-6 md:mt-7 rounded-xl border border-[#c3cfe0] bg-ice-sunken overflow-hidden">
+            <div className="flex items-center gap-3 px-4 md:px-5 py-2.5 border-b border-ice-line">
               <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-orange-text min-w-0">
                 <span
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-orange text-white text-[10.5px] tabular-nums"
@@ -253,13 +284,15 @@ export default function ProcessFlow({ steps }: { steps?: ProcessStep[] }) {
             </div>
           </div>
 
-          {/* Titik kemajuan: hanya di layar sempit, tempat deretan nomor berdesakan */}
+          {/* Titik kemajuan: hanya di layar sempit, tempat deretan lingkaran
+              berdesakan. Semua titik sama besar supaya deretannya rata; yang
+              aktif dibedakan warnanya, bukan ukurannya. */}
           <div className="mt-4 flex items-center justify-center gap-1.5 sm:hidden" aria-hidden="true">
             {items.map((_, i) => (
               <span
                 key={i}
-                className={`h-1.5 rounded-full transition-all ${durasiIsi} ${
-                  i === aktif ? "w-5 bg-orange" : i < aktif ? "w-1.5 bg-orange/45" : "w-1.5 bg-ice-line"
+                className={`h-1.5 w-1.5 rounded-full transition-colors ${durasiIsi} ${
+                  i === aktif ? "bg-orange" : i < aktif ? "bg-orange/45" : "bg-ice-line"
                 }`}
               />
             ))}

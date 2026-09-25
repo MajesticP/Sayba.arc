@@ -85,7 +85,7 @@ export default function InformasiHighlight({
               <TiltCard max={3} lift={3}>
                 <Link
                   href={`/informasi/${article.slug}`}
-                  className="kartu-sorot group grid grid-cols-[auto_1fr] md:grid-cols-[auto_1fr_auto] items-start gap-4 md:gap-6 rounded-xl md:rounded-2xl border border-ice-line bg-white px-4 md:px-6 py-4 md:py-5 transition-all duration-300 hover:border-orange/45 hover:bg-ice-dim/60"
+                  className="kartu-sorot kartu-putih group grid grid-cols-[auto_1fr] md:grid-cols-[auto_1fr_auto] items-start gap-4 md:gap-6 px-4 md:px-6 py-4 md:py-5 transition-all duration-300 hover:border-orange/45"
                 >
                   <span className="flex items-center gap-3 pt-0.5">
                     <span className="text-[12px] font-bold text-slate-brand tabular-nums w-6">
