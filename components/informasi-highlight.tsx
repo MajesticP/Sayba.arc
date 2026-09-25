@@ -41,12 +41,14 @@ export default function InformasiHighlight({
     kategori.find((k) => k.slug.toLowerCase() === slug.toLowerCase())?.label ?? slug
 
   return (
-    <BoardSection id="informasi" labelledBy="informasi-heading" panelClassName="panel-top-pad">
-      <div className="panel-pad">
-
+    <BoardSection id="informasi" labelledBy="informasi-heading">
+      {/* Pita kepala: label, judul, dan keterangan bagian. Latarnya satu tingkat
+          lebih gelap dari panel supaya terbaca sebagai kepala bagian, bukan
+          menyatu dengan daftar dokumen di bawahnya. */}
+      <div className="kepala-bagian">
         <div
           ref={header.ref}
-          className={`mb-6 md:mb-10 transition-all duration-700 ease-out ${
+          className={`transition-all duration-700 ease-out ${
             header.inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
@@ -69,7 +71,9 @@ export default function InformasiHighlight({
             </Link>
           </div>
         </div>
+      </div>
 
+      <div className="panel-pad pt-6 md:pt-8">
         <div className="flex items-center gap-2.5 mb-3">
           <h3 className="text-[15px] md:text-[17px] font-bold text-navy">Dokumen terbaru</h3>
           <span className="text-[11px] font-bold text-slate-brand px-2 py-0.5 rounded-full bg-ice-dim tabular-nums">
